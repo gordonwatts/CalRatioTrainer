@@ -1,0 +1,14 @@
+[project]
+name = "cal_ratio_trainer"
+version = "0.1.0"
+description = "Train a CalRatio RNN"
+license = { text = "MIT" }
+authors = [{ name = "The ATLAS CalRatio Group" }]
+
+dependencies = ["pydantic<2.0"]
+
+[project.optional-dependencies]
+test = ["black", "flake8"]
+
+[project.scripts]
+cr_trainer = "cal_ratio_trainer.trainer:main"
