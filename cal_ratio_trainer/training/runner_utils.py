@@ -1,6 +1,10 @@
 import logging
 from typing import Tuple
+
+import numpy as np
+
 from cal_ratio_trainer.config import TrainingConfig
+from cal_ratio_trainer.training.deepJet_train_keras import train_llp
 from cal_ratio_trainer.training.model_input.jet_input import JetInput
 from cal_ratio_trainer.training.model_input.model_input import ModelInput
 
@@ -21,26 +25,25 @@ def training_runner_util(training_parameters: TrainingConfig):
         track_input_adversary,
     ) = initialize_model(training_parameters)
 
-    # # Train model
-    # # return dirname to put in same dir as kfold
-    # roc_scores, dir_name = train_llp(
-    #     training_params,
-    #     model_to_do,
-    #     args.useGPU2,
-    #     kfold,
-    #     constit_input,
-    #     track_input,
-    #     MSeg_input,
-    #     jet_input,
-    #     constit_input_adversary,
-    #     track_input_adversary,
-    #     MSeg_input_adversary,
-    #     jet_input_adversary,
-    #     skipTraining=skip_training,
-    # )
+    # Train model
+    roc_scores, dir_name = train_llp(
+        training_parameters,
+        model_to_do,
+        constit_input,
+        track_input,
+        MSeg_input,
+        jet_input,
+        constit_input_adversary,
+        track_input_adversary,
+        MSeg_input_adversary,
+        jet_input_adversary,
+    )
 
-    # # Summarize performance metrics
-    # print("\nEstimated AUC %.3f (%.3f)" % (np.mean(roc_scores), np.std(roc_scores)))
+    # Summarize performance metrics``
+    print("\nEstimated AUC %.3f (%.3f)" % (np.mean(roc_scores), np.std(roc_scores)))
+    logging.info(
+        "\nEstimated AUC %.3f (%.3f)" % (np.mean(roc_scores), np.std(roc_scores))
+    )
     # roc_results.append(roc_scores)
     # model_files.append(dir_name)
 

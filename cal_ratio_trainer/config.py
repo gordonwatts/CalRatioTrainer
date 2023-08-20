@@ -25,6 +25,9 @@ class TrainingConfig(BaseModel):
     mH_parametrization: Optional[bool] = False
     mS_parametrization: Optional[bool] = False
 
+    # The path to the main training data file (signal, qcd, and bib)
+    main_file: Optional[Path] = None
+
 
 def _load_config_from_file(p: Path) -> TrainingConfig:
     """Load a TrainingConfig from a file, without taking into account defaults."""

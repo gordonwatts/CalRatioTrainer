@@ -13,3 +13,6 @@ filters_cnn_track: [64, 32, 32, 16]
 nodes_track_lstm: 10
 filters_cnn_MSeg: [32, 16, 8]
 nodes_MSeg_lstm: 5
+
+# Default main file to the small test file so we get *something*
+main_file: "fork_it"

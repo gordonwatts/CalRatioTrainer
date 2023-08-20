@@ -12,3 +12,7 @@ test = ["black", "flake8", "pytest", "codecov", "pytest-cov"]
 
 [project.scripts]
 cr_trainer = "cal_ratio_trainer.trainer:main"
+
+[tool.flake8]
+max-line-length = 99
+include = "./cal_ratio_trainer/*"
