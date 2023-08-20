@@ -74,3 +74,6 @@ profile_default/
 ipython_config.py
 
 # pyenv
+
+plots/
+keras_outputs/
