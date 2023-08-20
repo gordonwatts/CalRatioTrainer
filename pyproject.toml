@@ -5,10 +5,10 @@ description = "Train a CalRatio RNN"
 license = { text = "MIT" }
 authors = [{ name = "The ATLAS CalRatio Group" }]
 
-dependencies = ["pydantic<2.0"]
+dependencies = ["pydantic<2.0", "PyYAML", "pandas==1.1.5", "tensorflow==2.13.0"]
 
 [project.optional-dependencies]
-test = ["black", "flake8"]
+test = ["black", "flake8", "pytest", "codecov", "pytest-cov"]
 
 [project.scripts]
 cr_trainer = "cal_ratio_trainer.trainer:main"
