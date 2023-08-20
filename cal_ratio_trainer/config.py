@@ -1,7 +1,9 @@
 from pathlib import Path
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import AnyUrl, BaseModel
 import yaml
+
+from cal_ratio_trainer.training.utils import make_local
 
 
 class TrainingConfig(BaseModel):
@@ -26,7 +28,17 @@ class TrainingConfig(BaseModel):
     mS_parametrization: Optional[bool] = False
 
     # The path to the main training data file (signal, qcd, and bib)
-    main_file: Optional[Path] = None
+    # Use "file://xxx" to specify a local file.
+    main_training_file: Optional[AnyUrl] = None
+
+    data_cache: Optional[Path] = None
+
+    @property
+    def main_file(self):
+        assert (
+            self.data_cache is not None
+        ), "Must have a valid data_cache in configuration parameters"
+        return make_local(str(self.main_training_file), self.data_cache)
 
 
 def _load_config_from_file(p: Path) -> TrainingConfig:

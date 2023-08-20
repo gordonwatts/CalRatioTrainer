@@ -8,11 +8,24 @@ authors = [{ name = "The ATLAS CalRatio Group" }]
 dependencies = ["pydantic<2.0", "PyYAML", "pandas==1.1.5", "tensorflow==2.13.0"]
 
 [project.optional-dependencies]
-test = ["black", "flake8", "pytest", "codecov", "pytest-cov"]
+test = [
+    "black",
+    "flake8",
+    "pytest",
+    "codecov",
+    "pytest-cov",
+    "fsspec[ssh,http]",
+]
 
 [project.scripts]
 cr_trainer = "cal_ratio_trainer.trainer:main"
 
+[tool.setuptools.packages.find]
+include = ["cal_ratio_trainer"]
+
 [tool.flake8]
 max-line-length = 99
 include = "./cal_ratio_trainer/*"
+
+[build-system]
+requires = ["setuptools", "wheel"]
