@@ -50,7 +50,7 @@ def make_local(file_path: str, cache: Path) -> Path:
             with fsspec.open(file_path, "rb") as f_in:
                 # Read `f_in` in chunks of 1 MB and write them to `f_out`
                 while True:
-                    data = f_in.read(50 * 1024**2)
+                    data = f_in.read(50 * 1024**2)  # type: ignore
                     if not data:
                         break
                     f_out.write(data)
