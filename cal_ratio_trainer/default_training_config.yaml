@@ -13,11 +13,16 @@ filters_cnn_track: [64, 32, 32, 16]
 nodes_track_lstm: 10
 filters_cnn_MSeg: [32, 16, 8]
 nodes_MSeg_lstm: 5
+batch_size: 512
+epochs: 100
+lr_values: 0.0008
+hidden_layer_fraction: 1.0
 
 # Default main file to the small test file so we get *something*
 # Any fsspec filesystem can be used. The file will be cached locally first time it is
 # accessed.
-# main_training_file: "ssh://lxplus.cern.ch/eos/users/g/gwatts/public/calratio/processed_output_Lxy1500_Lz3000_3_slim05.pkl"
 main_training_file: "https://cernbox.cern.ch/remote.php/dav/public-files/32dqr9gSbmQdj3W/processed_output_Lxy1500_Lz3000_3_slim05.pkl"
+# The control region training file for use by the adversary
+cr_training_file: https://cernbox.cern.ch/remote.php/dav/public-files/r0GQeSVMuu0mDKX/processed_output_controlRegion_corrected.pkl
 
 data_cache: "/tmp/calratio_training"

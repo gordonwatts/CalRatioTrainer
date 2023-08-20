@@ -1,12 +1,18 @@
+from datetime import datetime
 import logging
 import os
+from pathlib import Path
 from typing import Tuple
 from cal_ratio_trainer.config import TrainingConfig
 import tensorflow as tf
 from cal_ratio_trainer.training.model_input.jet_input import JetInput
 from cal_ratio_trainer.training.model_input.model_input import ModelInput
 
-from cal_ratio_trainer.training.utils import create_directories
+from cal_ratio_trainer.training.utils import (
+    create_directories,
+    load_dataset,
+    match_adversary_weights,
+)
 
 
 def train_llp(
@@ -59,68 +65,28 @@ def train_llp(
     )
     logging.debug(f"Main directory for output: {dir_name}")
 
-    # # Write a file with some details of architecture, will append final stats at end
-    # # of
-    # # training
-    # print("\nWriting to file training details...\n")
-    # f = open("plots/" + dir_name + "/training_details.txt", "w+")
-    # f.write("File name\n")
-    # f.write(training_params.main_file + "\n")
-    # f.write("\nModel name\n")
-    # f.write(model_to_do + "\n")
-    # f.write("\nModelInput objects\n")
-    # f.write(str(vars(constit_input)) + "\n")
-    # f.write(str(vars(track_input)) + "\n")
-    # f.write(str(vars(MSeg_input)) + "\n")
-    # f.write(str(vars(jet_input)) + "\n")
-    # f.write("\nOther hyperparameters\n")
-    # f.write(
-    #     "frac = %s\nbatch_size = %s\nreg_value = %s\ndropout_value = %s\n"
-    #     "epochs = %s\nlearning_rate = %s\n"
-    #     "hidden_fraction = %s, \nadv_weight = %s\n"
-    #     % (
-    #         training_params.frac_list,
-    #         training_params.batch_size,
-    #         training_params.reg_values,
-    #         training_params.dropout_array,
-    #         training_params.epochs,
-    #         training_params.lr_values,
-    #         training_params.hidden_layer_fraction,
-    #         training_params.adversary_weight,
-    #     )
-    # )
+    # Write a file with some details of architecture, will append final stats at end
+    # of
+    # training
+    logging.debug("Writing to file training details...")
+    training_details_file = Path("plots/") / dir_name / "training_details.txt"
+    with training_details_file.open("wt+") as f_out:
+        print(f"Starting Training {datetime.now()}", file=f_out)
+        print(f"ModeL: {model_to_do}", file=f_out)
+        print(str(training_params), file=f_out)
 
-    # # Do Keras_setup
-    # print("\nSetting up Keras...\n")
-    # # keras_setup()
+    # Load dataset
+    logging.debug(f"Loading control region data file {training_params.cr_file}...")
+    df_adversary = load_dataset(training_params.cr_file)
+    assert training_params.frac_list is not None
+    df_adversary = match_adversary_weights(df_adversary)
+    # TODO: random seed isn't passed in here to `sample`, so it will
+    # be different each run.
+    df_adversary = df_adversary.sample(frac=training_params.frac_list)
 
-    # # Choose GPU
-    # if useGPU2:
-    #     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-    # else:
-    #     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-
-    # # Load dataset
-    # print("\nLoading up dataset " + training_params.cr_file + "...\n")
-    # df_adversary = load_dataset(training_params.cr_file)
-    # df_adversary = df_adversary.sample(frac=training_params.frac_list)
-    # # df_adversary = match_adversary_lengths(df_adversary, np.random.randint(100))
-    # df_adversary = match_adversary_lengths(df_adversary, 100)
-    # print("\nLoading up dataset " + training_params.main_file + "...\n")
-    # df = load_dataset(training_params.main_file)
-    # df = df.sample(frac=training_params.frac_list)
-    # """
-    # if len(df_adversary) >= len(df):
-    #     print("Matching Lengths of adversary and main inputs")
-    #     df, df_adversary = match_adv_main_lengths(df, df_adversary)
-    #     print(f"Adv length: {len(df_adversary)}, Main length:{len(df)}")
-    # """
-    # if kfold is None:
-    #     # random_state = np.random.randint(100)
-    #     random_state = 100
-    # else:
-    #     random_state = 100
-    #     # random_state = kfold.random_state
+    logging.debug(f"Loading up dataset {training_params.main_file}...")
+    df = load_dataset(training_params.main_file)
+    df = df.sample(frac=training_params.frac_list)
 
     # # Extract labels
     # (

@@ -23,6 +23,10 @@ class TrainingConfig(BaseModel):
     nodes_track_lstm: Optional[int]
     filters_cnn_MSeg: Optional[List[int]]
     nodes_MSeg_lstm: Optional[int]
+    batch_size: Optional[int]
+    epochs: Optional[int]
+    lr_values: Optional[float]
+    hidden_layer_fraction: Optional[float]
 
     mH_parametrization: Optional[bool] = False
     mS_parametrization: Optional[bool] = False
@@ -30,15 +34,23 @@ class TrainingConfig(BaseModel):
     # The path to the main training data file (signal, qcd, and bib)
     # Use "file://xxx" to specify a local file.
     main_training_file: Optional[AnyUrl] = None
+    cr_training_file: Optional[AnyUrl] = None
 
     data_cache: Optional[Path] = None
 
     @property
-    def main_file(self):
+    def main_file(self) -> Path:
         assert (
             self.data_cache is not None
         ), "Must have a valid data_cache in configuration parameters"
         return make_local(str(self.main_training_file), self.data_cache)
+
+    @property
+    def cr_file(self) -> Path:
+        assert (
+            self.data_cache is not None
+        ), "Must have a valid data_cache in configuration parameters"
+        return make_local(str(self.cr_training_file), self.data_cache)
 
 
 def _load_config_from_file(p: Path) -> TrainingConfig:

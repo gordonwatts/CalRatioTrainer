@@ -3,6 +3,8 @@ from datetime import datetime
 from pathlib import Path
 
 import fsspec
+import numpy as np
+import pandas as pd
 
 
 def create_directories(model_to_do: str, signal_filename: str) -> str:
@@ -57,3 +59,66 @@ def make_local(file_path: str, cache: Path) -> Path:
         tmp_file_path.rename(local_path)
         logging.warning(f"Done copying file {file_path}")
         return local_path
+
+
+def load_dataset(filename: Path) -> pd.DataFrame:
+    """Loads .pkl file, does some pre-processing and returns Pandas DataFrame"""
+    # Load dataset
+    df = pd.read_pickle(filename)
+    # Replace infs with nan's
+    df = df.replace([np.inf, -np.inf], np.nan)
+    # Replace nan's with 0
+    # TODO: this should be moved to writing the file out so we don't have to do this
+    # here.
+    df = df.fillna(0)
+
+    # Delete some 'virtual' variables only needed for pre-processing
+    # TODO: Remove these guys before writing them out too
+    del df["track_sign"]
+    del df["clus_sign"]
+
+    # Delete track_vertex vars in tracks
+    # TODO: this should be removed ahead of time.
+    vertex_delete = [col for col in df if col.startswith("nn_track_vertex_x")]
+    vertex_delete += [col for col in df if col.startswith("nn_track_vertex_y")]
+    vertex_delete += [col for col in df if col.startswith("nn_track_vertex_z")]
+    for item in vertex_delete:
+        del df[item]
+
+    # Print sizes of inputs for signal, qcd, and bib
+    logging.debug(df.head())
+    logging.info("Length of Signal is: " + str(df[df.label == 1].shape[0]))
+    logging.info("Length of QCD is: " + str(df[df.label == 0].shape[0]))
+    logging.info("Length of BIB is: " + str(df[df.label == 2].shape[0]))
+
+    return df
+
+
+def match_adversary_weights(df):
+    """Match the sum of weights of data/QCD in input df'
+
+    NOTE: The dataframe will be sorted with QCD and then Data,
+    so it would be good to shuffle (using DataFrame.sample)
+    or similar before using the data.
+
+    :param df: input dataframe
+    :param random_state: keep track of random seed
+    :return: returns dataframe with matching sum of mcEvent Weight
+    """
+    # TODO: could we speed this up by modifying things in place rather than
+    # splitting the two out into two different dataframes? Or just copying the one
+    # column?
+    qcd = df.loc[(df["label"] == 0)].copy()
+    data = df.loc[(df["label"] == 2)].copy()
+
+    qcd_weight_sum = np.sum(qcd["mcEventWeight"])
+    data_weight_sum = np.sum(data["mcEventWeight"])
+
+    # Reweight the QCD to match the data.
+    qcd.loc[:, "mcEventWeight"] = qcd.loc[:, "mcEventWeight"] * (
+        data_weight_sum / qcd_weight_sum
+    )
+
+    # Put them back together
+    df = pd.concat([qcd, data])
+    return df
