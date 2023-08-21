@@ -29,4 +29,4 @@ main_training_file: "https://cernbox.cern.ch/remote.php/dav/public-files/32dqr9g
 # The control region training file for use by the adversary
 cr_training_file: https://cernbox.cern.ch/remote.php/dav/public-files/r0GQeSVMuu0mDKX/processed_output_controlRegion_corrected.pkl
 
-data_cache: "/tmp/calratio_training"
+data_cache: "./calratio_training"
