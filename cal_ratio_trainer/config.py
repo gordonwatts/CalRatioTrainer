@@ -31,6 +31,12 @@ class TrainingConfig(BaseModel):
     mH_parametrization: Optional[bool] = False
     mS_parametrization: Optional[bool] = False
 
+    # Which sets of signal should we include in teh training?
+    # TODO: Make this part of the signal file prep - we need something more
+    # flexible about what data we include that a bunch of bools like this.
+    include_low_mass: Optional[bool] = False
+    include_high_mass: Optional[bool] = False
+
     # The path to the main training data file (signal, qcd, and bib)
     # Use "file://xxx" to specify a local file.
     main_training_file: Optional[AnyUrl] = None

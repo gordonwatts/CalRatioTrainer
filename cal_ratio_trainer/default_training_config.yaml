@@ -18,6 +18,10 @@ epochs: 100
 lr_values: 0.0008
 hidden_layer_fraction: 1.0
 
+# Low and high mass data sets included?
+include_low_mass: False
+include_high_mass: True
+
 # Default main file to the small test file so we get *something*
 # Any fsspec filesystem can be used. The file will be cached locally first time it is
 # accessed.

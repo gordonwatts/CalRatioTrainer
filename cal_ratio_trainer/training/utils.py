@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Optional
 
 import fsspec
 import numpy as np
@@ -121,4 +122,64 @@ def match_adversary_weights(df):
 
     # Put them back together
     df = pd.concat([qcd, data])
+    return df
+
+
+def low_or_high_pt_selection(
+    df: pd.DataFrame,
+    lowPt: bool,
+    highPt: bool,
+    random_state: Optional[Any] = None,
+):
+    """Only selects low mH (60, 125, 200) or high mH (400, 600, 1000) - DEPRECATED
+
+    :param df: input dataframe
+    :param lowPt: bool if including low M
+    :param highPt: bool if including high M
+    :param random_state: seed if we want to reproduce random shuffling
+    :return: dataframe with selected signal samples
+    """
+    if lowPt and not highPt:
+        signal = df.loc[
+            ((df["label"] == 1) & (df["llp_mH"] == 60))
+            | ((df["label"] == 1) & (df["llp_mH"] == 125))
+            | ((df["label"] == 1) & (df["llp_mH"] == 200))
+        ]
+        qcd = df.loc[
+            ((df["label"] == 0) & (df["llp_mH"] == 60))
+            | ((df["label"] == 0) & (df["llp_mH"] == 125))
+            | ((df["label"] == 0) & (df["llp_mH"] == 200))
+        ]
+        bib = df.loc[
+            ((df["label"] == 2) & (df["llp_mH"] == 60))
+            | ((df["label"] == 2) & (df["llp_mH"] == 125))
+            | ((df["label"] == 2) & (df["llp_mH"] == 200))
+        ]
+        del df
+        gc.collect()
+    elif highPt and not lowPt:
+        signal = df.loc[
+            ((df["label"] == 1) & (df["llp_mH"] == 400))
+            | ((df["label"] == 1) & (df["llp_mH"] == 600))
+            | ((df["label"] == 1) & (df["llp_mH"] == 1000))
+        ]
+        qcd = df.loc[
+            ((df["label"] == 0) & (df["llp_mH"] == 400))
+            | ((df["label"] == 0) & (df["llp_mH"] == 600))
+            | ((df["label"] == 0) & (df["llp_mH"] == 1000))
+        ]
+        bib = df.loc[
+            ((df["label"] == 2) & (df["llp_mH"] == 400))
+            | ((df["label"] == 2) & (df["llp_mH"] == 600))
+            | ((df["label"] == 2) & (df["llp_mH"] == 1000))
+        ]
+        del df
+        gc.collect()
+
+    if (lowPt and not highPt) or (highPt and not lowPt):
+        signal, qcd = match_pandas_length(signal, qcd)
+        signal, bib = match_pandas_length(signal, bib)
+        df = pd.concat([qcd, signal, bib])
+        df = df.sample(frac=1.0, random_state=random_state)
+        return df
     return df

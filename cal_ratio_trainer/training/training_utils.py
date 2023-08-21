@@ -1,8 +1,10 @@
 import logging
-from typing import Tuple, cast
+from typing import Optional, Tuple, cast
 
 import numpy as np
 import pandas as pd
+
+from cal_ratio_trainer.config import TrainingConfig
 
 
 def prepare_training_datasets(
@@ -77,3 +79,98 @@ def prepare_training_datasets(
         Z,
         Z_adversary,
     )
+
+
+class evaluationObject:
+    def __init__(self):
+        self.training_params: Optional[TrainingConfig] = None
+
+        # Values we track
+        self.all_significance = -1
+        self.all_auc = -1
+        self.all_aus = -1
+        self.qcd_significance = -1
+        self.qcd_aus = -1
+        self.bib_significance = -1
+        self.bib_aus = -1
+        self.mh60_significance = -1
+        self.mh60_auc = -1
+        self.mh60_aus = -1
+        self.mh125_significance = -1
+        self.mh125_auc = -1
+        self.mh125_aus = -1
+        self.mh200_significance = -1
+        self.mh200_auc = -1
+        self.mh200_aus = -1
+        self.mh400_significance = -1
+        self.mh400_auc = -1
+        self.mh400_aus = -1
+        self.mh600_significance = -1
+        self.mh600_auc = -1
+        self.mh600_aus = -1
+        self.mh1000_significance = -1
+        self.mh1000_auc = -1
+        self.mh1000_aus = -1
+
+    def fillObject_sOverB(self, label, value):
+        if "600" in label:
+            self.mh600_significance = value
+        elif "60" in label:
+            self.mh60_significance = value
+        elif "125" in label:
+            self.mh125_significance = value
+        elif "200" in label:
+            self.mh200_significance = value
+        elif "400" in label:
+            self.mh400_significance = value
+        elif "1000" in label:
+            self.mh1000_significance = value
+        elif "BIB" in label:
+            self.bib_significance = value
+        elif "QCD" in label:
+            self.qcd_significance = value
+        else:
+            self.all_significance = value
+
+    def fillObject_auc(self, label, value):
+        if "600" in label:
+            self.mh600_auc = value
+        elif "60" in label:
+            self.mh60_auc = value
+        elif "125" in label:
+            self.mh125_auc = value
+        elif "200" in label:
+            self.mh200_auc = value
+        elif "400" in label:
+            self.mh400_auc = value
+        elif "600" in label:
+            self.mh600_auc = value
+        elif "1000" in label:
+            self.mh1000_auc = value
+        else:
+            self.all_auc = value
+
+    def fillObject_aus(self, label, value):
+        if "600" in label:
+            self.mh600_aus = value
+        elif "60" in label:
+            self.mh60_aus = value
+        elif "125" in label:
+            self.mh125_aus = value
+        elif "200" in label:
+            self.mh200_aus = value
+        elif "400" in label:
+            self.mh400_aus = value
+        elif "600" in label:
+            self.mh600_aus = value
+        elif "1000" in label:
+            self.mh1000_aus = value
+        elif "BIB" in label:
+            self.bib_aus = value
+        elif "QCD" in label:
+            self.qcd_aus = value
+        else:
+            self.all_aus = value
+
+    def fillObject_params(self, training_params: TrainingConfig):
+        self.training_params = training_params

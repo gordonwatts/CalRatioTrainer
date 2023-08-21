@@ -9,6 +9,10 @@ def do_train(args):
     # Get the config loaded.
     c = load_config(args.config)
 
+    # Next, look at the arguments and see if anything should be changed.
+    if args.epochs is not None:
+        c.epochs = args.epochs
+
     training_runner_util(c)
 
 
@@ -28,6 +32,8 @@ def main():
         type=Path,
         help="Path to the config file to use for training",
     )
+    # Add all the training configuration options
+    parser_train.add_argument("--epochs", type=int, help="Number of epochs to train")
     parser_train.set_defaults(func=do_train)
 
     # Parse the command line arguments
