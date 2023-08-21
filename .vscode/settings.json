@@ -6,6 +6,8 @@
         "dataframe",
         "dataframes",
         "fillna",
+        "iloc",
+        "keras",
         "lstm",
         "ndarray",
         "Reweight",

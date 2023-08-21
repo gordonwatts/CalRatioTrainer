@@ -1,21 +1,24 @@
-from datetime import datetime
 import logging
 import os
+from datetime import datetime
 from pathlib import Path
 from typing import Tuple
-from cal_ratio_trainer.config import TrainingConfig
+
+import pandas as pd
 import tensorflow as tf
+from sklearn.model_selection import train_test_split
+
+from cal_ratio_trainer.config import TrainingConfig
 from cal_ratio_trainer.training.model_input.jet_input import JetInput
 from cal_ratio_trainer.training.model_input.model_input import ModelInput
 from cal_ratio_trainer.training.training_utils import (
     evaluationObject,
     prepare_training_datasets,
 )
-from sklearn.model_selection import train_test_split
-
 from cal_ratio_trainer.training.utils import (
     create_directories,
     load_dataset,
+    low_or_high_pt_selection_train,
     match_adversary_weights,
 )
 
@@ -65,6 +68,9 @@ def train_llp(
 
     # Setup directories for output.
     logging.debug("Setting up directories...")
+    # TODO: dir_name should be path(s) - rather than multiple directories
+    # which require the path to be known in other places and assumptions
+    # being made.
     dir_name = create_directories(
         model_to_do, os.path.split(os.path.splitext(training_params.main_file)[0])[1]
     )
@@ -318,37 +324,37 @@ def train_llp(
 
 
 def build_train_evaluate_model(
-    constit_input,
-    track_input,
-    MSeg_input,
-    jet_input,
-    X_train,
-    X_test,
-    y_train,
-    y_test,
-    mcWeights_train,
-    mcWeights_test,
-    weights_train,
-    weights_test,
-    Z_test,
-    Z_train,
-    constit_input_adversary,
-    track_input_adversary,
-    MSeg_input_adversary,
-    jet_input_adversary,
-    X_train_adversary,
-    X_test_adversary,
-    y_train_adversary,
-    y_test_adversary,
-    mcWeights_train_adversary,
-    mcWeights_test_adversary,
-    weights_train_adversary,
-    weights_test_adversary,
-    Z_test_adversary,
-    Z_train_adversary,
-    plt_model,
-    dir_name,
-    eval_object,
+    constit_input: ModelInput,
+    track_input: ModelInput,
+    MSeg_input: ModelInput,
+    jet_input: JetInput,
+    X_train: pd.DataFrame,
+    X_test: pd.DataFrame,
+    y_train: pd.DataFrame,
+    y_test: pd.DataFrame,
+    mcWeights_train: pd.Series,
+    mcWeights_test: pd.Series,
+    weights_train: pd.Series,
+    weights_test: pd.Series,
+    Z_test: pd.DataFrame,
+    Z_train: pd.DataFrame,
+    constit_input_adversary: ModelInput,
+    track_input_adversary: ModelInput,
+    MSeg_input_adversary: ModelInput,
+    jet_input_adversary: JetInput,
+    X_train_adversary: pd.DataFrame,
+    X_test_adversary: pd.DataFrame,
+    y_train_adversary: pd.DataFrame,
+    y_test_adversary: pd.DataFrame,
+    mcWeights_train_adversary: pd.Series,
+    mcWeights_test_adversary: pd.Series,
+    weights_train_adversary: pd.Series,
+    weights_test_adversary: pd.Series,
+    Z_test_adversary: pd.DataFrame,
+    Z_train_adversary: pd.DataFrame,
+    plt_model: bool,
+    dir_name: str,
+    eval_object: evaluationObject,
     training_params: TrainingConfig,
 ):
     """
@@ -358,6 +364,10 @@ def build_train_evaluate_model(
         - Does model training
         - Does model evaluation
     :return: ROC area under curve metric, and model accuracy metric
+
+    TODO: Note that we have the model, and then the adversary, with almost
+          identical arguments. Feels like we should be able to organize
+          this a bit better than a long list of arguments like this!
     """
     # Divide testing set into epoch-by-epoch validation and final evaluation sets
     # for the main data and the adversary.
@@ -402,6 +412,10 @@ def build_train_evaluate_model(
 
     low_mass = training_params.include_low_mass
     high_mass = training_params.include_high_mass
+    # TODO: these checks on not none are a mess - kill them
+    # and replace with better model than we currently have.
+    assert low_mass is not None
+    assert high_mass is not None
     (
         X_train,
         y_train,
