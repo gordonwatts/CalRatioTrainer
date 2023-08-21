@@ -33,3 +33,7 @@ def main():
     # Parse the command line arguments
     args = parser.parse_args()
     args.func(args)
+
+
+if __name__ == "__main__":
+    main()

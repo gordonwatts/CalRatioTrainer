@@ -7,6 +7,7 @@ from cal_ratio_trainer.config import TrainingConfig
 import tensorflow as tf
 from cal_ratio_trainer.training.model_input.jet_input import JetInput
 from cal_ratio_trainer.training.model_input.model_input import ModelInput
+from cal_ratio_trainer.training.training_utils import prepare_training_datasets
 
 from cal_ratio_trainer.training.utils import (
     create_directories,
@@ -88,20 +89,23 @@ def train_llp(
     df = load_dataset(training_params.main_file)
     df = df.sample(frac=training_params.frac_list)
 
-    # # Extract labels
-    # (
-    #     X,
-    #     X_adversary,
-    #     Y,
-    #     Y_adversary,
-    #     mcWeights,
-    #     mcWeights_adversary,
-    #     sig_weight,
-    #     weights,
-    #     weights_adversary,
-    #     Z,
-    #     Z_adversary,
-    # ) = prepare_training_datasets(df, df_adversary)
+    # Extract labels
+    # TODO: I do not trust how all the different weights come back, in particular,
+    # how they used to be entangled due to various weird views vs copies of the
+    # dataframes.
+    (
+        X,
+        X_adversary,
+        Y,
+        Y_adversary,
+        mcWeights,
+        mcWeights_adversary,
+        sig_weight,
+        weights,
+        weights_adversary,
+        Z,
+        Z_adversary,
+    ) = prepare_training_datasets(df, df_adversary)
 
     # """
     # debug check to see if columns are the same
