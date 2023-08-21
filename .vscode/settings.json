@@ -9,8 +9,11 @@
         "iloc",
         "keras",
         "lstm",
+        "mseg",
+        "multiclass",
         "ndarray",
         "Reweight",
-        "sklearn"
+        "sklearn",
+        "topocluster"
     ]
 }

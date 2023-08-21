@@ -1,4 +1,5 @@
-from typing import List
+from typing import List, Tuple
+
 from cal_ratio_trainer.training.model_input.model_input import ModelInput
 import pandas as pd
 from keras.layers import Dense, Input
@@ -29,8 +30,16 @@ class JetInput(ModelInput):
         )
 
     def extract_and_split_data(
-        self, X_train: int, X_val, X_test, Z_train, Z_val, Z_test, start, end
-    ):
+        self,
+        X_train: pd.DataFrame,
+        X_val: pd.DataFrame,
+        X_test: pd.DataFrame,
+        Z_train: pd.DataFrame,
+        Z_val: pd.DataFrame,
+        Z_test: pd.DataFrame,
+        start: str,
+        end: str,
+    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         train = X_train.loc[:, start:end]
         val = X_val.loc[:, start:end]
         test = X_test.loc[:, start:end]

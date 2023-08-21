@@ -3,8 +3,11 @@ from typing import Optional, Tuple, cast
 
 import numpy as np
 import pandas as pd
+from keras.utils import np_utils
 
 from cal_ratio_trainer.config import TrainingConfig
+from cal_ratio_trainer.training.model_input.jet_input import JetInput
+from cal_ratio_trainer.training.model_input.model_input import ModelInput
 
 
 def prepare_training_datasets(
@@ -174,3 +177,204 @@ class evaluationObject:
 
     def fillObject_params(self, training_params: TrainingConfig):
         self.training_params = training_params
+
+
+def prep_input_for_keras(
+    MSeg_input: ModelInput,
+    X_test: pd.DataFrame,
+    X_test_adversary: pd.DataFrame,
+    X_train: pd.DataFrame,
+    X_train_adversary: pd.DataFrame,
+    X_val: pd.DataFrame,
+    X_val_adversary: pd.DataFrame,
+    Z_test: pd.DataFrame,
+    Z_test_adversary: pd.DataFrame,
+    Z_train: pd.DataFrame,
+    Z_train_adversary: pd.DataFrame,
+    Z_val: pd.DataFrame,
+    Z_val_adversary: pd.DataFrame,
+    constit_input: ModelInput,
+    jet_input: JetInput,
+    track_input: ModelInput,
+    y_train: pd.DataFrame,
+    y_val: pd.DataFrame,
+) -> Tuple[
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    pd.DataFrame,
+    pd.DataFrame,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    pd.DataFrame,
+    pd.DataFrame,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    pd.DataFrame,
+    pd.DataFrame,
+    np.ndarray,
+    np.ndarray,
+    pd.DataFrame,
+    pd.DataFrame,
+]:
+    """Need inputs to be in very specific shapes for Conv1D+LSTM training
+
+    :param MSeg_input: muon segment format
+    :param X_test: testing set input, main jets
+    :param X_test_adversary: testing set input, CR jets
+    :param X_train: training set input, main jets
+    :param X_train_adversary: training set input, CR jets
+    :param X_val: validation set input, main jets
+    :param X_val_adversary: validation set input, CR jets
+    :param Z_test: Z for main jets, testing set
+    :param Z_test_adversary: Z for CR jets, testing set
+    :param Z_train: Z for main jets, training set
+    :param Z_train_adversary: Z for CR jets, training set
+    :param Z_val: Z for main jets, validation set
+    :param Z_val_adversary: Z for CR jets, validation set
+    :param constit_input: constituent/topocluster format
+    :param jet_input: jet format
+    :param track_input: track format
+    :param y_train: training set labels
+    :param y_val: validation set labels
+    :return:
+    """
+
+    # Convert labels to categorical (needed for multiclass training)
+    y_train = np_utils.to_categorical(y_train)
+    y_val = np_utils.to_categorical(y_val)
+
+    # Split X into track, MSeg, and constit inputs and reshape dataframes into
+    # shape expected by Keras. This is an ordered array, so each input is
+    # formatted as number of constituents x number of variables
+    logging.debug("Preparing constit data...")
+    (
+        X_train_constit,
+        X_val_constit,
+        X_test_constit,
+    ) = constit_input.extract_and_split_data(
+        X_train, X_val, X_test, Z_train, Z_val, Z_test, "clus_pt_0", "clus_time_"
+    )
+    (
+        X_train_constit_adversary,
+        X_val_constit_adversary,
+        X_test_constit_adversary,
+    ) = constit_input.extract_and_split_data(
+        X_train_adversary,
+        X_val_adversary,
+        X_test_adversary,
+        Z_train_adversary,
+        Z_val_adversary,
+        Z_test_adversary,
+        "clus_pt_0",
+        "clus_time_",
+    )
+
+    logging.debug("Preparing track data...")
+    X_train_track, X_val_track, X_test_track = track_input.extract_and_split_data(
+        X_train,
+        X_val,
+        X_test,
+        Z_train,
+        Z_val,
+        Z_test,
+        "nn_track_pt_0",
+        "nn_track_SCTHits_",
+    )
+    (
+        X_train_track_adversary,
+        X_val_track_adversary,
+        X_test_track_adversary,
+    ) = track_input.extract_and_split_data(
+        X_train_adversary,
+        X_val_adversary,
+        X_test_adversary,
+        Z_train_adversary,
+        Z_val_adversary,
+        Z_test_adversary,
+        "track_pT_0",
+        "track_SCTHits_",
+    )
+
+    logging.debug("Preparing MSeg data...")
+    X_train_MSeg, X_val_MSeg, X_test_MSeg = MSeg_input.extract_and_split_data(
+        X_train,
+        X_val,
+        X_test,
+        Z_train,
+        Z_val,
+        Z_test,
+        "nn_MSeg_etaPos_0",
+        "nn_MSeg_t0_",
+    )
+    (
+        X_train_MSeg_adversary,
+        X_val_MSeg_adversary,
+        X_test_MSeg_adversary,
+    ) = MSeg_input.extract_and_split_data(
+        X_train_adversary,
+        X_val_adversary,
+        X_test_adversary,
+        Z_train_adversary,
+        Z_val_adversary,
+        Z_test_adversary,
+        "MSeg_etaPos_0",
+        "MSeg_t0_",
+    )
+
+    logging.debug("Preparing jet data...")
+    X_train_jet, X_val_jet, X_test_jet = jet_input.extract_and_split_data(
+        X_train, X_val, X_test, Z_train, Z_val, Z_test, "jet_pt", "jet_phi"
+    )
+    (
+        X_train_jet_adversary,
+        X_val_jet_adversary,
+        X_test_jet_adversary,
+    ) = jet_input.extract_and_split_data(
+        X_train_adversary,
+        X_val_adversary,
+        X_test_adversary,
+        Z_train_adversary,
+        Z_val_adversary,
+        Z_test_adversary,
+        "jet_pT",
+        "jet_phi",
+    )
+
+    return (
+        X_test_MSeg,
+        X_test_MSeg_adversary,
+        X_test_constit,
+        X_test_constit_adversary,
+        X_test_jet,
+        X_test_jet_adversary,
+        X_test_track,
+        X_test_track_adversary,
+        X_train_MSeg,
+        X_train_MSeg_adversary,
+        X_train_constit,
+        X_train_constit_adversary,
+        X_train_jet,
+        X_train_jet_adversary,
+        X_train_track,
+        X_train_track_adversary,
+        X_val_MSeg,
+        X_val_MSeg_adversary,
+        X_val_constit,
+        X_val_constit_adversary,
+        X_val_jet,
+        X_val_jet_adversary,
+        X_val_track,
+        X_val_track_adversary,
+        y_train,
+        y_val,
+    )

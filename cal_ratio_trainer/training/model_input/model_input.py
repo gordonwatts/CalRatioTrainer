@@ -1,6 +1,9 @@
 import logging
 from typing import List, Tuple
 
+import pandas as pd
+import numpy as np
+
 
 class ModelInput:
     """
@@ -33,16 +36,28 @@ class ModelInput:
         self.mH_mS_parametrization = mH_mS_parametrization
 
     def extract_and_split_data(
-        self, X_train: int, X_val, X_test, Z_train, Z_val, Z_test, start, end
-    ) -> Tuple[int, int, int]:
+        self,
+        X_train: pd.DataFrame,
+        X_val: pd.DataFrame,
+        X_test: pd.DataFrame,
+        Z_train: pd.DataFrame,
+        Z_val: pd.DataFrame,
+        Z_test: pd.DataFrame,
+        start: str,
+        end: str,
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Extracts and splits up the data into training, validation, and testing inputs
         :return: training, validation, and testing variables
         """
-        train = X_train.loc[:, start : end + str(self.rows_max - 1)]  # noqa: E203
-        filter_Pixel = [col for col in train if "track_Pixel" in col]
-        filter_constitTime = [col for col in train if col.startswith("clus_time")]
-        filter_constitTimeZero = [col for col in train if col.startswith("clus_time_0")]
+        train = X_train.loc[
+            :, start : end + str(self.rows_max - 1)  # noqa
+        ]  # type: ignore
+        filter_Pixel = [col for col in train if "track_Pixel" in str(col)]
+        filter_constitTime = [col for col in train if str(col).startswith("clus_time")]
+        filter_constitTimeZero = [
+            col for col in train if str(col).startswith("clus_time_0")
+        ]
         filter_constitTimeOne = [col for col in train if col == "clus_time_1"]
         # TODO: Remove these next lines as it does not look like it is used.
         # A LOT OF THIS CODE APPEARS TO BE DEAD AS YOU COMMENT OUT MORE AND
@@ -65,14 +80,13 @@ class ModelInput:
             # train.loc[train[constit] > 0.4375,constit] = 1
             # train.loc[train[constit] <= 0.4375,constit] = -1
             pass
-        """
-        for mseg in filter_msegTime:
-            del train[mseg]
-        """
+
         val = X_val.loc[:, start : end + str(self.rows_max - 1)]  # noqa: E203
-        filter_Pixel = [col for col in val if "track_Pixel" in col]
-        filter_constitTime = [col for col in val if col.startswith("clus_time")]
-        filter_constitTimeZero = [col for col in val if col.startswith("clus_time_0")]
+        filter_Pixel = [col for col in val if "track_Pixel" in str(col)]
+        filter_constitTime = [col for col in val if str(col).startswith("clus_time")]
+        filter_constitTimeZero = [
+            col for col in val if str(col).startswith("clus_time_0")
+        ]
         filter_constitTimeOne = [col for col in val if "clus_time_1" == col]
         # filter_msegTime = [col for col in val if col.startswith("nn_MSeg_t0")]
         for pixel in filter_Pixel:
@@ -97,9 +111,11 @@ class ModelInput:
         """
         test = X_test.loc[:, start : end + str(self.rows_max - 1)]  # noqa: E203
         # temp_for_val = test[Z_test['eventNumber'] == 17787]
-        filter_Pixel = [col for col in test if "track_Pixel" in col]
-        filter_constitTime = [col for col in test if col.startswith("clus_time")]
-        filter_constitTimeZero = [col for col in test if col.startswith("clus_time_0")]
+        filter_Pixel = [col for col in test if "track_Pixel" in str(col)]
+        filter_constitTime = [col for col in test if str(col).startswith("clus_time")]
+        filter_constitTimeZero = [
+            col for col in test if str(col).startswith("clus_time_0")
+        ]
         filter_constitTimeOne = [col for col in test if col == "clus_time_1"]
         # filter_msegTime = [col for col in test if col.startswith("nn_MSeg_t0")]
         for pixel in filter_Pixel:
