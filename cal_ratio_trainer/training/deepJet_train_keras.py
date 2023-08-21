@@ -15,6 +15,7 @@ from cal_ratio_trainer.training.training_utils import (
     evaluationObject,
     prep_input_for_keras,
     prepare_training_datasets,
+    setup_model_architecture,
 )
 from cal_ratio_trainer.training.utils import (
     create_directories,
@@ -490,92 +491,84 @@ def build_train_evaluate_model(
         y_train,
         y_val,
     )
-    # print("DEBUG")
-    # print(X_train_jet.iloc[0])
-    # print(y_train[0])
-    # print("\nDone preparing data for model!!!\n")
-    # del X_train
-    # del X_val
-    # del X_test
-    # del Z_train
-    # del Z_val
-    # gc.collect()
 
-    # # Setup training inputs, outputs, and weights
-    # x_to_train = [X_train_constit, X_train_track, X_train_MSeg, X_train_jet.values]
-    # x_to_adversary = [
-    #     X_train_constit_adversary,
-    #     X_train_track_adversary,
-    #     X_train_MSeg_adversary,
-    #     X_train_jet_adversary.values,
-    # ]
-    # y_to_train = [y_train, y_train, y_train, y_train, y_train, y_train]
-    # y_to_train_adversary = [y_train_adversary]
-    # weights_to_train = [
-    #     weights_train.values,
-    #     weights_train.values,
-    #     weights_train.values,
-    #     weights_train.values,
-    #     weights_train.values,
-    #     weights_train.values,
-    # ]
-    # # Setup validation inputs, outputs, and weights
-    # x_to_validate = [X_val_constit, X_val_track, X_val_MSeg, X_val_jet.values]
-    # x_to_validate_adv = [
-    #     X_val_constit_adversary,
-    #     X_val_track_adversary,
-    #     X_val_MSeg_adversary,
-    #     X_val_jet_adversary.values,
-    # ]
-    # y_to_validate = [y_val, y_val, y_val, y_val, y_val, y_val]
-    # y_to_validate_adv = [y_val_adversary]
-    # weights_to_validate = [
-    #     weights_val.values,
-    #     weights_val.values,
-    #     weights_val.values,
-    #     weights_val.values,
-    #     weights_val.values,
-    #     weights_val.values,
-    # ]
-    # # Setup testing input, outputs, and weights
-    # x_to_test = [X_test_constit, X_test_track, X_test_MSeg, X_test_jet.values]
-    # x_to_test_adversary = [
-    #     X_test_constit_adversary,
-    #     X_test_track_adversary,
-    #     X_test_MSeg_adversary,
-    #     X_test_jet_adversary.values,
-    # ]
-    # weights_to_test = [
-    #     weights_test.values,
-    #     weights_test.values,
-    #     weights_test.values,
-    #     weights_test.values,
-    #     weights_test.values,
-    #     weights_test.values,
-    # ]
-    # y_to_test_adversary = [y_test_adversary]
+    logging.debug("Done preparing data for model")
 
-    # # Now to setup ML architecture
-    # print("\nSetting up model architecture...\n")
-    # (
-    #     original_model,
-    #     discriminator_model,
-    #     discriminator_out,
-    #     final_model,
-    # ) = setup_model_architecture(
-    #     constit_input,
-    #     track_input,
-    #     MSeg_input,
-    #     jet_input,
-    #     X_train_constit,
-    #     X_train_track,
-    #     X_train_MSeg,
-    #     X_train_jet,
-    #     x_to_adversary,
-    #     y_to_train_adversary,
-    #     weights_train_adversary.values,
-    #     training_params,
-    # )
+    # Setup training inputs, outputs, and weights
+    x_to_train = [X_train_constit, X_train_track, X_train_MSeg, X_train_jet.values]
+    x_to_adversary = [
+        X_train_constit_adversary,
+        X_train_track_adversary,
+        X_train_MSeg_adversary,
+        X_train_jet_adversary.values,
+    ]
+    y_to_train = [y_train, y_train, y_train, y_train, y_train, y_train]
+    y_to_train_adversary = [y_train_adversary]
+    weights_to_train = [
+        weights_train.values,
+        weights_train.values,
+        weights_train.values,
+        weights_train.values,
+        weights_train.values,
+        weights_train.values,
+    ]
+
+    # Setup validation inputs, outputs, and weights
+    x_to_validate = [X_val_constit, X_val_track, X_val_MSeg, X_val_jet.values]
+    x_to_validate_adv = [
+        X_val_constit_adversary,
+        X_val_track_adversary,
+        X_val_MSeg_adversary,
+        X_val_jet_adversary.values,
+    ]
+    y_to_validate = [y_val, y_val, y_val, y_val, y_val, y_val]
+    y_to_validate_adv = [y_val_adversary]
+    weights_to_validate = [
+        weights_val.values,
+        weights_val.values,
+        weights_val.values,
+        weights_val.values,
+        weights_val.values,
+        weights_val.values,
+    ]
+
+    # Setup testing input, outputs, and weights
+    x_to_test = [X_test_constit, X_test_track, X_test_MSeg, X_test_jet.values]
+    x_to_test_adversary = [
+        X_test_constit_adversary,
+        X_test_track_adversary,
+        X_test_MSeg_adversary,
+        X_test_jet_adversary.values,
+    ]
+    weights_to_test = [
+        weights_test.values,
+        weights_test.values,
+        weights_test.values,
+        weights_test.values,
+        weights_test.values,
+        weights_test.values,
+    ]
+    y_to_test_adversary = [y_test_adversary]
+
+    # Now to setup ML architecture
+    logging.debug("Setting up model architecture...")
+    (
+        original_model,
+        discriminator_model,
+        discriminator_out,
+        final_model,
+    ) = setup_model_architecture(
+        constit_input,
+        track_input,
+        MSeg_input,
+        jet_input,
+        X_train_constit,
+        X_train_track,
+        X_train_MSeg,
+        X_train_jet,
+        training_params,
+    )
+
     # # Show summary of model architecture
     # original_model.save(
     #     "keras_outputs/" + dir_name + "/model.h5"

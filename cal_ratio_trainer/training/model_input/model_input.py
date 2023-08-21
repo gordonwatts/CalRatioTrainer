@@ -1,8 +1,12 @@
 import logging
-from typing import List, Tuple
+from typing import Any, List, Tuple
 
 import pandas as pd
 import numpy as np
+from keras.layers import Dense, Dropout, LSTM, Input, Conv1D, GlobalAveragePooling1D
+from keras.regularizers import L1L2
+
+from cal_ratio_trainer.config import TrainingConfig
 
 
 class ModelInput:
@@ -241,3 +245,150 @@ class ModelInput:
         logging.info("Number of testing examples %.0f" % (test.shape[0]))
 
         return train, val, test
+
+    def init_keras_layers(
+        self,
+        shape: Any,
+        training_params: TrainingConfig,
+        activation_cnn: str = "relu",
+        activation_lstm: str = "softmax",
+    ):
+        """
+        Setup the Keras layers for individual ModelInput object
+        :return: input, output, and dense tensor variables
+        """
+        # TODO: Remove the `Any` in the arg list for shape.
+        # input to first model layer
+        input_tensor_cr = Input(
+            shape=shape, dtype="float32", name=self.name + "_input_cr"
+        )
+        input_tensor_adv = Input(
+            shape=shape, dtype="float32", name=self.name + "_input_adv"
+        )
+        output_tensor = None
+        dense_tensor = None
+
+        # check if model input has conv1d layers
+        assert training_params.reg_values is not None
+        if self.filters_cnn:
+            # init output
+            output_tensor = Conv1D(
+                filters=self.filters_cnn[0],
+                kernel_size=1,
+                activation=activation_cnn,
+                input_shape=shape,
+                kernel_regularizer=L1L2(
+                    l1=training_params.reg_values, l2=training_params.reg_values
+                ),
+            )
+            output_tensor_cr = output_tensor(input_tensor_cr)
+            output_tensor_adv = output_tensor(input_tensor_adv)
+
+            # iterate over conv1d layers
+            for filters in self.filters_cnn[1:]:
+                # add name to final layer
+                if filters == self.filters_cnn[-1]:
+                    output_tensor = Conv1D(
+                        filters=filters,
+                        kernel_size=1,
+                        activation=activation_cnn,
+                        name=self.name + "_final_conv1d",
+                        kernel_regularizer=L1L2(
+                            l1=training_params.reg_values, l2=training_params.reg_values
+                        ),
+                    )
+                    output_tensor_cr = output_tensor(output_tensor_cr)
+                    output_tensor_adv = output_tensor(output_tensor_adv)
+                    output_tensor = Dropout(training_params.dropout_array)
+                    output_tensor_cr = output_tensor(output_tensor_cr)
+                    output_tensor_adv = output_tensor(output_tensor_adv)
+                else:
+                    output_tensor = Conv1D(
+                        filters=filters,
+                        kernel_size=1,
+                        activation=activation_cnn,
+                        kernel_regularizer=L1L2(
+                            l1=training_params.reg_values, l2=training_params.reg_values
+                        ),
+                    )
+                    output_tensor_cr = output_tensor(output_tensor_cr)
+                    output_tensor_adv = output_tensor(output_tensor_adv)
+                    output_tensor = Dropout(training_params.dropout_array)
+                    output_tensor_cr = output_tensor(output_tensor_cr)
+                    output_tensor_adv = output_tensor(output_tensor_adv)
+
+            # check if model input has only conv1d layers
+            if not self.nodes_lstm:
+                output_tensor = GlobalAveragePooling1D()
+                output_tensor_cr = output_tensor(output_tensor_cr)
+                output_tensor_adv = output_tensor(output_tensor_adv)
+        else:
+            raise NotImplementedError("Network must have 1D layers")
+
+        # check if model input has an lstm layer
+        for i in range(self.lstm_layers):
+            if self.nodes_lstm:
+                if i == self.lstm_layers - 1:
+                    output_tensor = LSTM(
+                        self.nodes_lstm,
+                        kernel_regularizer=L1L2(
+                            l1=training_params.reg_values, l2=training_params.reg_values
+                        ),
+                    )
+                    output_tensor_cr = output_tensor(
+                        output_tensor_cr
+                        if output_tensor_cr is not None
+                        else input_tensor_cr
+                    )
+                    output_tensor_adv = output_tensor(
+                        output_tensor_adv
+                        if output_tensor_adv is not None
+                        else input_tensor_adv
+                    )
+                else:
+                    output_tensor = LSTM(
+                        self.nodes_lstm,
+                        return_sequences=True,
+                        kernel_regularizer=L1L2(
+                            l1=training_params.reg_values, l2=training_params.reg_values
+                        ),
+                    )
+                    output_tensor_cr = output_tensor(
+                        output_tensor_cr
+                        if output_tensor_cr is not None
+                        else input_tensor_cr
+                    )
+                    output_tensor_adv = output_tensor(
+                        output_tensor_adv
+                        if output_tensor_adv is not None
+                        else input_tensor_adv
+                    )
+
+            output_tensor = Dropout(training_params.dropout_array)
+            output_tensor_cr = output_tensor(output_tensor_cr)
+            output_tensor_adv = output_tensor(output_tensor_adv)
+
+        if not (self.nodes_lstm or self.filters_cnn):
+            print("\nNo Conv1D or LSTM layers in model architecture!\n")
+            # set output tensor equal to input tensor
+            output_tensor_cr = input_tensor_cr
+            output_tensor_adv = input_tensor_adv
+
+            raise NotImplementedError("Need either lstm or filters!")
+
+        else:
+            # Dense layer to track performance of layer
+            dense_tensor = Dense(
+                3, activation=activation_lstm, name=self.name + "_output"
+            )
+            dense_tensor_cr = dense_tensor(output_tensor_cr)
+            dense_tensor_adv = dense_tensor(output_tensor_adv)
+
+        return (
+            input_tensor_cr,
+            output_tensor_cr,
+            dense_tensor_cr,
+            input_tensor_adv,
+            output_tensor_adv,
+            dense_tensor_adv,
+        )

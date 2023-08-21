@@ -3,17 +3,23 @@
         "calratio",
         "clus",
         "constit",
+        "crossentropy",
         "dataframe",
         "dataframes",
+        "dtype",
         "fillna",
         "iloc",
         "keras",
         "lstm",
         "mseg",
         "multiclass",
+        "Nadam",
         "ndarray",
+        "regularizers",
+        "relu",
         "Reweight",
         "sklearn",
+        "softmax",
         "topocluster"
     ]
 }

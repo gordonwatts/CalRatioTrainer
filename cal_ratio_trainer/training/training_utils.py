@@ -3,6 +3,11 @@ from typing import Optional, Tuple, cast
 
 import numpy as np
 import pandas as pd
+from keras import metrics
+from keras.layers import BatchNormalization, Dense, Dropout, concatenate
+from keras.models import Model
+from keras.optimizers import Nadam
+from keras.regularizers import L1L2
 from keras.utils import np_utils
 
 from cal_ratio_trainer.config import TrainingConfig
@@ -378,3 +383,217 @@ def prep_input_for_keras(
         y_train,
         y_val,
     )
+
+
+def setup_model_architecture(
+    constit_input: ModelInput,
+    track_input: ModelInput,
+    MSeg_input: ModelInput,
+    jet_input: JetInput,
+    X_train_constit: np.ndarray,
+    X_train_track: np.ndarray,
+    X_train_MSeg: np.ndarray,
+    X_train_jet: pd.DataFrame,
+    training_params: TrainingConfig,
+) -> Tuple[Model, Model, Dense, Model]:
+    """Method that builds the model architecture and returns the model objects"""
+    # Set up inputs and outputs for Keras layers
+    # This sets up the layers specified in the ModelInput object i.e. Conv1D, LSTM
+
+    (
+        constit_input_tensor_cr,
+        constit_output_tensor_cr,
+        constit_dense_tensor_cr,
+        constit_input_tensor_adv,
+        constit_output_tensor_adv,
+        constit_dense_tensor_adv,
+    ) = constit_input.init_keras_layers(X_train_constit[0].shape, training_params)
+
+    (
+        track_input_tensor_cr,
+        track_output_tensor_cr,
+        track_dense_tensor_cr,
+        track_input_tensor_adv,
+        track_output_tensor_adv,
+        track_dense_tensor_adv,
+    ) = track_input.init_keras_layers(X_train_track[0].shape, training_params)
+    (
+        MSeg_input_tensor_cr,
+        MSeg_output_tensor_cr,
+        MSeg_dense_tensor_cr,
+        MSeg_input_tensor_adv,
+        MSeg_output_tensor_adv,
+        MSeg_dense_tensor_adv,
+    ) = MSeg_input.init_keras_layers(X_train_MSeg[0].shape, training_params)
+
+    # Set up layers for jet
+    (
+        jet_input_tensor_cr,
+        jet_output_tensor_cr,
+        jet_input_tensor_adv,
+        jet_output_tensor_adv,
+    ) = jet_input.init_keras_dense_input_output(X_train_jet.values[0].shape)
+    # Setup concatenation layer
+    concat_tensor_cr = concatenate(
+        [
+            constit_output_tensor_cr,
+            track_output_tensor_cr,
+            MSeg_output_tensor_cr,
+            jet_input_tensor_cr,
+        ]
+    )
+    concat_tensor_adv = concatenate(
+        [
+            constit_output_tensor_adv,
+            track_output_tensor_adv,
+            MSeg_output_tensor_adv,
+            jet_input_tensor_adv,
+        ]
+    )
+    # Setup Dense + Dropout layers
+
+    assert training_params.hidden_layer_fraction is not None
+    assert training_params.reg_values is not None
+    concat_tensor = Dense(
+        int(training_params.hidden_layer_fraction * 512),
+        activation="relu",
+        kernel_regularizer=L1L2(
+            l1=training_params.reg_values, l2=training_params.reg_values
+        ),
+    )
+    concat_tensor_cr = concat_tensor(concat_tensor_cr)
+    concat_tensor_adv = concat_tensor(concat_tensor_adv)
+
+    concat_tensor = Dropout(training_params.dropout_array)
+    concat_tensor_cr = concat_tensor(concat_tensor_cr)
+    concat_tensor_adv = concat_tensor(concat_tensor_adv)
+
+    concat_tensor = Dense(
+        int(training_params.hidden_layer_fraction * 64),
+        activation="relu",
+        kernel_regularizer=L1L2(
+            l1=training_params.reg_values, l2=training_params.reg_values
+        ),
+    )
+    concat_tensor_cr = concat_tensor(concat_tensor_cr)
+    concat_tensor_adv = concat_tensor(concat_tensor_adv)
+
+    concat_tensor = Dropout(training_params.dropout_array)
+    concat_tensor_cr = concat_tensor(concat_tensor_cr)
+    concat_tensor_adv = concat_tensor(concat_tensor_adv)
+
+    # Setup final layer
+    main_output_tensor = Dense(3, activation="softmax", name="main_output")
+    main_output_tensor_cr = main_output_tensor(concat_tensor_cr)
+    main_output_tensor_adv = main_output_tensor(concat_tensor_adv)
+
+    # For adversary
+    discriminator = BatchNormalization(name="adversary_norm_1")(main_output_tensor_adv)
+    discriminator = Dense(
+        24, name="adversary_1", activation="tanh", kernel_initializer="glorot_uniform"
+    )(discriminator)
+    discriminator = BatchNormalization(name="adversary_norm_2")(discriminator)
+    discriminator = Dense(
+        12, name="adversary_2", activation="tanh", kernel_initializer="glorot_uniform"
+    )(discriminator)
+    discriminator = BatchNormalization(name="adversary_norm_3")(discriminator)
+    discriminator = Dense(
+        6, name="adversary_3", activation="tanh", kernel_initializer="glorot_uniform"
+    )(discriminator)
+    discriminator = BatchNormalization(name="adversary_norm_4")(discriminator)
+    discriminator_out = Dense(
+        1,
+        activation="sigmoid",
+        name="adversary_out",
+        kernel_initializer="glorot_uniform",
+    )(discriminator)
+
+    # Setup training layers
+    layers_to_input = [
+        constit_input_tensor_cr,
+        track_input_tensor_cr,
+        MSeg_input_tensor_cr,
+        jet_input_tensor_cr,
+        constit_input_tensor_adv,
+        track_input_tensor_adv,
+        MSeg_input_tensor_adv,
+        jet_input_tensor_adv,
+    ]
+    layers_to_output = [main_output_tensor_cr, discriminator_out]
+
+    # Setup Model
+    model = Model(
+        inputs=layers_to_input, outputs=layers_to_output, name="original_model"
+    )
+    model_discriminator = Model(
+        inputs=[
+            constit_input_tensor_adv,
+            track_input_tensor_adv,
+            MSeg_input_tensor_adv,
+            jet_input_tensor_adv,
+        ],
+        outputs=discriminator_out,
+        name="discriminator_model",
+    )
+    model_final = Model(
+        inputs=[
+            constit_input_tensor_cr,
+            track_input_tensor_cr,
+            MSeg_input_tensor_cr,
+            jet_input_tensor_cr,
+        ],
+        outputs=main_output_tensor_cr,
+        name="final_model",
+    )
+
+    # Setup optimizer (N adam is good as it has decaying learning rate)
+    optimizer = Nadam(
+        lr=training_params.lr_values,
+        beta_1=0.9,
+        beta_2=0.999,
+        epsilon=1e-07,
+        schedule_decay=0.004,
+    )
+
+    # Compile discriminator Model
+    # TODO: don't we compile inside the main loop? Is this needed?
+    for layer_index_adv, layer_adv in enumerate(model_discriminator.layers):
+        layer_adv.trainable = "adversary" in layer_adv.name
+    model_discriminator.compile(
+        optimizer="SGD",
+        loss="binary_crossentropy",
+        metrics=[metrics.categorical_accuracy],
+    )
+
+    for layer_index, layer in enumerate(model.layers):
+        layer.trainable = "adversary" not in layer.name
+    # TODO: this next line was uncommented, but perhaps for debugging?
+    # n_gen_trainable = len(model.trainable_weights)
+
+    # Compile main Model
+    assert training_params.adversary_weight is not None
+    model.compile(
+        optimizer=optimizer,
+        loss=["categorical_crossentropy", "binary_crossentropy"],
+        metrics=[metrics.categorical_accuracy],
+        loss_weights=[1, -training_params.adversary_weight],
+    )
+
+    # Compile final Model
+    model_final = Model(
+        inputs=[
+            constit_input_tensor_cr,
+            track_input_tensor_cr,
+            MSeg_input_tensor_cr,
+            jet_input_tensor_cr,
+        ],
+        outputs=main_output_tensor_cr,
+    )
+    model_final.compile(
+        optimizer=optimizer,
+        loss=["categorical_crossentropy"],
+        metrics=[metrics.categorical_accuracy],
+    )
+
+    assert isinstance(discriminator_out, Dense)
+    return model, model_discriminator, discriminator_out, model_final
