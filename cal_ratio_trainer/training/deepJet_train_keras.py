@@ -8,6 +8,7 @@ import tensorflow as tf
 from cal_ratio_trainer.training.model_input.jet_input import JetInput
 from cal_ratio_trainer.training.model_input.model_input import ModelInput
 from cal_ratio_trainer.training.training_utils import prepare_training_datasets
+from sklearn.model_selection import train_test_split
 
 from cal_ratio_trainer.training.utils import (
     create_directories,
@@ -107,73 +108,50 @@ def train_llp(
         Z_adversary,
     ) = prepare_training_datasets(df, df_adversary)
 
-    # """
-    # debug check to see if columns are the same
-    # (alex) I think this is an unnecessary check
-    # """
-    # # X_cols = list(X.columns)
-    # # X_adv_cols = list(X_adversary.columns)
-    # # bool_list = list(map(lambda x, y: x == y, X_cols, X_adv_cols))
-    # # #X_bool_list = X[bool_list]
-    # # #X_adv_bool_list = X_adversary[bool_list]
-    # # if X_cols == X_adv_cols:
-    # #     print("X, X_adv columns are the same, good!!")
-    # # else:
-    # #     print("Warning: Columns in X and X_adv not same!\nCould just be a name "
-    # #     "mis-match, but please check!")
-    # #     #exit()
-
-    # # Save memory
-    # del df
-    # del df_adversary
-    # gc.collect()
-
-    # # Handle case if no KFold
-    # if kfold is None:
-    #     # Split data into train/test datasets
-    #     random_state = 1
-    #     (
-    #         X_train,
-    #         X_test,
-    #         y_train,
-    #         y_test,
-    #         weights_train,
-    #         weights_test,
-    #         mcWeights_train,
-    #         mcWeights_test,
-    #         Z_train,
-    #         Z_test,
-    #     ) = train_test_split(
-    #         X,
-    #         Y,
-    #         weights,
-    #         mcWeights,
-    #         Z,
-    #         test_size=0.1,
-    #         random_state=random_state,
-    #         shuffle=False,
-    #     )
-    #     (
-    #         X_train_adversary,
-    #         X_test_adversary,
-    #         y_train_adversary,
-    #         y_test_adversary,
-    #         weights_train_adversary,
-    #         weights_test_adversary,
-    #         mcWeights_train_adversary,
-    #         mcWeights_test_adversary,
-    #         Z_train_adversary,
-    #         Z_test_adversary,
-    #     ) = train_test_split(
-    #         X_adversary,
-    #         Y_adversary,
-    #         weights_adversary,
-    #         mcWeights_adversary,
-    #         Z_adversary,
-    #         test_size=0.1,
-    #         random_state=random_state,
-    #         shuffle=False,
-    #     )
+    # Split data into train/test datasets
+    random_state = 1
+    (
+        X_train,
+        X_test,
+        y_train,
+        y_test,
+        weights_train,
+        weights_test,
+        mcWeights_train,
+        mcWeights_test,
+        Z_train,
+        Z_test,
+    ) = train_test_split(
+        X,
+        Y,
+        weights,
+        mcWeights,
+        Z,
+        test_size=0.1,
+        random_state=random_state,
+        shuffle=False,
+    )
+    (
+        X_train_adversary,
+        X_test_adversary,
+        y_train_adversary,
+        y_test_adversary,
+        weights_train_adversary,
+        weights_test_adversary,
+        mcWeights_train_adversary,
+        mcWeights_test_adversary,
+        Z_train_adversary,
+        Z_test_adversary,
+    ) = train_test_split(
+        X_adversary,
+        Y_adversary,
+        weights_adversary,
+        mcWeights_adversary,
+        Z_adversary,
+        test_size=0.1,
+        random_state=random_state,
+        shuffle=False,
+    )
 
     #     # Delete variables to save memory
     #     del X

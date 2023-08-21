@@ -8,6 +8,7 @@
         "fillna",
         "lstm",
         "ndarray",
-        "Reweight"
+        "Reweight",
+        "sklearn"
     ]
 }
