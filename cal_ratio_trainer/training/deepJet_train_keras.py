@@ -3,7 +3,6 @@ import os
 from datetime import datetime
 from pathlib import Path
 from typing import Tuple
-import numpy as np
 
 import pandas as pd
 import tensorflow as tf
@@ -12,6 +11,12 @@ from keras.optimizers import Nadam
 from sklearn.model_selection import train_test_split
 
 from cal_ratio_trainer.config import TrainingConfig
+from cal_ratio_trainer.training.evaluate_training import (
+    checkpoint_pred_hist_main,
+    do_checkpoint_prediction_histogram,
+    evaluate_model,
+    print_history_plots,
+)
 from cal_ratio_trainer.training.model_input.jet_input import JetInput
 from cal_ratio_trainer.training.model_input.model_input import ModelInput
 from cal_ratio_trainer.training.training_utils import (
@@ -348,7 +353,7 @@ def build_train_evaluate_model(
     X_train: pd.DataFrame,
     X_test: pd.DataFrame,
     y_train_df: pd.DataFrame,
-    y_test: pd.DataFrame,
+    y_test_df: pd.DataFrame,
     mcWeights_train: pd.Series,
     mcWeights_test: pd.Series,
     weights_train: pd.Series,
@@ -362,7 +367,7 @@ def build_train_evaluate_model(
     X_train_adversary: pd.DataFrame,
     X_test_adversary: pd.DataFrame,
     y_train_adversary: pd.DataFrame,
-    y_test_adversary: pd.DataFrame,
+    y_test_adversary_df: pd.DataFrame,
     mcWeights_train_adversary: pd.Series,
     mcWeights_test_adversary: pd.Series,
     weights_train_adversary: pd.Series,
@@ -401,7 +406,7 @@ def build_train_evaluate_model(
         Z_val,
     ) = train_test_split(
         X_test,
-        y_test,
+        y_test_df,
         weights_test,
         mcWeights_test,
         Z_test,
@@ -420,7 +425,7 @@ def build_train_evaluate_model(
         Z_val_adversary,
     ) = train_test_split(
         X_test_adversary,
-        y_test_adversary,
+        y_test_adversary_df,
         weights_test_adversary,
         mcWeights_test_adversary,
         Z_test_adversary,
@@ -563,7 +568,6 @@ def build_train_evaluate_model(
         weights_test.values,
         weights_test.values,
     ]
-    y_to_test_adversary = [y_test_adversary]
 
     # Now to setup ML architecture
     logging.debug("Setting up model architecture...")
@@ -786,186 +790,172 @@ def build_train_evaluate_model(
             logging.debug(f"  Main categorical accuracy: {last_main_cat_acc}")
             logging.debug(f"  Adversary binary accuracy: {last_adv_bin_acc}")
 
-    #         print(f"TEST BATCH {i}")
+        # At the end of the epoch run testing.
+        logging.debug("End of Epoch Testing")
 
-    #         # Do test on small batch
-    #         savemem(dir_name, i, num_splits, "after batches are done")
-    #         original_val_hist = original_model.test_on_batch(
-    #             [*(x_to_validate_split[0]), *(x_to_validate_adv_split[0])],
-    #             [y_to_validate_0[0], y_to_validate_adv_squeeze[0]],
-    #             [weights_to_validate_0[0], weights_val_adversary_split[0]],
-    #         )
-    #         savemem(dir_name, i, num_splits, "after model test_on_batch")
-    #         print(f"val loss: {original_val_hist[0]:.4f}")
-    #         val_last_loss = original_val_hist[0]
-    #         print(f"val main_output_loss: {original_val_hist[1]:.4f}")
-    #         val_last_main_output_loss = original_val_hist[1]
-    #         print(f"val adversary_loss: {original_val_hist[2]:.4f}")
-    #         val_last_adversary_loss = original_val_hist[2]
-    #         print(f"val Main categorical accuracy: {original_val_hist[3]}")
-    #         val_last_main_cat_acc = original_val_hist[3]
-    #         print(f"val Adversary binary accuracy: {original_val_hist[6]}")
-    #         val_last_adv_bin_acc = original_val_hist[6]
+        # Do test on small batch
+        original_val_hist = original_model.test_on_batch(
+            [*(x_to_validate_split[0]), *(x_to_validate_adv_split[0])],
+            [y_to_validate_0[0], y_to_validate_adv_squeeze[0]],
+            [weights_to_validate_0[0], weights_val_adversary_split[0]],
+        )
+        val_last_loss = original_val_hist[0]
+        val_last_main_output_loss = original_val_hist[1]
+        val_last_adversary_loss = original_val_hist[2]
+        val_last_main_cat_acc = original_val_hist[3]
+        val_last_adv_bin_acc = original_val_hist[6]
+        logging.debug(f"val loss: {val_last_loss:.4f}")
+        logging.debug(f"val main_output_loss: {val_last_main_output_loss:.4f}")
+        logging.debug(f"val adversary_loss: {val_last_adversary_loss:.4f}")
+        logging.debug(f"val Main categorical accuracy: {val_last_main_cat_acc}")
+        logging.debug(f"val Adversary binary accuracy: {val_last_adv_bin_acc}")
 
-    #         adversary_val_hist = discriminator_model.test_on_batch(
-    #             small_x_val_adversary,
-    #             small_y_val_adversary[0],
-    #             small_weights_val_adversary,
-    #         )
-    #         savemem(dir_name, i, num_splits, "after adv test_on_batch")
-    #         print(f"Val Adversary Loss: {adversary_val_hist[0]:.4f}")
-    #         val_last_disc_loss = adversary_val_hist[0]
-    #         print(f"Val Adversary binary Accuracy: {adversary_val_hist[1]:.4f}")
-    #         val_last_disc_bin_acc = adversary_val_hist[1]
-    #         ks_qcd, ks_sig, ks_bib = do_checkpoint_prediction_histogram(
-    #             final_model,
-    #             dir_name,
-    #             small_x_val_adversary,
-    #             small_y_val_adversary[0],
-    #             small_mcWeights_val_adversary,
-    #             str(i) + "_val",
-    #             high_mass,
-    #             low_mass,
-    #         )
-    #         # Check to see how many ks tests went down
-    #         if i > 0:
-    #             ks_lowered = (
-    #                 int(ks_bib < checkpoint_ks_bib)
-    #                 + int(ks_sig < checkpoint_ks_sig)
-    #                 + int(ks_qcd < checkpoint_ks_qcd)
-    #             )
-    #         else:
-    #             ks_lowered = 1
+        adversary_val_hist = discriminator_model.test_on_batch(
+            small_x_val_adversary,
+            small_y_val_adversary[0],
+            small_weights_val_adversary,
+        )
+        val_last_disc_loss = adversary_val_hist[0]
+        val_last_disc_bin_acc = adversary_val_hist[1]
+        print(f"Val Adversary Loss: {val_last_disc_loss:.4f}")
+        print(f"Val Adversary binary Accuracy: {val_last_disc_bin_acc:.4f}")
 
-    #         savemem(dir_name, i, num_splits, "before reloading weights")
-    #         # Every epoch save weights if KS test below some threshold (0.3 seems good)
-    #         if i > -1:
-    #             if ks_bib < 0.3:
-    #                 final_model.save_weights(
-    #                     "keras_outputs/" + dir_name + f"/final_model_weights_{i}.h5"
-    #                 )
+        # Check to see if things have gotten better
+        ks_qcd, ks_sig, ks_bib = do_checkpoint_prediction_histogram(
+            final_model,
+            dir_name,
+            small_x_val_adversary,
+            small_y_val_adversary[0],
+            small_mcWeights_val_adversary,
+            str(i_epoch) + "_val",
+            high_mass,
+            low_mass,
+        )
 
-    #         final_model.save_weights(
-    #             "keras_outputs/" + dir_name + f"/final_model_weights.h5"
-    #         )
-    #         original_model.save_weights("keras_outputs/" + dir_name + "/checkpoint.h5")
-    #         discriminator_model.save_weights(
-    #             "keras_outputs/" + dir_name + "/adv_checkpoint.h5"
-    #         )
-    #         print("Clear session")
-    #         K.clear_session()
-    #         print("Reload models and weights")
-    #         (
-    #             original_model,
-    #             discriminator_model,
-    #             discriminator_out,
-    #             final_model,
-    #         ) = setup_model_architecture(
-    #             constit_input,
-    #             track_input,
-    #             MSeg_input,
-    #             jet_input,
-    #             X_train_constit,
-    #             X_train_track,
-    #             X_train_MSeg,
-    #             X_train_jet,
-    #             x_to_adversary,
-    #             y_to_train_adversary,
-    #             weights_train_adversary_s,
-    #             training_params,
-    #         )
-    #         stable_counter += 1
+        # Every epoch save weights if KS test below some threshold (0.3 seems good)
+        if ks_bib < 0.3:
+            final_model.save_weights(
+                "keras_outputs/" + dir_name + f"/final_model_weights_{i_epoch}.keras"
+            )
 
-    #         savemem(dir_name, i, num_splits, "after reloading weights")
-    #         accept_epoch = False
-    #         final_model.load_weights(
-    #             "keras_outputs/" + dir_name + f"/final_model_weights.h5"
-    #         )
-    #         original_model.load_weights("keras_outputs/" + dir_name + "/checkpoint.h5")
-    #         discriminator_model.load_weights(
-    #             "keras_outputs/" + dir_name + "/adv_checkpoint.h5"
-    #         )
+        final_model.save_weights(
+            "keras_outputs/" + dir_name + "/final_model_weights.keras"
+        )
+        original_model.save_weights("keras_outputs/" + dir_name + "/checkpoint.keras")
+        discriminator_model.save_weights(
+            "keras_outputs/" + dir_name + "/adv_checkpoint.keras"
+        )
+        #         print("Clear session")
+        #         K.clear_session()
+        #         print("Reload models and weights")
+        #         (
+        #             original_model,
+        #             discriminator_model,
+        #             discriminator_out,
+        #             final_model,
+        #         ) = setup_model_architecture(
+        #             constit_input,
+        #             track_input,
+        #             MSeg_input,
+        #             jet_input,
+        #             X_train_constit,
+        #             X_train_track,
+        #             X_train_MSeg,
+        #             X_train_jet,
+        #             x_to_adversary,
+        #             y_to_train_adversary,
+        #             weights_train_adversary_s,
+        #             training_params,
+        #         )
+        #         stable_counter += 1
 
-    #         print("Saving model weights")
-    #         final_model.save_weights(
-    #             "keras_outputs/" + dir_name + "/previous_final_model_weights.h5"
-    #         )
-    #         original_model.save_weights(
-    #             "keras_outputs/" + dir_name + "/previous_checkpoint.h5"
-    #         )
-    #         discriminator_model.save_weights(
-    #             "keras_outputs/" + dir_name + "/previous_adv_checkpoint.h5"
-    #         )
+        #         accept_epoch = False
+        #         final_model.load_weights(
+        #             "keras_outputs/" + dir_name + f"/final_model_weights.h5"
+        #         )
+        #         original_model.load_weights("keras_outputs/"
+        #           + dir_name + "/checkpoint.h5")
+        #         discriminator_model.load_weights(
+        #             "keras_outputs/" + dir_name + "/adv_checkpoint.h5"
+        #         )
 
-    #         accept_epoch_array.append(int(accept_epoch))
+        #         print("Saving model weights")
+        #         final_model.save_weights(
+        #             "keras_outputs/" + dir_name + "/previous_final_model_weights.h5"
+        #         )
+        #         original_model.save_weights(
+        #             "keras_outputs/" + dir_name + "/previous_checkpoint.h5"
+        #         )
+        #         discriminator_model.save_weights(
+        #             "keras_outputs/" + dir_name + "/previous_adv_checkpoint.h5"
+        #         )
 
-    #         ks_qcd_hist.append(ks_qcd)
-    #         ks_sig_hist.append(ks_sig)
-    #         ks_bib_hist.append(ks_bib)
+        #         accept_epoch_array.append(int(accept_epoch))
 
-    #         # Adding the train and test loss to a text function to save the loss
-    #         # Helpful to monitor training perfomrance with large variations in loss
-    #         # making the graph hard to parse
+        ks_qcd_hist.append(ks_qcd)
+        ks_sig_hist.append(ks_sig)
+        ks_bib_hist.append(ks_bib)
 
-    #         train_file = open("plots/" + dir_name + "train_loss.txt", "w")
-    #         test_file = open("plots/" + dir_name + "test_loss.txt", "w")
-    #         train_file.write(str(last_main_output_loss) + "\n")
-    #         test_file.write(str(val_last_main_output_loss) + "\n")
-    #         train_file.close()
-    #         test_file.close()
+        # Adding the train and test loss to a text function to save the loss
+        # Helpful to monitor training performance with large variations in loss
+        # making the graph hard to parse
 
-    #         # generating checkpoint plots of the model performance during training
-    #         checkpoint_pred_hist_main(
-    #             final_model,
-    #             dir_name,
-    #             x_to_test,
-    #             y_test,
-    #             mcWeights_test,
-    #             i,
-    #             high_mass,
-    #             low_mass,
-    #         )
+        with open("plots/" + dir_name + "train_loss.txt", "w") as train_file:
+            train_file.write(str(last_main_output_loss) + "\n")
+        with open("plots/" + dir_name + "test_loss.txt", "w") as test_file:
+            test_file.write(str(val_last_main_output_loss) + "\n")
 
-    #         # Append some lists with stats of latest epoch
-    #         advw_array.append(current_adversary_weight)
-    #         lr_array.append(current_lr)
-    #         adv_loss.append(last_disc_loss)
-    #         adv_acc.append(last_disc_bin_acc)
-    #         val_adv_loss.append(val_last_disc_loss)
-    #         val_adv_acc.append(val_last_disc_bin_acc)
-    #         original_lossf.append(last_main_output_loss)
-    #         original_acc.append(last_main_cat_acc)
-    #         val_original_lossf.append(val_last_main_output_loss)
-    #         val_original_acc.append(val_last_main_cat_acc)
-    #         original_adv_lossf.append(last_adversary_loss)
-    #         original_adv_acc.append(last_adv_bin_acc)
-    #         val_original_adv_lossf.append(val_last_adversary_loss)
-    #         val_original_adv_acc.append(val_last_adv_bin_acc)
-    #         # Make plots
-    #         print_history_plots(
-    #             advw_array,
-    #             adv_loss,
-    #             adv_acc,
-    #             val_adv_loss,
-    #             val_adv_acc,
-    #             original_lossf,
-    #             original_acc,
-    #             val_original_lossf,
-    #             val_original_acc,
-    #             original_adv_lossf,
-    #             original_adv_acc,
-    #             val_original_adv_lossf,
-    #             val_original_adv_acc,
-    #             lr_array,
-    #             ks_qcd_hist,
-    #             ks_sig_hist,
-    #             ks_bib_hist,
-    #             accept_epoch_array,
-    #             dir_name,
-    #         )
-    #         # gc.collect()
+        # generating checkpoint plots of the model performance during training
+        checkpoint_pred_hist_main(
+            final_model,
+            dir_name,
+            x_to_test,
+            y_test,
+            mcWeights_test,
+            i_epoch,
+            high_mass,
+            low_mass,
+        )
 
-    #     # Print plots
+        # Append some lists with stats of latest epoch
+        # and dump them out so they can be seen in "real-time"
+        advw_array.append(current_adversary_weight)
+        lr_array.append(current_lr)
+        adv_loss.append(last_disc_loss)
+        adv_acc.append(last_disc_bin_acc)
+        val_adv_loss.append(val_last_disc_loss)
+        val_adv_acc.append(val_last_disc_bin_acc)
+        original_lossf.append(last_main_output_loss)
+        original_acc.append(last_main_cat_acc)
+        val_original_lossf.append(val_last_main_output_loss)
+        val_original_acc.append(val_last_main_cat_acc)
+        original_adv_lossf.append(last_adversary_loss)
+        original_adv_acc.append(last_adv_bin_acc)
+        val_original_adv_lossf.append(val_last_adversary_loss)
+        val_original_adv_acc.append(val_last_adv_bin_acc)
+
+        print_history_plots(
+            advw_array,
+            adv_loss,
+            adv_acc,
+            val_adv_loss,
+            val_adv_acc,
+            original_lossf,
+            original_acc,
+            val_original_lossf,
+            val_original_acc,
+            original_adv_lossf,
+            original_adv_acc,
+            val_original_adv_lossf,
+            val_original_adv_acc,
+            lr_array,
+            ks_qcd_hist,
+            ks_sig_hist,
+            ks_bib_hist,
+            accept_epoch_array,
+            dir_name,
+        )
+
     #     # Save model weights
     #     original_model.save_weights("keras_outputs/" + dir_name + "/model_weights.h5")
     #     final_model.save_weights(
@@ -988,29 +978,29 @@ def build_train_evaluate_model(
     #         "keras_outputs/" + dir_name + "/adv_checkpoint.h5"
     #     )
 
-    #     # Evaluate Model with ROC curves
-    #     print("\nEvaluating model...\n")
-    #     # TODO: improve doc on Z and mcWeights
-    #     roc_auc, SoverB = evaluate_model(
-    #         model,
-    #         discriminator_model,
-    #         dir_name,
-    #         x_to_test,
-    #         y_test,
-    #         weights_to_test,
-    #         Z_test,
-    #         mcWeights_test,
-    #         x_to_test_adversary,
-    #         y_test_adversary,
-    #         weights_test_adversary,
-    #         n_folds,
-    #         eval_object,
-    #         Z_test_adversary,
-    #         high_mass,
-    #         low_mass,
-    #     )
-    #     print("ROC area under curve: %.3f" % roc_auc)
-    #     print("Max S over Root B: %.3f" % SoverB)
+    # Evaluate Model with ROC curves
+    logging.debug("Evaluating model...")
+    # TODO: improve doc on Z and mcWeights
+    roc_auc, SoverB = evaluate_model(
+        final_model,
+        discriminator_model,
+        dir_name,
+        x_to_test,
+        y_test,
+        weights_to_test,  # type: ignore
+        Z_test,
+        mcWeights_test,
+        x_to_test_adversary,
+        y_test_adversary,
+        weights_test_adversary,
+        None,
+        eval_object,
+        Z_test_adversary,
+        high_mass,
+        low_mass,
+    )
+    logging.info("ROC area under curve: %.3f" % roc_auc)
+    logging.info("Max S over Root B: %.3f" % SoverB)
 
     #     return roc_auc
     # # This happens if we skip training
@@ -1036,7 +1026,8 @@ def build_train_evaluate_model(
     #         weights_train_adversary_s,
     #         training_params,
     #     )
-    #     # model = load_model('keras_outputs/' + skipTraining[1] + '/cpu_model_weights_hm_0_resume.h5')
+    #     # model = load_model('keras_outputs/' + skipTraining[1]
+    #     #      + '/cpu_model_weights_hm_0_resume.h5')
     #     # load weights
     #     model_architecture = (
     #         "keras_outputs/"
@@ -1046,7 +1037,8 @@ def build_train_evaluate_model(
     #     with open(model_architecture, "r") as json_file:
     #         # architecture = json.load(json_file)
     #         model = model_from_json(json_file.read())
-    #     # model = tf.compat.v1.keras.models.model_from_json('keras_outputs/' + skipTraining[1] + '/final_keras_cpu_model_hm_0_apr28.json')
+    #     # model = tf.compat.v1.keras.models.model_from_json('keras_outputs/'
+    #     #      + skipTraining[1] + '/final_keras_cpu_model_hm_0_apr28.json')
     #     model.load_weights(
     #         "keras_outputs/" + skipTraining[1] + "/cpu_model_weights_hm_0_resume.h5"
     #     )
@@ -1062,7 +1054,8 @@ def build_train_evaluate_model(
     #         loss="categorical_crossentropy",
     #         metrics=[metrics.categorical_accuracy],
     #     )
-    #     # model.save('keras_outputs/backups/cpu_model_hm_apr12.h5', include_optimizer=False)  # creates a HDF5 file
+    #     # model.save('keras_outputs/backups/cpu_model_hm_apr12.h5',
+    #           include_optimizer=False)  # creates a HDF5 file
     #     # model.save('keras_outputs/fdeep/final_keras_cpu_model_lm_1_apr28.h5')
 
     #     # Evaluate Model with ROC curves
@@ -1088,5 +1081,4 @@ def build_train_evaluate_model(
     #     print("ROC area under curve: %.3f" % roc_auc)
     #     print("Max S over Root B: %.3f" % SoverB)
 
-    return 10.0
-    # return roc_auc
+    return roc_auc

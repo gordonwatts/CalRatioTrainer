@@ -618,7 +618,7 @@ def setup_adversary_arrays(
     x_to_train: List[np.ndarray],
     x_to_validate: List[np.ndarray],
     x_to_validate_adv: List[np.ndarray],
-    y_to_train: List[pd.DataFrame],
+    y_to_train: List[np.ndarray],
     y_to_train_adversary: List[Union[np.ndarray, pd.DataFrame]],
     y_to_validate: List[np.ndarray],
     y_to_validate_adv: List[np.ndarray],

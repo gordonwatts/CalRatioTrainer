@@ -10,7 +10,12 @@
             "request": "launch",
             "program": "${workspaceFolder}/cal_ratio_trainer/trainer.py",
             "args": [
-                "train"
+                "-vv",
+                "train",
+                "--epochs",
+                "1",
+                "--num_splits",
+                "2",
             ],
             "console": "integratedTerminal",
             "justMyCode": true
