@@ -704,7 +704,8 @@ def build_train_evaluate_model(
 
         for i_batch in range(num_splits):
             logging.debug(
-                f"Running batch {i_batch+1} (of {num_splits} batches) of epoch {i_epoch+1}"
+                f"Running batch {i_batch+1} (of {num_splits} batches) of "
+                f"epoch {i_epoch+1}"
             )
 
             train_inputs = [*x_to_train_split[i_batch], *x_to_adversary_split[i_batch]]
