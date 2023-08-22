@@ -1649,7 +1649,6 @@ def significance_scan(
     plt.xlabel("1-(signal weight threshold)")
     plt.ylabel("S over Root B")
     plt.xscale("log")
-    plt.legend()
 
     plt.savefig(
         destination + "SoverB_scan_" + str(label_string) + "_" + str(n_folds) + ".png",
