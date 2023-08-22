@@ -44,30 +44,6 @@ def training_runner_util(training_parameters: TrainingConfig):
     logging.info(
         "Estimated AUC %.3f (%.3f)" % (np.mean(roc_scores), np.std(roc_scores))
     )
-    # roc_results.append(roc_scores)
-    # model_files.append(dir_name)
-
-    # # Free up some memory
-    # gc.collect()
-
-    # # Make box plots of kFold CV results
-    # if args.doKFold:
-    #     process_kfold_run(
-    #         roc_results, acc_results, model_to_do_list, model_files, name_list, seed
-    #     )
-
-    # # Put all model files in the same directory and save results to .txt file
-    # if args.doGridSearch:
-    #     process_grid_search_run(
-    #         roc_results,
-    #         acc_results,
-    #         model_files,
-    #         lr_values,
-    #         reg_values,
-    #         filters_cnn_constit,
-    #         filters_cnn_track,
-    #         filters_cnn_MSeg,
-    #     )
 
 
 def initialize_model(
