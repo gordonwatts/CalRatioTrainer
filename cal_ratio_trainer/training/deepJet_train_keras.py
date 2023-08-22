@@ -69,7 +69,7 @@ def train_llp(
                 tf.config.experimental.set_memory_growth(gpu, True)
 
         except RuntimeError as e:
-            print(e)
+            logging.debug(e)
 
     # Fail early if we aren't going to be able to find what we need.
     assert training_params.main_file is not None
@@ -785,11 +785,11 @@ def build_train_evaluate_model(
             last_main_cat_acc = original_hist[3]
             last_adv_bin_acc = original_hist[6]
 
-            logging.info(f"  loss: {last_loss:.4f}")
-            logging.info(f"  main_output_loss: {last_main_output_loss:.4f}")
-            logging.info(f"  adversary_loss: {last_adversary_loss:.4f}")
-            logging.debug(f"  Main categorical accuracy: {last_main_cat_acc}")
-            logging.debug(f"  Adversary binary accuracy: {last_adv_bin_acc}")
+        logging.info(f"  loss: {last_loss:.4f}")
+        logging.info(f"  main_output_loss: {last_main_output_loss:.4f}")
+        logging.info(f"  adversary_loss: {last_adversary_loss:.4f}")
+        logging.debug(f"  Main categorical accuracy: {last_main_cat_acc}")
+        logging.debug(f"  Adversary binary accuracy: {last_adv_bin_acc}")
 
         # At the end of the epoch run testing.
         logging.debug("End of Epoch Testing")
@@ -818,8 +818,8 @@ def build_train_evaluate_model(
         )
         val_last_disc_loss = adversary_val_hist[0]
         val_last_disc_bin_acc = adversary_val_hist[1]
-        print(f"Val Adversary Loss: {val_last_disc_loss:.4f}")
-        print(f"Val Adversary binary Accuracy: {val_last_disc_bin_acc:.4f}")
+        logging.debug(f"Val Adversary Loss: {val_last_disc_loss:.4f}")
+        logging.debug(f"Val Adversary binary Accuracy: {val_last_disc_bin_acc:.4f}")
 
         # Check to see if things have gotten better
         ks_qcd, ks_sig, ks_bib = do_checkpoint_prediction_histogram(
@@ -956,6 +956,7 @@ def build_train_evaluate_model(
             accept_epoch_array,
             dir_name,
         )
+    logging.info("Finished training")
 
     #     # Save model weights
     #     original_model.save_weights("keras_outputs/" + dir_name + "/model_weights.h5")

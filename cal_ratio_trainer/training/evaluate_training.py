@@ -1,4 +1,5 @@
 # Make signal, bib, qcd weight plots
+import logging
 import math
 from io import TextIOWrapper
 from typing import List, Optional, Tuple, Union, cast
@@ -324,11 +325,9 @@ def plot_prediction_histograms_linear(
     sig_rows = np.where(labels == 1)
     bkg_rows = np.where(labels == 0)
     bib_rows = np.where(labels == 2)
-    # print(sig_rows)
     plt.clf()
     extra_string = extra_string + "_"
     sig_string = "Signal"
-    print(len(sig_rows[0]))
     if len(bib_rows[0]) == 0:
         sig_string = "Data"
     desc_phrase = ""
@@ -584,11 +583,9 @@ def plot_prediction_histograms_halfLinear(
     sig_rows = np.where(labels == 1)
     bkg_rows = np.where(labels == 0)
     bib_rows = np.where(labels == 2)
-    # print(sig_rows)
     plt.clf()
     extra_string = extra_string + "_"
     sig_string = "Signal"
-    print(len(sig_rows[0]))
     if len(bib_rows[0]) == 0:
         sig_string = "Data"
 
@@ -873,7 +870,6 @@ def signal_llp_efficiencies(
         .reset_index()
         .rename(columns={0: "count"})
     )
-    print(mass_array)
 
     plot_x = []
     plot_y = []
@@ -890,7 +886,7 @@ def signal_llp_efficiencies(
         plot_x.append(mH)
         plot_y.append(temp_eff)
         plot_z.append(mS)
-        print("mH: " + str(mH) + ", mS: " + str(mS) + ", Eff: " + str(temp_eff))
+        logging.info("mH: " + str(mH) + ", mS: " + str(mS) + ", Eff: " + str(temp_eff))
         f.write("%s,%s,%s\n" % (str(mH), str(mS), str(temp_eff)))
 
     plt.clf()
@@ -934,7 +930,6 @@ def bkg_falsePositives(
     bib_rows = np.where(y_test == 2)
     bkg_rows = [np.concatenate((qcd_rows[0], bib_rows[0]))]
 
-    print(len(bkg_rows[0]))
     prediction = prediction[bkg_rows[0]]
     Z_test = Z_test.iloc[bkg_rows[0]]
     mass_array = (
@@ -943,7 +938,6 @@ def bkg_falsePositives(
         .reset_index()
         .rename(columns={0: "count"})
     )
-    print(mass_array)
 
     plot_x = []
     plot_y = []
@@ -960,7 +954,7 @@ def bkg_falsePositives(
         plot_x.append(mH)
         plot_y.append(temp_eff)
         plot_z.append(mS)
-        print(
+        logging.info(
             "mH: " + str(mH) + ", mS: " + str(mS) + ", False positive: " + str(temp_eff)
         )
         f.write("%s,%s,%s\n" % (str(mH), str(mS), str(temp_eff)))
@@ -1154,7 +1148,7 @@ def print_history_plots(
     :param dir_name: where to save plots
     """
     # Plot training & validation accuracy values
-    print("\nPlotting Adversary History plots...\n")
+    logging.debug("Plotting Adversary History plots...")
 
     # Clear axes, figure, and figure window
     plt.clf()
@@ -1411,14 +1405,8 @@ def evaluate_model(
 
     # Sum of MC weights
     bib_weight = np.sum(mcWeights_test[y_test == 2])
-    print(f"BIB WEIGHT: {bib_weight}")
-    print(f"BIB LENGTH: {len(mcWeights_test[y_test == 2])}")
     sig_weight = np.sum(mcWeights_test[y_test == 1])
-    print(f"SIG WEIGHT: {sig_weight}")
-    print(f"SIG LENGTH: {len(mcWeights_test[y_test == 1])}")
     qcd_weight = np.sum(mcWeights_test[y_test == 0])
-    print(f"QCD WEIGHT: {qcd_weight}")
-    print(f"QCD LENGTH: {len(mcWeights_test[y_test == 0])}")
 
     bib_weight_length = len(mcWeights_test[y_test == 2])
     sig_weight_length = len(mcWeights_test[y_test == 1])
@@ -1731,7 +1719,6 @@ def plot_roc_curve(
         % (str(-threshold + 1), str(roc_auc), str(label_string))
     )
     eval_object.fillObject_auc(str(label_string), roc_auc)
-    print("AUC: " + str(roc_auc))
     # Make ROC curve
     plt.plot(
         tag_eff,
@@ -1747,21 +1734,6 @@ def plot_roc_curve(
     # Finish and plot ROC curve family
     plt.legend()
     plt.yscale("log")
-    signal_test = prediction[y_test == 1]
-    qcd_test = prediction[y_test == 0]
-    print(signal_test[0:100].shape)
-    print(
-        "Length of Signal: "
-        + str(len(signal_test))
-        + ", length of signal with weight 1: "
-        + str(len(signal_test[signal_test[:, 1] < 0.1]))
-    )
-    print(
-        "Length of QCD: "
-        + str(len(qcd_test))
-        + ", length of qcd with weight 1: "
-        + str(len(qcd_test[qcd_test[:, 1] < 0.1]))
-    )
     if third_label == 2:
         plt.ylabel("QCD Rejection")
         plt.savefig(
@@ -1811,9 +1783,7 @@ def find_threshold(prediction, y, weight, perc, label):
     )
 
     cutoffIndex = (round(((100 - perc) / 100) * label_events_y.size)) - 1
-    print("CutoffIndex: " + str(int(cutoffIndex)))
     threshold = prediction_sorted.item((int(cutoffIndex), label))
-    print("Threshold: " + str(threshold))
 
     leftovers = np.where(np.greater(threshold, prediction[:, label]))
 
