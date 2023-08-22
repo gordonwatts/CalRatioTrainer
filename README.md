@@ -2,7 +2,22 @@
 
 Train the CalRatio 2019 RNN
 
+## Introduction
+
+This is far from production!
+
 ## Usage
+
+This isn't meant to be an exploratory thing as much as "easy-to-run".
+
+* `cr_trainer train --help` to see all the command line options.
+* `cr_trainer train` will run the default (test) training. The test training has a reduced size signal file. However, everything is large enough to stress out the system. Good for running tests locally on your CPU.
+
+Some quick notes:
+
+* The first time you run this, it will copy down data files and cache them locally. You can change the cache location or file location using the configuration file.
+* The output directory contains a complete set of the options that were used in the run, so it is easy to see exactly how a run was configured.
+* test samples can run on a 16GB V100 if you do mini-match splitting of 15.
 
 ## Installation
 
