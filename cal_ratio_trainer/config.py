@@ -1,9 +1,13 @@
+import logging
 from pathlib import Path
 from typing import List, Optional
+import fsspec
 from pydantic import AnyUrl, BaseModel
 import yaml
 
-from cal_ratio_trainer.training.utils import make_local
+# WARNING:
+# This should include no other modules that eventually import TensorFlow
+# This gets imported in just about every instance, so worth keeping clean.
 
 
 class TrainingConfig(BaseModel):
@@ -84,3 +88,38 @@ def load_config(p: Optional[Path] = None) -> TrainingConfig:
             setattr(r, k, v)
 
     return r
+
+
+def make_local(file_path: str, cache: Path) -> Path:
+    """Uses the `fsspec` library to copy a non-local file locally in the `cache`.
+    If the `file_path` is already a local file, then it isn't copied locally.
+
+    Args:
+        file_path (str): The URI of the file we want to be local.
+
+    Returns:
+        Path: Path on the local system to the data.
+    """
+    if file_path.startswith("file://"):
+        return Path(file_path[7:])
+    else:
+        local_path = cache / Path(file_path).name
+        if local_path.exists():
+            return local_path
+
+        # Ok - copy block by block.
+        logging.warning(f"Copying file {file_path} locally to {cache}")
+        local_path.parent.mkdir(parents=True, exist_ok=True)
+
+        tmp_file_path = local_path.with_suffix(".tmp")
+        with open(tmp_file_path, "wb") as f_out:
+            with fsspec.open(file_path, "rb") as f_in:
+                # Read `f_in` in chunks of 1 MB and write them to `f_out`
+                while True:
+                    data = f_in.read(50 * 1024**2)  # type: ignore
+                    if not data:
+                        break
+                    f_out.write(data)
+        tmp_file_path.rename(local_path)
+        logging.warning(f"Done copying file {file_path}")
+        return local_path

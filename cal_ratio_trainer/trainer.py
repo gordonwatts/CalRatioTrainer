@@ -2,10 +2,7 @@ import argparse
 import logging
 from pathlib import Path
 
-# TODO: one of these below includes triggers TF - it should not
-# This should be totally clean here until we are sure we need TF.
 from cal_ratio_trainer.config import load_config
-from cal_ratio_trainer.training.runner_utils import training_runner_util
 
 
 def do_train(args):
@@ -17,6 +14,8 @@ def do_train(args):
         c.epochs = args.epochs
     if args.num_splits is not None:
         c.num_splits = args.num_splits
+
+    from cal_ratio_trainer.training.runner_utils import training_runner_util
 
     training_runner_util(c)
 
