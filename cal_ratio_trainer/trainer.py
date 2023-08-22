@@ -57,7 +57,18 @@ def main():
         log_level = logging.DEBUG
     else:
         log_level = logging.WARNING
+
     logging.basicConfig(level=log_level)
+    if args.verbose > 0:
+        root_logger = logging.getLogger()
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+        root_logger.removeHandler(root_logger.handlers[0])
+        root_logger.addHandler(handler)
+
     logging.getLogger("matplotlib").setLevel(logging.WARNING)
     logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
 

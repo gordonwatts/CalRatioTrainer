@@ -26,6 +26,7 @@
         "horizontalalignment",
         "hstack",
         "iloc",
+        "Initalizing",
         "keras",
         "kfold",
         "labelsize",
