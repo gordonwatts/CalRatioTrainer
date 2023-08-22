@@ -1843,7 +1843,8 @@ def make_multi_roc_curve(
         a = auc(fpr * qcd_ratio, tpr * signal_ratio)
 
         # return results of roc curve
-        goodIndices = np.where(np.isfinite(1 / fpr))
+        with np.errstate(divide="ignore"):
+            goodIndices = np.where(np.isfinite(1 / fpr))
         return (
             (1 / fpr[goodIndices]) * qcd_ratio,
             tpr[goodIndices] * signal_ratio,

@@ -19,6 +19,7 @@
         "dataframes",
         "dtype",
         "errorbar",
+        "errstate",
         "fillna",
         "fontsize",
         "histtype",
