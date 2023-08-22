@@ -5,22 +5,20 @@ description = "Train a CalRatio RNN"
 license = { text = "MIT" }
 authors = [{ name = "The ATLAS CalRatio Group" }]
 
-dependencies = [
-    "pydantic<2.0",
-    "PyYAML",
+# Dependencies are for installing on a pre-made TF container
+dependencies = ["pydantic<2.0", "PyYAML", "fsspec[ssh,http]"]
+
+[project.optional-dependencies]
+test = ["black", "flake8", "pytest", "codecov", "pytest-cov"]
+
+# If you are running on windows and need a complete environment,
+# include this. May work in other similar bare environments as well.
+wsl2 = [
+    "nvidia-cudnn-cu11==8.6.0.163",
+    "tensorrt",
     "pandas<2.0",
     "tensorflow==2.13.0",
     "scikit-learn==1.3.0",
-]
-
-[project.optional-dependencies]
-test = [
-    "black",
-    "flake8",
-    "pytest",
-    "codecov",
-    "pytest-cov",
-    "fsspec[ssh,http]",
 ]
 
 [project.scripts]

@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
+        "advw",
         "calratio",
         "clus",
         "constit",
@@ -10,11 +11,14 @@
         "fillna",
         "iloc",
         "keras",
+        "lossf",
         "lstm",
         "mseg",
         "multiclass",
         "Nadam",
         "ndarray",
+        "ndim",
+        "npad",
         "regularizers",
         "relu",
         "Reweight",

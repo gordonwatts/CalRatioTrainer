@@ -24,8 +24,15 @@ class TrainingConfig(BaseModel):
     filters_cnn_MSeg: Optional[List[int]]
     nodes_MSeg_lstm: Optional[int]
     batch_size: Optional[int]
+
+    # Number of epochs for training
     epochs: Optional[int]
+    # Number of mini-batches
+    num_splits: Optional[int]
+
+    # NAdam learning rate.
     lr_values: Optional[float]
+
     hidden_layer_fraction: Optional[float]
 
     mH_parametrization: Optional[bool] = False

@@ -15,6 +15,7 @@ from cal_ratio_trainer.training.training_utils import (
     evaluationObject,
     prep_input_for_keras,
     prepare_training_datasets,
+    setup_adversary_arrays,
     setup_model_architecture,
 )
 from cal_ratio_trainer.training.utils import (
@@ -569,104 +570,83 @@ def build_train_evaluate_model(
         training_params,
     )
 
-    # # Show summary of model architecture
-    # original_model.save(
-    #     "keras_outputs/" + dir_name + "/model.h5"
-    # )  # creates a HDF5 file
-    # final_model.save(
-    #     "keras_outputs/" + dir_name + "/final_model.h5"
-    # )  # creates a HDF5 file
-    # discriminator_model.save(
-    #     "keras_outputs/" + dir_name + "/discriminator_model.h5"
-    # )  # creates a HDF5 file
-    # discriminator_model.save_weights(
-    #     "keras_outputs/" + dir_name + "/initial_discriminator_model_weights.h5"
-    # )
-    # # Show summary of model architecture
-    # print(original_model.summary())
-    # print(discriminator_model.summary())
-    # print(final_model.summary())
-    # # plot model architecture
-    # if False:
-    #     tf.compat.v1.keras.utils.plot_model(
-    #         original_model,
-    #         show_shapes=True,
-    #         to_file="plots/" + dir_name + "/model_mar17.png",
-    #     )
-    #     tf.compat.v1.keras.utils.plot_model(
-    #         discriminator_model,
-    #         show_shapes=True,
-    #         to_file="plots/" + dir_name + "/discriminator_model_mar17.png",
-    #     )
-    # # print("printing out memory for right before beginning training")
-    # # os.system("nvidia-smi")
-    # # input("press enter to continue training")
+    # Show summary of model architecture
+    original_model.save(
+        "keras_outputs/" + dir_name + "/model.keras"
+    )  # creates a HDF5 file
+    final_model.save(
+        "keras_outputs/" + dir_name + "/final_model.keras"
+    )  # creates a HDF5 file
+    discriminator_model.save(
+        "keras_outputs/" + dir_name + "/discriminator_model.keras"
+    )  # creates a HDF5 file
+    discriminator_model.save_weights(
+        "keras_outputs/" + dir_name + "/initial_discriminator_model_weights.keras"
+    )
 
-    # if not skipTraining[0]:
-    #     # Do training
-    #     print("\nStarting training...\n")
-    #     # print("\nStarting training...\n")
-    #     (
-    #         accept_epoch_array,
-    #         adv_acc,
-    #         adv_loss,
-    #         advw_array,
-    #         checkpoint_ks_bib,
-    #         checkpoint_ks_qcd,
-    #         checkpoint_ks_sig,
-    #         epoch_list,
-    #         ks_bib_hist,
-    #         ks_qcd_hist,
-    #         ks_sig_hist,
-    #         lr_array,
-    #         num_epochs,
-    #         num_splits,
-    #         original_acc,
-    #         original_adv_acc,
-    #         original_adv_lossf,
-    #         original_lossf,
-    #         small_mcWeights_val_adversary,
-    #         small_weights_train_adversary,
-    #         small_weights_val_adversary,
-    #         small_x_to_adversary_split,
-    #         small_x_val_adversary,
-    #         small_y_to_train_adversary_0,
-    #         small_y_val_adversary,
-    #         stable_counter,
-    #         val_adv_acc,
-    #         val_adv_loss,
-    #         val_original_acc,
-    #         val_original_adv_acc,
-    #         val_original_adv_lossf,
-    #         val_original_lossf,
-    #         weights_to_train_0,
-    #         weights_to_validate_0,
-    #         weights_train_adversary,
-    #         weights_val_adversary_split,
-    #         x_to_adversary_split,
-    #         x_to_train_split,
-    #         x_to_validate_adv_split,
-    #         x_to_validate_split,
-    #         y_to_train_0,
-    #         y_to_train_adversary_squeeze,
-    #         y_to_validate_0,
-    #         y_to_validate_adv_squeeze,
-    #     ) = setup_adversary_arrays(
-    #         mcWeights_val_adversary,
-    #         weights_to_train,
-    #         weights_to_validate,
-    #         weights_train_adversary,
-    #         weights_val_adversary,
-    #         x_to_adversary,
-    #         x_to_train,
-    #         x_to_validate,
-    #         x_to_validate_adv,
-    #         y_to_train,
-    #         y_to_train_adversary,
-    #         y_to_validate,
-    #         y_to_validate_adv,
-    #         training_params,
-    #     )
+    # Do training
+    logging.info("Starting training...")
+    (
+        accept_epoch_array,
+        adv_acc,
+        adv_loss,
+        advw_array,
+        checkpoint_ks_bib,
+        checkpoint_ks_qcd,
+        checkpoint_ks_sig,
+        epoch_list,
+        ks_bib_hist,
+        ks_qcd_hist,
+        ks_sig_hist,
+        lr_array,
+        num_epochs,
+        num_splits,
+        original_acc,
+        original_adv_acc,
+        original_adv_lossf,
+        original_lossf,
+        small_mcWeights_val_adversary,
+        small_weights_train_adversary,
+        small_weights_val_adversary,
+        small_x_to_adversary_split,
+        small_x_val_adversary,
+        small_y_to_train_adversary_0,
+        small_y_val_adversary,
+        stable_counter,
+        val_adv_acc,
+        val_adv_loss,
+        val_original_acc,
+        val_original_adv_acc,
+        val_original_adv_lossf,
+        val_original_lossf,
+        weights_to_train_0,
+        weights_to_validate_0,
+        weights_train_adversary,
+        weights_val_adversary_split,
+        x_to_adversary_split,
+        x_to_train_split,
+        x_to_validate_adv_split,
+        x_to_validate_split,
+        y_to_train_0,
+        y_to_train_adversary_squeeze,
+        y_to_validate_0,
+        y_to_validate_adv_squeeze,
+    ) = setup_adversary_arrays(
+        mcWeights_val_adversary,
+        weights_to_train,
+        weights_to_validate,
+        weights_train_adversary,
+        weights_val_adversary,
+        x_to_adversary,
+        x_to_train,
+        x_to_validate,
+        x_to_validate_adv,
+        y_to_train,
+        y_to_train_adversary,
+        y_to_validate,
+        y_to_validate_adv,
+        training_params,
+    )
 
     #     # Train each epoch
 

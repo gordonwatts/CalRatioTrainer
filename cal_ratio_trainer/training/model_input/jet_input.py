@@ -1,3 +1,4 @@
+import logging
 from typing import List, Tuple
 
 from cal_ratio_trainer.training.model_input.model_input import ModelInput
@@ -57,10 +58,10 @@ class JetInput(ModelInput):
             val = pd.concat([val, Z_val["LLP_mS"]], axis=1)
 
         # print some details
-        print("Shape: %.0f" % (train.shape[1]))
-        print("Number of training examples %.0f" % (train.shape[0]))
-        print("Number of validating examples %.0f" % (val.shape[0]))
-        print("Number of testing examples %.0f" % (test.shape[0]))
+        logging.info("Shape: %.0f" % (train.shape[1]))
+        logging.info("Number of training examples %.0f" % (train.shape[0]))
+        logging.info("Number of validating examples %.0f" % (val.shape[0]))
+        logging.info("Number of testing examples %.0f" % (test.shape[0]))
 
         return train, val, test
 

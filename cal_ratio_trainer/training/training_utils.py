@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Tuple, cast
+from typing import Any, List, Optional, Tuple, Union, cast
 
 import numpy as np
 import pandas as pd
@@ -8,7 +8,9 @@ from keras.layers import BatchNormalization, Dense, Dropout, concatenate
 from keras.models import Model
 from keras.optimizers import Nadam
 from keras.regularizers import L1L2
-from keras.utils import np_utils
+from keras.src.utils import np_utils
+
+from tensorflow import Tensor
 
 from cal_ratio_trainer.config import TrainingConfig
 from cal_ratio_trainer.training.model_input.jet_input import JetInput
@@ -395,10 +397,11 @@ def setup_model_architecture(
     X_train_MSeg: np.ndarray,
     X_train_jet: pd.DataFrame,
     training_params: TrainingConfig,
-) -> Tuple[Model, Model, Dense, Model]:
+) -> Tuple[Model, Model, Tensor, Model]:
     """Method that builds the model architecture and returns the model objects"""
     # Set up inputs and outputs for Keras layers
     # This sets up the layers specified in the ModelInput object i.e. Conv1D, LSTM
+    # The Any above is a KerasTensor, which is a private class, and not like a Tensor.
 
     (
         constit_input_tensor_cr,
@@ -501,12 +504,16 @@ def setup_model_architecture(
         6, name="adversary_3", activation="tanh", kernel_initializer="glorot_uniform"
     )(discriminator)
     discriminator = BatchNormalization(name="adversary_norm_4")(discriminator)
-    discriminator_out = Dense(
+
+    discriminator_out_r = Dense(
         1,
         activation="sigmoid",
         name="adversary_out",
         kernel_initializer="glorot_uniform",
     )(discriminator)
+    # Get around type checking
+    assert discriminator_out_r is not None
+    discriminator_out = discriminator_out_r  # type: Tensor
 
     # Setup training layers
     layers_to_input = [
@@ -547,12 +554,12 @@ def setup_model_architecture(
     )
 
     # Setup optimizer (N adam is good as it has decaying learning rate)
+    assert training_params.lr_values is not None
     optimizer = Nadam(
-        lr=training_params.lr_values,
+        learning_rate=training_params.lr_values,
         beta_1=0.9,
         beta_2=0.999,
         epsilon=1e-07,
-        schedule_decay=0.004,
     )
 
     # Compile discriminator Model
@@ -595,5 +602,236 @@ def setup_model_architecture(
         metrics=[metrics.categorical_accuracy],
     )
 
-    assert isinstance(discriminator_out, Dense)
     return model, model_discriminator, discriminator_out, model_final
+
+
+def setup_adversary_arrays(
+    mcWeights_val_adversary: pd.DataFrame,
+    weights_to_train: List[pd.DataFrame],
+    weights_to_validate: List[pd.Series],
+    weights_train_adversary_s: pd.Series,
+    weights_val_adversary: pd.Series,
+    x_to_adversary: List[np.ndarray],
+    x_to_train: List[np.ndarray],
+    x_to_validate: List[np.ndarray],
+    x_to_validate_adv: List[np.ndarray],
+    y_to_train: List[pd.DataFrame],
+    y_to_train_adversary: List[Union[np.ndarray, pd.DataFrame]],
+    y_to_validate: List[pd.DataFrame],
+    y_to_validate_adv: List[np.ndarray],
+    training_params: TrainingConfig,
+):
+    """Sets up adversary inputs. Must be as long as main inputs, so do some
+    repetition if they are different sizes
+
+    :param mcWeights_val_adversary: CR jet mc Weights
+    :param weights_to_train: Main Jet weights, training set
+    :param weights_to_validate: Main jet weights, validation set
+    :param weights_train_adversary: CR jet weights, training set
+    :param weights_val_adversary: CR jet weights, validation set
+    :param x_to_adversary: input variables, CR jets, training set
+    :param x_to_train: input variables, main jets, training set
+    :param x_to_validate: input variables, main jets, validation set
+    :param x_to_validate_adv: input variables, CR jets, validation set
+    :param y_to_train: labels, main jets, training set
+    :param y_to_train_adversary: labels, CR jets, training set
+    :param y_to_validate: labels, main jets, validation set
+    :param y_to_validate_adv: labels, CR jets, validation sets
+    :param training_params: class of training parameters
+    :return: set up arrays for training
+    """
+    advw_array = []
+    lr_array = []
+    adv_loss = []
+    adv_acc = []
+    val_adv_loss = []
+    val_adv_acc = []
+    original_lossf = []
+    original_acc = []
+    val_original_lossf = []
+    val_original_acc = []
+    original_adv_lossf = []
+    original_adv_acc = []
+    val_original_adv_lossf = []
+    val_original_adv_acc = []
+    ks_qcd_hist = []
+    ks_sig_hist = []
+    ks_bib_hist = []
+    accept_epoch_array = []
+    checkpoint_ks_qcd = 999
+    checkpoint_ks_sig = 999
+    checkpoint_ks_bib = 999
+
+    small_x_to_adversary = x_to_adversary.copy()
+    small_y_to_train_adversary = y_to_train_adversary.copy()
+    small_weights_train_adversary = weights_train_adversary_s.values.copy()
+    small_x_val_adversary = x_to_validate_adv.copy()
+    small_y_val_adversary = y_to_validate_adv.copy()
+    small_weights_val_adversary = weights_val_adversary.values.copy()
+    small_mcWeights_val_adversary = mcWeights_val_adversary.values.copy()
+
+    # Shorten or repeat to get the various arrays the same size.
+    # TODO: Instead of counter we should use `enumerate`
+    # TODO: Why is it important that these arrays be the same size?
+    counter = 0
+    for adv, og in zip(x_to_adversary, x_to_train):
+        if adv.ndim > 2:
+            npad = ((0, og.shape[0] - adv.shape[0]), (0, 0), (0, 0))
+        else:
+            npad = ((0, og.shape[0] - adv.shape[0]), (0, 0))
+        if npad[0][1] > 0:
+            x_to_adversary[counter] = np.pad(adv, pad_width=npad, mode="symmetric")
+        else:
+            x_to_adversary[counter] = adv[0 : og.shape[0]]  # noqa: E203
+        counter += 1
+
+    counter = 0
+    for adv, og in zip(y_to_train_adversary, y_to_train):
+        npad = (0, og.shape[0] - adv.shape[0])
+        if npad[1] > 0:
+            y_to_train_adversary[counter] = np.pad(
+                adv, pad_width=npad, mode="symmetric"
+            )
+        else:
+            y_to_train_adversary[counter] = adv[0 : og.shape[0]]  # noqa: E203
+        counter += 1
+    npad = (0, weights_to_train[0].shape[0] - weights_train_adversary_s.values.shape[0])
+    if npad[1] > 0:
+        weights_train_adversary = np.pad(
+            weights_train_adversary_s.values,  # type: ignore
+            pad_width=npad,
+            mode="symmetric",
+        )
+    else:
+        weights_train_adversary = weights_train_adversary_s[
+            0 : weights_to_train[0].shape[0]  # noqa: E203
+        ]
+    counter = 0
+    for adv, og in zip(x_to_validate_adv, x_to_validate):
+        if adv.ndim > 2:
+            npad = ((0, og.shape[0] - adv.shape[0]), (0, 0), (0, 0))
+        else:
+            npad = ((0, og.shape[0] - adv.shape[0]), (0, 0))
+        if npad[0][1] > 0:
+            x_to_validate_adv[counter] = np.pad(adv, pad_width=npad, mode="symmetric")
+        else:
+            x_to_validate_adv[counter] = adv[0 : og.shape[0]]  # noqa: E203
+
+        counter += 1
+    counter = 0
+    for adv, og in zip(y_to_validate_adv, y_to_validate):
+        npad = (0, og.shape[0] - adv.shape[0])
+        if npad[1] > 0:
+            y_to_validate_adv[counter] = np.pad(adv, pad_width=npad, mode="symmetric")
+        else:
+            y_to_validate_adv[counter] = adv[0 : og.shape[0]]  # noqa: E203
+        counter += 1
+    weights_val_adversary_values = weights_val_adversary.values
+    npad = (0, weights_to_validate[0].shape[0] - weights_val_adversary_values.shape[0])
+    if npad[1] > 0:
+        weights_val_adversary = np.pad(
+            weights_val_adversary_values,  # type: ignore
+            pad_width=npad,
+            mode="symmetric",
+        )
+    else:
+        weights_val_adversary_values = weights_val_adversary_values[
+            0 : weights_to_validate[0].shape[0]  # noqa: E203
+        ]
+
+    assert training_params.epochs is not None
+    num_epochs = training_params.epochs
+    epoch_list = list(range(num_epochs))
+    stable_counter = 0
+
+    # Basically how many mini-batches
+    # Important as too few, too much data, GPU cannot handle it
+    assert training_params.num_splits is not None
+    num_splits = training_params.num_splits
+
+    def do_split(arr: List[np.ndarray], n: int) -> List[List[np.ndarray]]:
+        # Split along all axes
+        arr_s = [np.array_split(to_split, n) for to_split in arr]
+        return [[arr_s[i][k] for i in range(len(arr))] for k in range(n)]
+
+    x_to_train_split = do_split(x_to_train, num_splits)
+    x_to_adversary_split = do_split(x_to_adversary, num_splits)
+
+    y_to_train_0 = np.array_split(y_to_train[0], num_splits)
+
+    y_to_train_adversary_squeeze = np.array_split(
+        np.squeeze(np.array(y_to_train_adversary)), num_splits
+    )
+
+    weights_to_train_0 = np.array_split(weights_to_train[0], num_splits)
+
+    weights_train_adversary = np.array_split(weights_train_adversary, num_splits)
+    small_x_to_adversary_split = do_split(small_x_to_adversary, num_splits)
+
+    small_y_to_train_adversary_0 = np.array_split(
+        small_y_to_train_adversary[0], num_splits
+    )
+    small_weights_train_adversary = np.array_split(
+        small_weights_train_adversary, num_splits
+    )
+
+    num_splits_adv = num_splits
+
+    x_to_validate_split = do_split(x_to_validate, num_splits_adv)
+    x_to_validate_adv_split = do_split(x_to_validate_adv, num_splits_adv)
+
+    y_to_validate_0 = np.array_split(y_to_validate[0], num_splits_adv)
+    y_to_validate_adv_squeeze = np.array_split(
+        np.squeeze(np.array(y_to_validate_adv)), num_splits_adv
+    )
+    weights_to_validate_0 = np.array_split(weights_to_validate[0], num_splits_adv)
+    weights_val_adversary_split = np.array_split(
+        weights_val_adversary_values, num_splits_adv
+    )
+
+    return (
+        accept_epoch_array,
+        adv_acc,
+        adv_loss,
+        advw_array,
+        checkpoint_ks_bib,
+        checkpoint_ks_qcd,
+        checkpoint_ks_sig,
+        epoch_list,
+        ks_bib_hist,
+        ks_qcd_hist,
+        ks_sig_hist,
+        lr_array,
+        num_epochs,
+        num_splits,
+        original_acc,
+        original_adv_acc,
+        original_adv_lossf,
+        original_lossf,
+        small_mcWeights_val_adversary,
+        small_weights_train_adversary,
+        small_weights_val_adversary,
+        small_x_to_adversary_split,
+        small_x_val_adversary,
+        small_y_to_train_adversary_0,
+        small_y_val_adversary,
+        stable_counter,
+        val_adv_acc,
+        val_adv_loss,
+        val_original_acc,
+        val_original_adv_acc,
+        val_original_adv_lossf,
+        val_original_lossf,
+        weights_to_train_0,
+        weights_to_validate_0,
+        weights_train_adversary,
+        weights_val_adversary_split,
+        x_to_adversary_split,
+        x_to_train_split,
+        x_to_validate_adv_split,
+        x_to_validate_split,
+        y_to_train_0,
+        y_to_train_adversary_squeeze,
+        y_to_validate_0,
+        y_to_validate_adv_squeeze,
+    )
