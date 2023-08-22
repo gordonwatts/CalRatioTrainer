@@ -599,7 +599,7 @@ def build_train_evaluate_model(
     )
 
     # Do training
-    logging.info("Starting training...")
+    logging.info("Starting training")
     (
         accept_epoch_array,
         adv_acc,
