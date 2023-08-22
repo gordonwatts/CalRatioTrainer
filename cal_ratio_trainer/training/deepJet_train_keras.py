@@ -333,7 +333,7 @@ def build_train_evaluate_model(
     jet_input: JetInput,
     X_train: pd.DataFrame,
     X_test: pd.DataFrame,
-    y_train: pd.DataFrame,
+    y_train_df: pd.DataFrame,
     y_test: pd.DataFrame,
     mcWeights_train: pd.Series,
     mcWeights_test: pd.Series,
@@ -427,7 +427,7 @@ def build_train_evaluate_model(
         mcWeights_train,
     ) = low_or_high_pt_selection_train(
         X_train,
-        y_train,
+        y_train_df,
         weights_train,
         mcWeights_train,
         Z_train,
@@ -470,7 +470,7 @@ def build_train_evaluate_model(
         X_val_jet_adversary,
         X_val_track,
         X_val_track_adversary,
-        y_train,
+        y_train_1,
         y_val,
     ) = prep_input_for_keras(
         MSeg_input,
@@ -621,7 +621,7 @@ def build_train_evaluate_model(
         val_original_lossf,
         weights_to_train_0,
         weights_to_validate_0,
-        weights_train_adversary,
+        weights_train_adversary_s,
         weights_val_adversary_split,
         x_to_adversary_split,
         x_to_train_split,
@@ -633,8 +633,8 @@ def build_train_evaluate_model(
         y_to_validate_adv_squeeze,
     ) = setup_adversary_arrays(
         mcWeights_val_adversary,
-        weights_to_train,
-        weights_to_validate,
+        weights_to_train,  # type: ignore
+        weights_to_validate,  # type: ignore
         weights_train_adversary,
         weights_val_adversary,
         x_to_adversary,
@@ -642,7 +642,7 @@ def build_train_evaluate_model(
         x_to_validate,
         x_to_validate_adv,
         y_to_train,
-        y_to_train_adversary,
+        y_to_train_adversary,  # type: ignore
         y_to_validate,
         y_to_validate_adv,
         training_params,
@@ -691,7 +691,7 @@ def build_train_evaluate_model(
 
     #             train_inputs = [*x_to_train_split[j], *x_to_adversary_split[j]]
     #             train_outputs = [y_to_train_0[j], y_to_train_adversary_squeeze[j]]
-    #             train_weights = [weights_to_train_0[j], weights_train_adversary[j]]
+    #             train_weights = [weights_to_train_0[j], weights_train_adversary_s[j]]
 
     #             optimizer = Nadam(
     #                 learning_rate=current_lr,
@@ -726,7 +726,7 @@ def build_train_evaluate_model(
     #                 adversary_hist = discriminator_model.train_on_batch(
     #                     small_x_to_adversary_split[j],
     #                     small_y_to_train_adversary_0[j],
-    #                     sample_weight=small_weights_train_adversary[j],
+    #                     sample_weight=small_weights_train_adversary_s[j],
     #                 )
 
     #             print(f"Adversary Loss: {adversary_hist[0]:.4f}")
@@ -853,7 +853,7 @@ def build_train_evaluate_model(
     #             X_train_jet,
     #             x_to_adversary,
     #             y_to_train_adversary,
-    #             weights_train_adversary,
+    #             weights_train_adversary_s,
     #             training_params,
     #         )
     #         stable_counter += 1
@@ -1015,7 +1015,7 @@ def build_train_evaluate_model(
     #         X_train_jet,
     #         x_to_adversary,
     #         y_to_train_adversary,
-    #         weights_train_adversary,
+    #         weights_train_adversary_s,
     #         training_params,
     #     )
     #     # model = load_model('keras_outputs/' + skipTraining[1] + '/cpu_model_weights_hm_0_resume.h5')
