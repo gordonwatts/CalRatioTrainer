@@ -41,6 +41,7 @@
         "ndim",
         "npad",
         "perc",
+        "pydantic",
         "regularizers",
         "relu",
         "Reweight",

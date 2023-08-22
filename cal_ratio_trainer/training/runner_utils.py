@@ -50,7 +50,7 @@ def training_runner_util(training_parameters: TrainingConfig):
     # # Free up some memory
     # gc.collect()
 
-    # # Make boxplots of kFold CV results
+    # # Make box plots of kFold CV results
     # if args.doKFold:
     #     process_kfold_run(
     #         roc_results, acc_results, model_to_do_list, model_files, name_list, seed

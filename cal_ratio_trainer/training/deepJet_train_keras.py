@@ -679,7 +679,7 @@ def build_train_evaluate_model(
     assert training_params.lr_values is not None
     assert training_params.adversary_weight is not None
     for i_epoch in epoch_list:
-        logging.info(f"Training Epoch {i_epoch} of {len(epoch_list)}")
+        logging.info(f"Training Epoch {i_epoch+1} of {len(epoch_list)}")
         # Set up decaying learning rate
         current_lr = training_params.lr_values * (1.0 / (1.0 + 0.03 * i_epoch))
         # Set up increasing adversary weight, increases per epoch
@@ -704,7 +704,7 @@ def build_train_evaluate_model(
 
         for i_batch in range(num_splits):
             logging.debug(
-                f"Running batch {i_batch} (of {num_splits} batches) of epoch {i_epoch}"
+                f"Running batch {i_batch+1} (of {num_splits} batches) of epoch {i_epoch+1}"
             )
 
             train_inputs = [*x_to_train_split[i_batch], *x_to_adversary_split[i_batch]]
@@ -1056,7 +1056,7 @@ def build_train_evaluate_model(
     #     )
     #     # model.save('keras_outputs/backups/cpu_model_hm_apr12.h5',
     #           include_optimizer=False)  # creates a HDF5 file
-    #     # model.save('keras_outputs/fdeep/final_keras_cpu_model_lm_1_apr28.h5')
+    #     # model.save('keras_outputs/f deep/final_keras_cpu_model_lm_1_apr28.h5')
 
     #     # Evaluate Model with ROC curves
     #     print("\nEvaluating model...\n")

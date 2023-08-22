@@ -50,7 +50,8 @@ def main():
     args = parser.parse_args()
 
     # Turn on verbosity by setting the log level to be "info" or "debug"
-    # in python's `logging` module.
+    # in python's `logging` module. Shut down matplotlib, it makes
+    # way too much noise.
     if args.verbose == 1:
         log_level = logging.INFO
     elif args.verbose >= 2:
@@ -58,6 +59,8 @@ def main():
     else:
         log_level = logging.WARNING
     logging.basicConfig(level=log_level)
+    logging.getLogger("matplotlib").setLevel(logging.WARNING)
+    logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
 
     # Call the function to execute the command.
     args.func(args)
