@@ -1,5 +1,5 @@
 import logging
-from typing import Any, List, Optional, Tuple, Union, cast
+from typing import List, Optional, Tuple, Union, cast
 
 import numpy as np
 import pandas as pd
@@ -203,8 +203,8 @@ def prep_input_for_keras(
     constit_input: ModelInput,
     jet_input: JetInput,
     track_input: ModelInput,
-    y_train: pd.DataFrame,
-    y_val: pd.DataFrame,
+    y_train_df: pd.DataFrame,
+    y_val_df: pd.DataFrame,
 ) -> Tuple[
     np.ndarray,
     np.ndarray,
@@ -230,8 +230,8 @@ def prep_input_for_keras(
     pd.DataFrame,
     np.ndarray,
     np.ndarray,
-    pd.DataFrame,
-    pd.DataFrame,
+    np.ndarray,
+    np.ndarray,
 ]:
     """Need inputs to be in very specific shapes for Conv1D+LSTM training
 
@@ -257,8 +257,8 @@ def prep_input_for_keras(
     """
 
     # Convert labels to categorical (needed for multiclass training)
-    y_train = np_utils.to_categorical(y_train)
-    y_val = np_utils.to_categorical(y_val)
+    y_train = np_utils.to_categorical(y_train_df)
+    y_val = np_utils.to_categorical(y_val_df)
 
     # Split X into track, MSeg, and constit inputs and reshape dataframes into
     # shape expected by Keras. This is an ordered array, so each input is
@@ -607,8 +607,8 @@ def setup_model_architecture(
 
 def setup_adversary_arrays(
     mcWeights_val_adversary: pd.DataFrame,
-    weights_to_train: List[pd.DataFrame],
-    weights_to_validate: List[pd.Series],
+    weights_to_train: List[np.ndarray],
+    weights_to_validate: List[np.ndarray],
     weights_train_adversary_s: pd.Series,
     weights_val_adversary: pd.Series,
     x_to_adversary: List[np.ndarray],
@@ -771,7 +771,8 @@ def setup_adversary_arrays(
     small_y_to_train_adversary_0 = np.array_split(
         small_y_to_train_adversary[0], num_splits
     )
-    small_weights_train_adversary = np.array_split(
+    assert isinstance(small_weights_train_adversary, np.ndarray)
+    small_weights_train_adversary_s = np.array_split(
         small_weights_train_adversary, num_splits
     )
 
@@ -785,6 +786,8 @@ def setup_adversary_arrays(
         np.squeeze(np.array(y_to_validate_adv)), num_splits_adv
     )
     weights_to_validate_0 = np.array_split(weights_to_validate[0], num_splits_adv)
+
+    assert isinstance(weights_val_adversary_values, np.ndarray)
     weights_val_adversary_split = np.array_split(
         weights_val_adversary_values, num_splits_adv
     )
@@ -809,7 +812,7 @@ def setup_adversary_arrays(
         original_adv_lossf,
         original_lossf,
         small_mcWeights_val_adversary,
-        small_weights_train_adversary,
+        small_weights_train_adversary_s,
         small_weights_val_adversary,
         small_x_to_adversary_split,
         small_x_val_adversary,
