@@ -80,3 +80,4 @@ keras_outputs/
 
 .venv/
 calratio_training/
+coverage.xml
