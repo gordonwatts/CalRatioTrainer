@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from pathlib import Path
 from typing import Tuple
+import numpy as np
 
 import pandas as pd
 import tensorflow as tf
@@ -328,6 +329,17 @@ def train_llp(
     return roc_auc, dir_name
 
 
+def _enable_layers(model, name_contains: str, does_contain: bool):
+    """Enable/Disable training depending on the layer name"""
+    # TODO: Move this off to a utility file somewhere. Or
+    # earlier in this file.
+    for _, layer_adv in enumerate(model.layers):
+        if does_contain:
+            layer_adv.trainable = name_contains in layer_adv.name
+        else:
+            layer_adv.trainable = name_contains not in layer_adv.name
+
+
 def build_train_evaluate_model(
     constit_input: ModelInput,
     track_input: ModelInput,
@@ -423,7 +435,7 @@ def build_train_evaluate_model(
     assert high_mass is not None
     (
         X_train,
-        y_train,
+        y_train_1,
         Z_train,
         weights_train,
         mcWeights_train,
@@ -472,7 +484,7 @@ def build_train_evaluate_model(
         X_val_jet_adversary,
         X_val_track,
         X_val_track_adversary,
-        y_train_1,
+        y_train,
         y_val,
     ) = prep_input_for_keras(
         MSeg_input,
@@ -491,7 +503,7 @@ def build_train_evaluate_model(
         constit_input,
         jet_input,
         track_input,
-        y_train,
+        y_train_1,
         y_val,
     )
 
@@ -650,6 +662,14 @@ def build_train_evaluate_model(
         training_params,
     )
 
+    # Summarize the two models
+    logging.debug("Summary of the original model:")
+    _enable_layers(original_model, "adversary", False)
+    original_model.summary(print_fn=logging.debug)
+    logging.debug("Summary of the discriminator model:")
+    _enable_layers(discriminator_model, "adversary", True)
+    discriminator_model.summary(print_fn=logging.debug)
+
     # Train each epoch
 
     assert training_params.lr_values is not None
@@ -677,6 +697,7 @@ def build_train_evaluate_model(
 
         # Training: the run main and adversary once each for every
         # mini-batch
+
         for i_batch in range(num_splits):
             logging.debug(
                 f"Running batch {i_batch} (of {num_splits} batches) of epoch {i_epoch}"
@@ -692,30 +713,11 @@ def build_train_evaluate_model(
                 weights_train_adversary_s[i_batch],
             ]
 
-            # TODO: This is the second place we are creating the
-            # adam optimizer - do we need it in both places?
-            optimizer = Nadam(
-                learning_rate=current_lr,
-                beta_1=0.9,
-                beta_2=0.999,
-                epsilon=1e-07,
-            )
-
             # Train the adversary network
             logging.debug("  -> Training adversary")
 
-            def enable_layers(model, name_contains: str, does_contain: bool):
-                """Enable/Disable training depending on the layer name"""
-                # TODO: Move this off to a utility file somewhere. Or
-                # earlier in this file.
-                for _, layer_adv in enumerate(model.layers):
-                    if does_contain:
-                        layer_adv.trainable = name_contains in layer_adv.name
-                    else:
-                        layer_adv.trainable = name_contains not in layer_adv.name
-
             # Labeling as adversary in order to only train adv layers
-            enable_layers(discriminator_model, "adversary", True)
+            _enable_layers(discriminator_model, "adversary", True)
 
             # training adversary twice with two different learning rates
             for x in [19, 0.1]:
@@ -748,7 +750,18 @@ def build_train_evaluate_model(
 
             logging.debug("  -> Training main network")
 
-            enable_layers(original_model, "adversary", False)
+            _enable_layers(original_model, "adversary", False)
+
+            # TODO: This is the second place we are creating the
+            # adam optimizer - do we need it in both places?
+            # Is there any point in using Adam if we are re-creating it
+            # for every single iteration?
+            optimizer = Nadam(
+                learning_rate=current_lr,
+                beta_1=0.9,
+                beta_2=0.999,
+                epsilon=1e-07,
+            )
 
             original_model.compile(
                 optimizer=optimizer,
@@ -761,17 +774,17 @@ def build_train_evaluate_model(
                 train_inputs, train_outputs, train_weights
             )
 
-            # last_loss = original_hist[0]
-            # last_main_output_loss = original_hist[1]
-            # last_adversary_loss = original_hist[2]
-            # last_main_cat_acc = original_hist[3]
-            # last_adv_bin_acc = original_hist[6]
+            last_loss = original_hist[0]
+            last_main_output_loss = original_hist[1]
+            last_adversary_loss = original_hist[2]
+            last_main_cat_acc = original_hist[3]
+            last_adv_bin_acc = original_hist[6]
 
-            logging.debug(f"loss: {last_loss:.4f}")
-            logging.debug(f"main_output_loss: {last_main_output_loss:.4f}")
-            logging.debug(f"adversary_loss: {last_adversary_loss:.4f}")
-            logging.debug(f"Main categorical accuracy: {last_main_cat_acc}")
-            logging.debug(f"Adversary binary accuracy: {last_adv_bin_acc}")
+            logging.info(f"  loss: {last_loss:.4f}")
+            logging.info(f"  main_output_loss: {last_main_output_loss:.4f}")
+            logging.info(f"  adversary_loss: {last_adversary_loss:.4f}")
+            logging.debug(f"  Main categorical accuracy: {last_main_cat_acc}")
+            logging.debug(f"  Adversary binary accuracy: {last_adv_bin_acc}")
 
     #         print(f"TEST BATCH {i}")
 
