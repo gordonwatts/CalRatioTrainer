@@ -648,9 +648,10 @@ def build_train_evaluate_model(
         training_params,
     )
 
-    #     # Train each epoch
+    # Train each epoch
 
-    #     for i in epoch_list:
+    for i in epoch_list:
+        logging.info(f"Training Epoch {i} of {len(epoch_list)}")
     #         print(len(epoch_list))
     #         print(f"Epoch: {i}")
     #         # Set up decaying learning rate

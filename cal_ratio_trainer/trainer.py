@@ -1,4 +1,5 @@
 import argparse
+import logging
 from pathlib import Path
 
 from cal_ratio_trainer.config import load_config
@@ -24,6 +25,10 @@ def main():
     subparsers = parser.add_subparsers(help="sub-command help")
     parser.set_defaults(func=lambda _: parser.print_help())
 
+    # Add a top level verbose flag that will count the number of
+    # v's on the command line to turn on levels of verbosity.
+    parser.add_argument("-v", "--verbose", action="count", default=0)
+
     # Sub-command train to actually run the training, using a config file to load.
     parser_train = subparsers.add_parser("train", help="Train the CalRatio RNN model")
     parser_train.add_argument(
@@ -38,6 +43,18 @@ def main():
 
     # Parse the command line arguments
     args = parser.parse_args()
+
+    # Turn on verbosity by setting the log level to be "info" or "debug"
+    # in python's `logging` module.
+    if args.verbose == 1:
+        log_level = logging.INFO
+    elif args.verbose >= 2:
+        log_level = logging.DEBUG
+    else:
+        log_level = logging.WARNING
+    logging.basicConfig(level=log_level)
+
+    # Call the function to execute the command.
     args.func(args)
 
 
