@@ -53,7 +53,7 @@ def train_llp(
     :param plt_model: True to save model architecture to disk
     :param skip_training: Skip training and evaluate based on directory of network given
     """
-    logging.info("Num GPUs Available: ", len(tf.config.list_physical_devices("GPU")))
+    logging.info(f"Num GPUs Available: {len(tf.config.list_physical_devices('GPU'))}")
     gpus = tf.config.experimental.list_physical_devices("GPU")
     if gpus:
         try:
@@ -90,7 +90,7 @@ def train_llp(
         print(str(training_params), file=f_out)
 
     # Load dataset
-    logging.debug(f"Loading control region data file {training_params.cr_file}...")
+    logging.info(f"Loading control region data file {training_params.cr_file}...")
     df_adversary = load_dataset(training_params.cr_file)
     assert training_params.frac_list is not None
     df_adversary = match_adversary_weights(df_adversary)
@@ -98,7 +98,7 @@ def train_llp(
     # be different each run.
     df_adversary = df_adversary.sample(frac=training_params.frac_list)
 
-    logging.debug(f"Loading up dataset {training_params.main_file}...")
+    logging.info(f"Loading up dataset {training_params.main_file}...")
     df = load_dataset(training_params.main_file)
     df = df.sample(frac=training_params.frac_list)
 

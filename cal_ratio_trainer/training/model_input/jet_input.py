@@ -58,10 +58,10 @@ class JetInput(ModelInput):
             val = pd.concat([val, Z_val["LLP_mS"]], axis=1)
 
         # print some details
-        logging.info("Shape: %.0f" % (train.shape[1]))
-        logging.info("Number of training examples %.0f" % (train.shape[0]))
-        logging.info("Number of validating examples %.0f" % (val.shape[0]))
-        logging.info("Number of testing examples %.0f" % (test.shape[0]))
+        logging.debug("  Shape: %.0f" % (train.shape[1]))
+        logging.debug("  Number of training examples %.0f" % (train.shape[0]))
+        logging.debug("  Number of validating examples %.0f" % (val.shape[0]))
+        logging.debug("  Number of testing examples %.0f" % (test.shape[0]))
 
         return train, val, test
 

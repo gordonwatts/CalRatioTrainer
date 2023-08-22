@@ -40,9 +40,9 @@ def training_runner_util(training_parameters: TrainingConfig):
     )
 
     # Summarize performance metrics``
-    print("\nEstimated AUC %.3f (%.3f)" % (np.mean(roc_scores), np.std(roc_scores)))
+    print("Estimated AUC %.3f (%.3f)" % (np.mean(roc_scores), np.std(roc_scores)))
     logging.info(
-        "\nEstimated AUC %.3f (%.3f)" % (np.mean(roc_scores), np.std(roc_scores))
+        "Estimated AUC %.3f (%.3f)" % (np.mean(roc_scores), np.std(roc_scores))
     )
     # roc_results.append(roc_scores)
     # model_files.append(dir_name)

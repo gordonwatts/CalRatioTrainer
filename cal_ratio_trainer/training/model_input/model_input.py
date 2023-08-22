@@ -239,10 +239,10 @@ class ModelInput:
         test = test.values.reshape(test.shape[0], self.rows_max, temp_num_features)
 
         # print some details
-        logging.info("Shape: %.0f x %.0f" % (train.shape[1], train.shape[2]))
-        logging.info("Number of training examples %.0f" % (train.shape[0]))
-        logging.info("Number of validating examples %.0f" % (val.shape[0]))
-        logging.info("Number of testing examples %.0f" % (test.shape[0]))
+        logging.debug("  Shape: %.0f x %.0f" % (train.shape[1], train.shape[2]))
+        logging.debug("  Number of training examples %.0f" % (train.shape[0]))
+        logging.debug("  Number of validating examples %.0f" % (val.shape[0]))
+        logging.debug("  Number of testing examples %.0f" % (test.shape[0]))
 
         return train, val, test
 

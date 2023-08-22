@@ -263,7 +263,7 @@ def prep_input_for_keras(
     # Split X into track, MSeg, and constit inputs and reshape dataframes into
     # shape expected by Keras. This is an ordered array, so each input is
     # formatted as number of constituents x number of variables
-    logging.debug("Preparing constit data...")
+    logging.debug("Preparing jet constituent data")
     (
         X_train_constit,
         X_val_constit,
@@ -271,6 +271,7 @@ def prep_input_for_keras(
     ) = constit_input.extract_and_split_data(
         X_train, X_val, X_test, Z_train, Z_val, Z_test, "clus_pt_0", "clus_time_"
     )
+    logging.debug("Preparing jet constituent data (adversary)")
     (
         X_train_constit_adversary,
         X_val_constit_adversary,
@@ -286,7 +287,7 @@ def prep_input_for_keras(
         "clus_time_",
     )
 
-    logging.debug("Preparing track data...")
+    logging.debug("Preparing track data")
     X_train_track, X_val_track, X_test_track = track_input.extract_and_split_data(
         X_train,
         X_val,
@@ -297,6 +298,7 @@ def prep_input_for_keras(
         "nn_track_pt_0",
         "nn_track_SCTHits_",
     )
+    logging.debug("Preparing track data (adversary)")
     (
         X_train_track_adversary,
         X_val_track_adversary,
@@ -312,7 +314,7 @@ def prep_input_for_keras(
         "track_SCTHits_",
     )
 
-    logging.debug("Preparing MSeg data...")
+    logging.debug("Preparing MSeg data")
     X_train_MSeg, X_val_MSeg, X_test_MSeg = MSeg_input.extract_and_split_data(
         X_train,
         X_val,
@@ -323,6 +325,7 @@ def prep_input_for_keras(
         "nn_MSeg_etaPos_0",
         "nn_MSeg_t0_",
     )
+    logging.debug("Preparing MSeg data (adversary)")
     (
         X_train_MSeg_adversary,
         X_val_MSeg_adversary,
@@ -338,7 +341,7 @@ def prep_input_for_keras(
         "MSeg_t0_",
     )
 
-    logging.debug("Preparing jet data...")
+    logging.debug("Preparing jet data")
     X_train_jet, X_val_jet, X_test_jet = jet_input.extract_and_split_data(
         X_train, X_val, X_test, Z_train, Z_val, Z_test, "jet_pt", "jet_phi"
     )

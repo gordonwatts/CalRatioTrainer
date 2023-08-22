@@ -89,9 +89,9 @@ def load_dataset(filename: Path) -> pd.DataFrame:
 
     # Print sizes of inputs for signal, qcd, and bib
     logging.debug(df.head())
-    logging.info("Length of Signal is: " + str(df[df.label == 1].shape[0]))
-    logging.info("Length of QCD is: " + str(df[df.label == 0].shape[0]))
-    logging.info("Length of BIB is: " + str(df[df.label == 2].shape[0]))
+    logging.info("  Length of Signal is: " + str(df[df.label == 1].shape[0]))
+    logging.info("  Length of QCD is: " + str(df[df.label == 0].shape[0]))
+    logging.info("  Length of BIB is: " + str(df[df.label == 2].shape[0]))
 
     return df
 
