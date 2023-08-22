@@ -64,6 +64,9 @@ def prepare_training_datasets(
     # TODO: Why not rescale BIB so it also has the same weight?
 
     # Hard code start and end of names of variables
+    # TODO: These following lines give a performance warning sometimes
+    # due to fragmented memory. Considering we are selecting a list of
+    # columns, there is almost surely a fast and optimized way to do this.
     X = df.loc[:, "clus_pt_0":"nn_MSeg_t0_29"]
     X = df.loc[:, "jet_pt":"jet_phi"].join(X)
     X["eventNumber"] = df["eventNumber"]
