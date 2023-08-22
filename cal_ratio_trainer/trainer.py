@@ -13,6 +13,8 @@ def do_train(args):
     # Next, look at the arguments and see if anything should be changed.
     if args.epochs is not None:
         c.epochs = args.epochs
+    if args.num_splits is not None:
+        c.num_splits = args.num_splits
 
     training_runner_util(c)
 
@@ -39,6 +41,7 @@ def main():
     )
     # Add all the training configuration options
     parser_train.add_argument("--epochs", type=int, help="Number of epochs to train")
+    parser_train.add_argument("--num_splits", type=int, help="Number of mini-batches")
     parser_train.set_defaults(func=do_train)
 
     # Parse the command line arguments

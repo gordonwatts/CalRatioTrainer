@@ -6,6 +6,8 @@ from typing import Tuple
 
 import pandas as pd
 import tensorflow as tf
+from keras import metrics
+from keras.optimizers import Nadam
 from sklearn.model_selection import train_test_split
 
 from cal_ratio_trainer.config import TrainingConfig
@@ -650,124 +652,126 @@ def build_train_evaluate_model(
 
     # Train each epoch
 
-    for i in epoch_list:
-        logging.info(f"Training Epoch {i} of {len(epoch_list)}")
-    #         print(len(epoch_list))
-    #         print(f"Epoch: {i}")
-    #         # Set up decaying learning rate
-    #         current_lr = training_params.lr_values * (1.0 / (1.0 + 0.03 * i))
-    #         # Set up increasing adversary weight, inrceases per epoch
-    #         current_adversary_weight = training_params.adversary_weight * (
-    #             1.0 / (1.0 - 0.005 * i)
-    #         )
-    #         main_model_weight = 1 * (1.0 / (1.0 + 0.01125 * i))
-    #         print(f"main model weight: {main_model_weight}")
-    #         print(f"adv weight: {current_adversary_weight}")
+    assert training_params.lr_values is not None
+    assert training_params.adversary_weight is not None
+    for i_epoch in epoch_list:
+        logging.info(f"Training Epoch {i_epoch} of {len(epoch_list)}")
+        # Set up decaying learning rate
+        current_lr = training_params.lr_values * (1.0 / (1.0 + 0.03 * i_epoch))
+        # Set up increasing adversary weight, increases per epoch
+        current_adversary_weight = training_params.adversary_weight * (
+            1.0 / (1.0 - 0.005 * i_epoch)
+        )
+        main_model_weight = 1 * (1.0 / (1.0 + 0.01125 * i_epoch))
+        logging.debug(f"main model weight: {main_model_weight}")
+        logging.debug(f"adv weight: {current_adversary_weight}")
 
-    #         # sess = tf.compat.v1.keras.backend.get_session()
-    #         """
-    #         for layer_index_adv, layer_adv in enumerate(discriminator_model.layers):
-    #             if ("adversary" in layer_adv.name):
-    #                 reset_layers = []
-    #                 for weight_index, weight_list in enumerate(layer_adv.get_weights()):
-    #                     with tf.compat.v1.Session() as sess:
-    #                         reset_layers.append(glorot_uniform()((layer_adv.get_weights()[weight_index]).shape).eval(session=sess))
-    #                 layer_adv.set_weights(reset_layers)
-    #         """
+        last_loss = -1
+        last_main_output_loss = -1
+        last_adversary_loss = -1
+        last_main_cat_acc = -1
+        last_adv_bin_acc = -1
 
-    #         last_loss = -1
-    #         last_main_output_loss = -1
-    #         last_adversary_loss = -1
-    #         last_main_cat_acc = -1
-    #         last_adv_bin_acc = -1
+        last_disc_loss = -1
+        last_disc_bin_acc = -1
 
-    #         last_disc_loss = -1
-    #         last_disc_bin_acc = -1
+        # Training: the run main and adversary once each for every
+        # mini-batch
+        for i_batch in range(num_splits):
+            logging.debug(
+                f"Running batch {i_batch} (of {num_splits} batches) of epoch {i_epoch}"
+            )
 
-    #         # Data already split into mini-batches, run main and adversary once each for every minibatch/split
-    #         for j in range(num_splits):
-    #             print(f"batch {j}")
+            train_inputs = [*x_to_train_split[i_batch], *x_to_adversary_split[i_batch]]
+            train_outputs = [
+                y_to_train_0[i_batch],
+                y_to_train_adversary_squeeze[i_batch],
+            ]
+            train_weights = [
+                weights_to_train_0[i_batch],
+                weights_train_adversary_s[i_batch],
+            ]
 
-    #             savemem(dir_name, i, j, "before training anything")
+            # TODO: This is the second place we are creating the
+            # adam optimizer - do we need it in both places?
+            optimizer = Nadam(
+                learning_rate=current_lr,
+                beta_1=0.9,
+                beta_2=0.999,
+                epsilon=1e-07,
+            )
 
-    #             train_inputs = [*x_to_train_split[j], *x_to_adversary_split[j]]
-    #             train_outputs = [y_to_train_0[j], y_to_train_adversary_squeeze[j]]
-    #             train_weights = [weights_to_train_0[j], weights_train_adversary_s[j]]
+            # Train the adversary network
+            logging.debug("  -> Training adversary")
 
-    #             optimizer = Nadam(
-    #                 learning_rate=current_lr,
-    #                 beta_1=0.9,
-    #                 beta_2=0.999,
-    #                 epsilon=1e-07,
-    #                 schedule_decay=0.05,
-    #             )
+            def enable_layers(model, name_contains: str, does_contain: bool):
+                """Enable/Disable training depending on the layer name"""
+                # TODO: Move this off to a utility file somewhere. Or
+                # earlier in this file.
+                for _, layer_adv in enumerate(model.layers):
+                    if does_contain:
+                        layer_adv.trainable = name_contains in layer_adv.name
+                    else:
+                        layer_adv.trainable = name_contains not in layer_adv.name
 
-    #             print("Adversary")
-    #             savemem(dir_name, i, j, "before training adversary (1)")
+            # Labeling as adversary in order to only train adv layers
+            enable_layers(discriminator_model, "adversary", True)
 
-    #             # Labeling as adversary in order to only train adv layers
-    #             for layer_index_adv, layer_adv in enumerate(discriminator_model.layers):
-    #                 layer_adv.trainable = "adversary" in layer_adv.name
+            # training adversary twice with two different learning rates
+            for x in [19, 0.1]:
+                optimizer_adv = Nadam(
+                    learning_rate=current_lr * x,
+                    beta_1=0.9,
+                    beta_2=0.999,
+                    epsilon=1e-07,
+                )
+                logging.debug(
+                    "  Training adversary with "
+                    f"lr {optimizer_adv.learning_rate.value()}"
+                )
 
-    #             # training adversary twice with two different learning rates
-    #             for x in [0.1, 10]:
-    #                 optimizer_adv = Nadam(
-    #                     learning_rate=current_lr * x,
-    #                     beta_1=0.9,
-    #                     beta_2=0.999,
-    #                     epsilon=1e-07,
-    #                     schedule_decay=0.05,
-    #                 )
+                discriminator_model.compile(
+                    optimizer=optimizer_adv,
+                    loss="binary_crossentropy",
+                    metrics=[metrics.binary_accuracy],
+                )
+                adversary_hist = discriminator_model.train_on_batch(
+                    small_x_to_adversary_split[i_batch],
+                    small_y_to_train_adversary_0[i_batch],
+                    sample_weight=small_weights_train_adversary[i_batch],
+                )
 
-    #                 discriminator_model.compile(
-    #                     optimizer=optimizer_adv,
-    #                     loss="binary_crossentropy",
-    #                     metrics=[metrics.binary_accuracy],
-    #                 )
-    #                 adversary_hist = discriminator_model.train_on_batch(
-    #                     small_x_to_adversary_split[j],
-    #                     small_y_to_train_adversary_0[j],
-    #                     sample_weight=small_weights_train_adversary_s[j],
-    #                 )
+                last_disc_loss = adversary_hist[0]
+                last_disc_bin_acc = adversary_hist[1]
+                logging.debug(f"  Adversary Loss: {last_disc_loss:.4f}")
+                logging.debug(f"  Adversary binary Accuracy: {last_disc_bin_acc:.4f}")
 
-    #             print(f"Adversary Loss: {adversary_hist[0]:.4f}")
-    #             last_disc_loss = adversary_hist[0]
-    #             print(f"Adversary binary Accuracy: {adversary_hist[1]:.4f}")
-    #             last_disc_bin_acc = adversary_hist[1]
+            logging.debug("  -> Training main network")
 
-    #             print("Main")
+            enable_layers(original_model, "adversary", False)
 
-    #             savemem(dir_name, i, j, "before training main model")
-    #             for layer_index, layer in enumerate(original_model.layers):
-    #                 layer.trainable = "adversary" not in layer.name
+            original_model.compile(
+                optimizer=optimizer,
+                loss=["categorical_crossentropy", "binary_crossentropy"],
+                metrics=[metrics.categorical_accuracy, metrics.binary_accuracy],
+                loss_weights=[1 * main_model_weight, -current_adversary_weight],
+            )
 
-    #             original_model.compile(
-    #                 optimizer=optimizer,
-    #                 loss=["categorical_crossentropy", "binary_crossentropy"],
-    #                 metrics=[metrics.categorical_accuracy, metrics.binary_accuracy],
-    #                 loss_weights=[1 * main_model_weight, -current_adversary_weight],
-    #             )
+            original_hist = original_model.train_on_batch(
+                train_inputs, train_outputs, train_weights
+            )
 
-    #             savemem(dir_name, i, j, "after compiling")
+            # last_loss = original_hist[0]
+            # last_main_output_loss = original_hist[1]
+            # last_adversary_loss = original_hist[2]
+            # last_main_cat_acc = original_hist[3]
+            # last_adv_bin_acc = original_hist[6]
 
-    #             original_hist = original_model.train_on_batch(
-    #                 train_inputs, train_outputs, train_weights
-    #             )
-
-    #             # gc.collect()
-
-    #             savemem(dir_name, i, j, "after training main model")
-
-    #             print(f"loss: {original_hist[0]:.4f}")
-    #             last_loss = original_hist[0]
-    #             print(f"main_output_loss: {original_hist[1]:.4f}")
-    #             last_main_output_loss = original_hist[1]
-    #             print(f"adversary_loss: {original_hist[2]:.4f}")
-    #             last_adversary_loss = original_hist[2]
-    #             print(f"Main categorical accuracy: {original_hist[3]}")
-    #             last_main_cat_acc = original_hist[3]
-    #             print(f"Adversary binary accuracy: {original_hist[6]}")
-    #             last_adv_bin_acc = original_hist[6]
+            logging.debug(f"loss: {last_loss:.4f}")
+            logging.debug(f"main_output_loss: {last_main_output_loss:.4f}")
+            logging.debug(f"adversary_loss: {last_adversary_loss:.4f}")
+            logging.debug(f"Main categorical accuracy: {last_main_cat_acc}")
+            logging.debug(f"Adversary binary accuracy: {last_adv_bin_acc}")
 
     #         print(f"TEST BATCH {i}")
 
