@@ -690,12 +690,15 @@ def build_train_evaluate_model(
     )
 
     # Compile the models
+    _enable_layers(discriminator_model, "adversary", True)
     discriminator_model.compile(
         optimizer=optimizer_adv,
         loss="binary_crossentropy",
         metrics=[metrics.binary_accuracy],
     )
+
     assert training_params.adversary_weight is not None
+    _enable_layers(original_model, "adversary", False)
     original_model.compile(
         optimizer=optimizer,
         loss=["categorical_crossentropy", "binary_crossentropy"],
@@ -747,9 +750,6 @@ def build_train_evaluate_model(
             # Train the adversary network
             logging.debug("  -> Training adversary")
 
-            # Labeling as adversary in order to only train adv layers
-            _enable_layers(discriminator_model, "adversary", True)
-
             # training adversary twice with two different learning rates
             for x in [19, 0.1]:
                 optimizer_adv.learning_rate.assign(current_lr * x)
@@ -770,8 +770,6 @@ def build_train_evaluate_model(
                 logging.debug(f"  Adversary binary Accuracy: {last_disc_bin_acc:.4f}")
 
             logging.debug("  -> Training main network")
-
-            _enable_layers(original_model, "adversary", False)
 
             # TODO: This is the second place we are setting the
             # learning rate - do we need it in both places?
