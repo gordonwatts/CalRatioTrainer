@@ -689,8 +689,21 @@ def build_train_evaluate_model(
         epsilon=1e-07,
     )
 
-    # Train each epoch
+    # Compile the models
+    discriminator_model.compile(
+        optimizer=optimizer_adv,
+        loss="binary_crossentropy",
+        metrics=[metrics.binary_accuracy],
+    )
     assert training_params.adversary_weight is not None
+    original_model.compile(
+        optimizer=optimizer,
+        loss=["categorical_crossentropy", "binary_crossentropy"],
+        metrics=[metrics.categorical_accuracy, metrics.binary_accuracy],
+        loss_weights=[1, -training_params.adversary_weight],
+    )
+
+    # Train each epoch
     for i_epoch in epoch_list:
         logging.info(f"Training Epoch {i_epoch+1} of {len(epoch_list)}")
         # Set up decaying learning rate
@@ -745,11 +758,6 @@ def build_train_evaluate_model(
                     f"lr {optimizer_adv.learning_rate.value()}"
                 )
 
-                discriminator_model.compile(
-                    optimizer=optimizer_adv,
-                    loss="binary_crossentropy",
-                    metrics=[metrics.binary_accuracy],
-                )
                 adversary_hist = discriminator_model.train_on_batch(
                     small_x_to_adversary_split[i_batch],
                     small_y_to_train_adversary_0[i_batch],
@@ -771,12 +779,12 @@ def build_train_evaluate_model(
             # for every single iteration?
             optimizer.learning_rate.assign(current_lr)
 
-            original_model.compile(
-                optimizer=optimizer,
-                loss=["categorical_crossentropy", "binary_crossentropy"],
-                metrics=[metrics.categorical_accuracy, metrics.binary_accuracy],
-                loss_weights=[1 * main_model_weight, -current_adversary_weight],
-            )
+            # original_model.compile(
+            #     optimizer=optimizer,
+            #     loss=["categorical_crossentropy", "binary_crossentropy"],
+            #     metrics=[metrics.categorical_accuracy, metrics.binary_accuracy],
+            #     loss_weights=[1 * main_model_weight, -current_adversary_weight],
+            # )
 
             original_hist = original_model.train_on_batch(
                 train_inputs, train_outputs, train_weights
