@@ -23,7 +23,8 @@ Some quick notes:
 
 This is always an issue of trying to keep the number of min batches small to improve performance and now overflow your memory. Recorded below are a few running configurations:
 
-* Laptop, i7, 32 GB, Windows, running on the test data: '--num_splits 2` seems to work well.
+* Laptop, i7, 32 GB, Windows, running on the test data: '--num_splits 2`.
+* Chicago AF, V100 (16GB), 4 CPU with 32 GB, running on the test data: `--num_splits 10`.
 
 ## Installation
 
