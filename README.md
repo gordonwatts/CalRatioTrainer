@@ -19,6 +19,12 @@ Some quick notes:
 * The output directory contains a complete set of the options that were used in the run, so it is easy to see exactly how a run was configured.
 * test samples can run on a 16GB V100 if you do mini-match splitting of 15.
 
+### Running Parameters
+
+This is always an issue of trying to keep the number of min batches small to improve performance and now overflow your memory. Recorded below are a few running configurations:
+
+* Laptop, i7, 32 GB, Windows, running on the test data: '--num_splits 2` seems to work well.
+
 ## Installation
 
 Installation instructions are generally tricky: this really needs to be trained on a GPU.
