@@ -85,7 +85,8 @@ def load_config(p: Optional[Path] = None) -> TrainingConfig:
         specified = _load_config_from_file(p)
         d = specified.dict()
         for k, v in d.items():
-            setattr(r, k, v)
+            if v is not None:
+                setattr(r, k, v)
 
     return r
 
