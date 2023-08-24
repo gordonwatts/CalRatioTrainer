@@ -674,9 +674,22 @@ def build_train_evaluate_model(
     _enable_layers(discriminator_model, "adversary", True)
     discriminator_model.summary(print_fn=logging.debug)
 
-    # Train each epoch
-
+    # Create the optimizers for the main training and the adversary training.
     assert training_params.lr_values is not None
+    optimizer = Nadam(
+        learning_rate=training_params.lr_values,
+        beta_1=0.9,
+        beta_2=0.999,
+        epsilon=1e-07,
+    )
+    optimizer_adv = Nadam(
+        learning_rate=training_params.lr_values,
+        beta_1=0.9,
+        beta_2=0.999,
+        epsilon=1e-07,
+    )
+
+    # Train each epoch
     assert training_params.adversary_weight is not None
     for i_epoch in epoch_list:
         logging.info(f"Training Epoch {i_epoch+1} of {len(epoch_list)}")
@@ -726,12 +739,7 @@ def build_train_evaluate_model(
 
             # training adversary twice with two different learning rates
             for x in [19, 0.1]:
-                optimizer_adv = Nadam(
-                    learning_rate=current_lr * x,
-                    beta_1=0.9,
-                    beta_2=0.999,
-                    epsilon=1e-07,
-                )
+                optimizer_adv.learning_rate.assign(current_lr * x)
                 logging.debug(
                     "  Training adversary with "
                     f"lr {optimizer_adv.learning_rate.value()}"
@@ -757,16 +765,11 @@ def build_train_evaluate_model(
 
             _enable_layers(original_model, "adversary", False)
 
-            # TODO: This is the second place we are creating the
-            # adam optimizer - do we need it in both places?
+            # TODO: This is the second place we are setting the
+            # learning rate - do we need it in both places?
             # Is there any point in using Adam if we are re-creating it
             # for every single iteration?
-            optimizer = Nadam(
-                learning_rate=current_lr,
-                beta_1=0.9,
-                beta_2=0.999,
-                epsilon=1e-07,
-            )
+            optimizer.learning_rate.assign(current_lr)
 
             original_model.compile(
                 optimizer=optimizer,
