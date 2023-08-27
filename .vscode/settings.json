@@ -54,6 +54,7 @@
         "softmax",
         "Sover",
         "stepfilled",
+        "sublists",
         "topocluster",
         "trapz",
         "verticalalignment",
