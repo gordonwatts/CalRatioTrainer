@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional, Tuple, Union, cast
+from typing import List, Optional, Tuple, TypeVar, Union, cast
 
 import numpy as np
 import pandas as pd
@@ -611,18 +611,83 @@ def setup_model_architecture(
     return model, model_discriminator, discriminator_out, model_final
 
 
+def _pad_arrays(
+    array_to_pad,
+    array_to_match,
+):
+    """
+    Pads arrays in `array_to_pad` to match the length of arrays in `array_to_match`.
+    If the lengths of the two lists of arrays do not match, a warning is logged.
+
+        Args:
+        array_to_pad: A list of numpy arrays to be padded.
+        array_to_match: A list of numpy arrays or pandas dataframes to match
+            the shape of `array_to_pad`.
+
+    Note: Types are specified on purpose here - the typing is rather
+    tough because sometimes a copy is returned and other times the
+    original is returned. Plus the original code has `x = _pad_arrays(x, y)`,
+    and so `x`'s type might or might not change.
+
+    Returns:
+        A list of numpy arrays with the same length as `array_to_match`.
+    """
+    if len(array_to_pad) != len(array_to_match):
+        logging.warning(
+            f"Lengths of arrays to pad do not match: {len(array_to_pad)} "
+            f"vs {len(array_to_match)}"
+        )
+
+    def pad_one_array(
+        to_pad,
+        template,
+    ):
+        delta_length = template.shape[0] - to_pad.shape[0]
+        if delta_length == 0:
+            return to_pad
+        elif delta_length < 0:
+            return to_pad[0 : template.shape[0]]  # noqa: E203
+
+        # Fill in extra values
+        npad = (
+            ((0, delta_length), (0, 0))
+            if to_pad.ndim > 2
+            else ((0, delta_length), (0, 0), (0, 0))
+        )
+        return np.pad(to_pad, pad_width=npad, mode="symmetric")
+
+    return [pad_one_array(adv, og) for adv, og in zip(array_to_pad, array_to_match)]
+
+
+def _do_split(arr: List[np.ndarray], n: int) -> List[List[np.ndarray]]:
+    """
+    Splits a list of numpy arrays into n sublists, where each sublist contains
+    the corresponding elements of the input arrays split into n parts.
+
+    Args:
+        arr (List[np.ndarray]): The list of numpy arrays to split.
+        n (int): The number of sublists to split the arrays into.
+
+    Returns:
+        List[List[np.ndarray]]: A list of n sublists, where each sublist contains
+        the corresponding elements of the input arrays split into n parts.
+    """
+    arr_s = [np.array_split(to_split, n) for to_split in arr]
+    return [[arr_s[i][k] for i in range(len(arr))] for k in range(n)]
+
+
 def setup_adversary_arrays(
     mcWeights_val_adversary: pd.DataFrame,
     weights_to_train: List[np.ndarray],
     weights_to_validate: List[np.ndarray],
     weights_train_adversary_s: pd.Series,
-    weights_val_adversary: pd.Series,
-    x_to_adversary: List[np.ndarray],
+    weights_val_adversary_orig: pd.Series,
+    x_to_adversary_orig: List[np.ndarray],
     x_to_train: List[np.ndarray],
     x_to_validate: List[np.ndarray],
-    x_to_validate_adv: List[np.ndarray],
+    x_to_validate_adv_orig: List[np.ndarray],
     y_to_train: List[np.ndarray],
-    y_to_train_adversary: List[Union[np.ndarray, pd.DataFrame]],
+    y_to_train_adversary_orig: Union[List[np.ndarray], List[pd.DataFrame]],
     y_to_validate: List[np.ndarray],
     y_to_validate_adv: List[np.ndarray],
     training_params: TrainingConfig,
@@ -668,82 +733,31 @@ def setup_adversary_arrays(
     checkpoint_ks_sig = 999
     checkpoint_ks_bib = 999
 
-    small_x_to_adversary = x_to_adversary.copy()
-    small_y_to_train_adversary = y_to_train_adversary.copy()
+    small_x_to_adversary = x_to_adversary_orig.copy()
+    small_y_to_train_adversary = y_to_train_adversary_orig.copy()
     small_weights_train_adversary = weights_train_adversary_s.values.copy()
-    small_x_val_adversary = x_to_validate_adv.copy()
+    small_x_val_adversary = x_to_validate_adv_orig.copy()
     small_y_val_adversary = y_to_validate_adv.copy()
-    small_weights_val_adversary = weights_val_adversary.values.copy()
+    small_weights_val_adversary = weights_val_adversary_orig.values.copy()
     small_mcWeights_val_adversary = mcWeights_val_adversary.values.copy()
 
-    # Shorten or repeat to get the various arrays the same size.
-    # TODO: Instead of counter we should use `enumerate`
-    # TODO: Why is it important that these arrays be the same size?
-    counter = 0
-    for adv, og in zip(x_to_adversary, x_to_train):
-        if adv.ndim > 2:
-            npad = ((0, og.shape[0] - adv.shape[0]), (0, 0), (0, 0))
-        else:
-            npad = ((0, og.shape[0] - adv.shape[0]), (0, 0))
-        if npad[0][1] > 0:
-            x_to_adversary[counter] = np.pad(adv, pad_width=npad, mode="symmetric")
-        else:
-            x_to_adversary[counter] = adv[0 : og.shape[0]]  # noqa: E203
-        counter += 1
+    # Shorten or repeat to get the various arrays the same size. The model
+    # design demands that they be the same size. Since the control MC is
+    # shorter (often) we will pay with `np.pad``.
 
-    counter = 0
-    for adv, og in zip(y_to_train_adversary, y_to_train):
-        npad = (0, og.shape[0] - adv.shape[0])
-        if npad[1] > 0:
-            y_to_train_adversary[counter] = np.pad(
-                adv, pad_width=npad, mode="symmetric"
-            )
-        else:
-            y_to_train_adversary[counter] = adv[0 : og.shape[0]]  # noqa: E203
-        counter += 1
-    npad = (0, weights_to_train[0].shape[0] - weights_train_adversary_s.values.shape[0])
-    if npad[1] > 0:
-        weights_train_adversary = np.pad(
-            weights_train_adversary_s.values,  # type: ignore
-            pad_width=npad,
-            mode="symmetric",
-        )
-    else:
-        weights_train_adversary = weights_train_adversary_s[
-            0 : weights_to_train[0].shape[0]  # noqa: E203
-        ]
-    counter = 0
-    for adv, og in zip(x_to_validate_adv, x_to_validate):
-        if adv.ndim > 2:
-            npad = ((0, og.shape[0] - adv.shape[0]), (0, 0), (0, 0))
-        else:
-            npad = ((0, og.shape[0] - adv.shape[0]), (0, 0))
-        if npad[0][1] > 0:
-            x_to_validate_adv[counter] = np.pad(adv, pad_width=npad, mode="symmetric")
-        else:
-            x_to_validate_adv[counter] = adv[0 : og.shape[0]]  # noqa: E203
+    x_to_adversary = _pad_arrays(x_to_adversary_orig, x_to_train)
+    y_to_train_adversary = _pad_arrays(y_to_train_adversary_orig, y_to_train)
+    x_to_validate_adv = _pad_arrays(x_to_validate_adv_orig, x_to_validate)
+    y_to_validate_adv = _pad_arrays(y_to_validate_adv, y_to_validate)
 
-        counter += 1
-    counter = 0
-    for adv, og in zip(y_to_validate_adv, y_to_validate):
-        npad = (0, og.shape[0] - adv.shape[0])
-        if npad[1] > 0:
-            y_to_validate_adv[counter] = np.pad(adv, pad_width=npad, mode="symmetric")
-        else:
-            y_to_validate_adv[counter] = adv[0 : og.shape[0]]  # noqa: E203
-        counter += 1
-    weights_val_adversary_values = weights_val_adversary.values
-    npad = (0, weights_to_validate[0].shape[0] - weights_val_adversary_values.shape[0])
-    if npad[1] > 0:
-        weights_val_adversary = np.pad(
-            weights_val_adversary_values,  # type: ignore
-            pad_width=npad,
-            mode="symmetric",
-        )
-    else:
-        weights_val_adversary_values = weights_val_adversary_values[
-            0 : weights_to_validate[0].shape[0]  # noqa: E203
-        ]
+    weights_train_adversary = _pad_arrays(
+        [weights_train_adversary_s], weights_to_train
+    )[0]
+
+    weights_val_adversary_values = weights_val_adversary_orig.values
+    weights_val_adversary = _pad_arrays(
+        [weights_val_adversary_values], weights_to_validate
+    )[0]
 
     assert training_params.epochs is not None
     num_epochs = training_params.epochs
@@ -755,13 +769,8 @@ def setup_adversary_arrays(
     assert training_params.num_splits is not None
     num_splits = training_params.num_splits
 
-    def do_split(arr: List[np.ndarray], n: int) -> List[List[np.ndarray]]:
-        # Split along all axes
-        arr_s = [np.array_split(to_split, n) for to_split in arr]
-        return [[arr_s[i][k] for i in range(len(arr))] for k in range(n)]
-
-    x_to_train_split = do_split(x_to_train, num_splits)
-    x_to_adversary_split = do_split(x_to_adversary, num_splits)
+    x_to_train_split = _do_split(x_to_train, num_splits)
+    x_to_adversary_split = _do_split(x_to_adversary, num_splits)
 
     y_to_train_0 = np.array_split(y_to_train[0], num_splits)
 
@@ -772,7 +781,7 @@ def setup_adversary_arrays(
     weights_to_train_0 = np.array_split(weights_to_train[0], num_splits)
 
     weights_train_adversary = np.array_split(weights_train_adversary, num_splits)
-    small_x_to_adversary_split = do_split(small_x_to_adversary, num_splits)
+    small_x_to_adversary_split = _do_split(small_x_to_adversary, num_splits)
 
     small_y_to_train_adversary_0 = np.array_split(
         small_y_to_train_adversary[0], num_splits
@@ -784,8 +793,8 @@ def setup_adversary_arrays(
 
     num_splits_adv = num_splits
 
-    x_to_validate_split = do_split(x_to_validate, num_splits_adv)
-    x_to_validate_adv_split = do_split(x_to_validate_adv, num_splits_adv)
+    x_to_validate_split = _do_split(x_to_validate, num_splits_adv)
+    x_to_validate_adv_split = _do_split(x_to_validate_adv, num_splits_adv)
 
     y_to_validate_0 = np.array_split(y_to_validate[0], num_splits_adv)
     y_to_validate_adv_squeeze = np.array_split(
@@ -793,10 +802,8 @@ def setup_adversary_arrays(
     )
     weights_to_validate_0 = np.array_split(weights_to_validate[0], num_splits_adv)
 
-    assert isinstance(weights_val_adversary_values, np.ndarray)
-    weights_val_adversary_split = np.array_split(
-        weights_val_adversary_values, num_splits_adv
-    )
+    assert isinstance(weights_val_adversary, np.ndarray)
+    weights_val_adversary_split = np.array_split(weights_val_adversary, num_splits_adv)
 
     return (
         accept_epoch_array,
