@@ -637,6 +637,11 @@ def _pad_arrays(
             f"Lengths of arrays to pad do not match: {len(array_to_pad)} "
             f"vs {len(array_to_match)}"
         )
+    if len(array_to_match) < len(array_to_pad):
+        raise ValueError(
+            f"Length of 'array_to_match' ({len(array_to_match)}) must "
+            f"be >= 'array_to_pad' ({len(array_to_pad)})"
+        )
 
     def pad_one_array(
         to_pad,
@@ -649,8 +654,8 @@ def _pad_arrays(
             return to_pad[0 : template.shape[0]]  # noqa: E203
 
         # Fill in extra values
-        npad = ((0, delta_length),) + tuple((((0, 0),) for _ in range(to_pad.ndim - 1)))
-        return np.pad(to_pad, pad_width=npad, mode="symmetric")
+        npad = [(0, delta_length)] + [(0, 0) for _ in range(to_pad.ndim - 1)]
+        return np.pad(to_pad, pad_width=tuple(npad), mode="symmetric")
 
     return [pad_one_array(adv, og) for adv, og in zip(array_to_pad, array_to_match)]
 
