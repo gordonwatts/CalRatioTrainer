@@ -82,3 +82,4 @@ keras_outputs/
 calratio_training/
 coverage.xml
 timings.txt
+/*.yaml

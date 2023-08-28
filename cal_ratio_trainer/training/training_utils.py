@@ -632,11 +632,6 @@ def _pad_arrays(
     Returns:
         A list of numpy arrays with the same length as `array_to_match`.
     """
-    if len(array_to_pad) != len(array_to_match):
-        logging.warning(
-            f"Lengths of arrays to pad do not match: {len(array_to_pad)} "
-            f"vs {len(array_to_match)}"
-        )
     if len(array_to_match) < len(array_to_pad):
         raise ValueError(
             f"Length of 'array_to_match' ({len(array_to_match)}) must "
