@@ -25,6 +25,7 @@ This is always an issue of trying to keep the number of min batches small to imp
 
 * Laptop, i7, 32 GB, Windows, running on the test data: '--num_splits 2`.
 * Chicago AF, V100 (16GB), 4 CPU with 32 GB, running on the test data: `--num_splits 10`.
+* Chicago AF, V100 (16 GV), 4 CPU with 32 GB, running on the full Run 2 data: `--num_splits 230`. Running a full 100 epochs takes 2 hours.
 
 ## Installation
 
