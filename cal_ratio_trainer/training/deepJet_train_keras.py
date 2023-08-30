@@ -678,10 +678,10 @@ def build_train_evaluate_model(
             last_main_cat_acc = original_hist[3]
             last_adv_bin_acc = original_hist[6]
 
-        logging.info("  Info for last mini-batch of epoch")
-        logging.info(f"  loss: {last_loss:.4f}")
-        logging.info(f"  main_output_loss: {last_main_output_loss:.4f}")
-        logging.info(f"  adversary_loss: {last_adversary_loss:.4f}")
+        logging.debug("  Info for last mini-batch of epoch")
+        logging.debug(f"  loss: {last_loss:.4f}")
+        logging.debug(f"  main_output_loss: {last_main_output_loss:.4f}")
+        logging.debug(f"  adversary_loss: {last_adversary_loss:.4f}")
         logging.debug(f"  Main categorical accuracy: {last_main_cat_acc}")
         logging.debug(f"  Adversary binary accuracy: {last_adv_bin_acc}")
 
@@ -699,11 +699,17 @@ def build_train_evaluate_model(
         val_last_adversary_loss = original_val_hist[2]
         val_last_main_cat_acc = original_val_hist[3]
         val_last_adv_bin_acc = original_val_hist[6]
-        logging.debug(f"val loss: {val_last_loss:.4f}")
-        logging.debug(f"val main_output_loss: {val_last_main_output_loss:.4f}")
-        logging.debug(f"val adversary_loss: {val_last_adversary_loss:.4f}")
-        logging.debug(f"val Main categorical accuracy: {val_last_main_cat_acc}")
-        logging.debug(f"val Adversary binary accuracy: {val_last_adv_bin_acc}")
+        logging.info(f"  loss on test dataset: {val_last_loss:.4f}")
+        logging.info(
+            f"  main_output_loss on test dataset: {val_last_main_output_loss:.4f}"
+        )
+        logging.info(f"  adversary_loss on test dataset: {val_last_adversary_loss:.4f}")
+        logging.info(
+            f"  Main categorical accuracy on test dataset: {val_last_main_cat_acc}"
+        )
+        logging.info(
+            f"  Adversary binary accuracy on test dataset: {val_last_adv_bin_acc}"
+        )
 
         adversary_val_hist = discriminator_model.test_on_batch(
             small_x_val_adversary,
@@ -804,6 +810,7 @@ def build_train_evaluate_model(
             accept_epoch_array,
             dir_name,
         )
+        logging.debug("Finished Epoch Validation")
     logging.info("Finished training")
 
     # Evaluate Model with ROC curves
