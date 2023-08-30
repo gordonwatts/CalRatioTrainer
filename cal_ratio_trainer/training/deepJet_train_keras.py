@@ -213,124 +213,6 @@ def train_llp(
         training_params,
     )
 
-    #     f.close()
-    #     return roc_auc, dir_name
-
-    # else:
-    #     # initialize lists to store metrics
-    #     roc_scores, acc_scores = list(), list()
-    #     # initialize counter for current fold iteration
-    #     n_folds = 0
-    #     # do KFold Cross Validation
-    #     eval_object_list = []
-    #     for train_ix, test_ix, train_adv_ix, test_adv_ix in (
-    #         kfold.split(X, Y),
-    #         kfold.split(X_adversary, Y_adversary),
-    #     ):
-    #         eval_object = evaluationObject()
-    #         eval_object.fillObject_params(
-    #             training_params.frac_list,
-    #             training_params.batch_size,
-    #             training_params.reg_values,
-    #             training_params.dropout_array,
-    #             training_params.epochs,
-    #             training_params.lr_values,
-    #             training_params.hidden_layer_fraction,
-    #             int(constit_input.filters_cnn[3] / 4),
-    #             sig_weight,
-    #             int(constit_input.nodes_lstm / 40),
-    #         )
-    #         n_folds += 1
-    #         print("\nDoing KFold iteration # %.0f...\n" % n_folds)
-    #         # select samples
-    #         X_test, y_test, weights_test, mcWeights_test, Z_test = (
-    #             X.iloc[test_ix],
-    #             Y.iloc[test_ix],
-    #             weights.iloc[test_ix],
-    #             mcWeights.iloc[test_ix],
-    #             Z.iloc[test_ix],
-    #         )
-    #         X_train, y_train, weights_train, mcWeights_train, Z_train = (
-    #             X.iloc[train_ix],
-    #             Y.iloc[train_ix],
-    #             weights.iloc[train_ix],
-    #             mcWeights.iloc[train_ix],
-    #             Z.iloc[train_ix],
-    #         )
-
-    #         (
-    #             X_test_adversary,
-    #             y_test_adversary,
-    #             weights_test_adversary,
-    #             mcWeights_test_adversary,
-    #             Z_test_adversary,
-    #         ) = (
-    #             X_adversary.iloc[test_adv_ix],
-    #             Y_adversary.iloc[test_adv_ix],
-    #             weights_adversary.iloc[test_adv_ix],
-    #             mcWeights_adversary.iloc[test_adv_ix],
-    #             Z_adversary.iloc[test_adv_ix],
-    #         )
-    #         (
-    #             X_train_adversary,
-    #             y_train_adversary,
-    #             weights_train_adversary,
-    #             mcWeights_train_adversary,
-    #             Z_train_adversary,
-    #         ) = (
-    #             X_adversary.iloc[train_adv_ix],
-    #             Y_adversary.iloc[train_adv_ix],
-    #             weights_adversary.iloc[train_adv_ix],
-    #             mcWeights_adversary.iloc[train_adv_ix],
-    #             Z_adversary.iloc[train_adv_ix],
-    #         )
-
-    #         # Call method that prepares data, builds model architecture, trains model,
-    #         # and evaluates model
-    #         roc_auc = build_train_evaluate_model(
-    #             constit_input,
-    #             track_input,
-    #             MSeg_input,
-    #             jet_input,
-    #             X_train,
-    #             X_test,
-    #             y_train,
-    #             y_test,
-    #             mcWeights_train,
-    #             mcWeights_test,
-    #             weights_train,
-    #             weights_test,
-    #             Z_test,
-    #             Z_train,
-    #             constit_input_adversary,
-    #             track_input_adversary,
-    #             MSeg_input_adversary,
-    #             jet_input_adversary,
-    #             X_train_adversary,
-    #             X_test_adversary,
-    #             y_train_adversary,
-    #             y_test_adversary,
-    #             mcWeights_train_adversary,
-    #             mcWeights_test_adversary,
-    #             weights_train_adversary,
-    #             weights_test_adversary,
-    #             plt_model,
-    #             dir_name,
-    #             eval_object,
-    #             useGPU2,
-    #             skipTraining,
-    #             training_params,
-    #             kfold,
-    #             n_folds,
-    #         )
-
-    #         roc_scores.append(roc_auc)
-    #         eval_object_list.append(eval_object)
-    #         gc.collect()
-    #     evaluate_objectList(eval_object_list, f)
-    #     f.close()
-    #     return roc_scores, dir_name
-
     return roc_auc, dir_name
 
 
@@ -788,20 +670,24 @@ def build_train_evaluate_model(
                 train_inputs, train_outputs, train_weights
             )
 
+            # TODO: this is printed out at the end - we should do an average and a
+            # sigma or something
+            # not just the last mini-batch.
             last_loss = original_hist[0]
             last_main_output_loss = original_hist[1]
             last_adversary_loss = original_hist[2]
             last_main_cat_acc = original_hist[3]
             last_adv_bin_acc = original_hist[6]
 
-        logging.info(f"  loss: {last_loss:.4f}")
-        logging.info(f"  main_output_loss: {last_main_output_loss:.4f}")
-        logging.info(f"  adversary_loss: {last_adversary_loss:.4f}")
+        logging.debug("  Info for last mini-batch of epoch")
+        logging.debug(f"  loss: {last_loss:.4f}")
+        logging.debug(f"  main_output_loss: {last_main_output_loss:.4f}")
+        logging.debug(f"  adversary_loss: {last_adversary_loss:.4f}")
         logging.debug(f"  Main categorical accuracy: {last_main_cat_acc}")
         logging.debug(f"  Adversary binary accuracy: {last_adv_bin_acc}")
 
         # At the end of the epoch run testing.
-        logging.debug("End of Epoch Testing")
+        logging.debug("End of Epoch Training")
 
         # Do test on small batch
         original_val_hist = original_model.test_on_batch(
@@ -814,11 +700,17 @@ def build_train_evaluate_model(
         val_last_adversary_loss = original_val_hist[2]
         val_last_main_cat_acc = original_val_hist[3]
         val_last_adv_bin_acc = original_val_hist[6]
-        logging.debug(f"val loss: {val_last_loss:.4f}")
-        logging.debug(f"val main_output_loss: {val_last_main_output_loss:.4f}")
-        logging.debug(f"val adversary_loss: {val_last_adversary_loss:.4f}")
-        logging.debug(f"val Main categorical accuracy: {val_last_main_cat_acc}")
-        logging.debug(f"val Adversary binary accuracy: {val_last_adv_bin_acc}")
+        logging.info(f"  loss on test dataset: {val_last_loss:.4f}")
+        logging.info(
+            f"  main_output_loss on test dataset: {val_last_main_output_loss:.4f}"
+        )
+        logging.info(f"  adversary_loss on test dataset: {val_last_adversary_loss:.4f}")
+        logging.info(
+            f"  Main categorical accuracy on test dataset: {val_last_main_cat_acc}"
+        )
+        logging.info(
+            f"  Adversary binary accuracy on test dataset: {val_last_adv_bin_acc}"
+        )
 
         adversary_val_hist = discriminator_model.test_on_batch(
             small_x_val_adversary,
@@ -855,52 +747,6 @@ def build_train_evaluate_model(
         discriminator_model.save_weights(
             "keras_outputs/" + dir_name + "/adv_checkpoint.keras"
         )
-        #         print("Clear session")
-        #         K.clear_session()
-        #         print("Reload models and weights")
-        #         (
-        #             original_model,
-        #             discriminator_model,
-        #             discriminator_out,
-        #             final_model,
-        #         ) = setup_model_architecture(
-        #             constit_input,
-        #             track_input,
-        #             MSeg_input,
-        #             jet_input,
-        #             X_train_constit,
-        #             X_train_track,
-        #             X_train_MSeg,
-        #             X_train_jet,
-        #             x_to_adversary,
-        #             y_to_train_adversary,
-        #             weights_train_adversary_s,
-        #             training_params,
-        #         )
-        #         stable_counter += 1
-
-        #         accept_epoch = False
-        #         final_model.load_weights(
-        #             "keras_outputs/" + dir_name + f"/final_model_weights.h5"
-        #         )
-        #         original_model.load_weights("keras_outputs/"
-        #           + dir_name + "/checkpoint.h5")
-        #         discriminator_model.load_weights(
-        #             "keras_outputs/" + dir_name + "/adv_checkpoint.h5"
-        #         )
-
-        #         print("Saving model weights")
-        #         final_model.save_weights(
-        #             "keras_outputs/" + dir_name + "/previous_final_model_weights.h5"
-        #         )
-        #         original_model.save_weights(
-        #             "keras_outputs/" + dir_name + "/previous_checkpoint.h5"
-        #         )
-        #         discriminator_model.save_weights(
-        #             "keras_outputs/" + dir_name + "/previous_adv_checkpoint.h5"
-        #         )
-
-        #         accept_epoch_array.append(int(accept_epoch))
 
         ks_qcd_hist.append(ks_qcd)
         ks_sig_hist.append(ks_sig)
@@ -965,29 +811,8 @@ def build_train_evaluate_model(
             accept_epoch_array,
             dir_name,
         )
+        logging.debug("Finished Epoch Validation")
     logging.info("Finished training")
-
-    #     # Save model weights
-    #     original_model.save_weights("keras_outputs/" + dir_name + "/model_weights.h5")
-    #     final_model.save_weights(
-    #         "keras_outputs/" + dir_name + "/final_model_weights.h5"
-    #     )
-    #     discriminator_model.save_weights(
-    #         "keras_outputs/" + dir_name + "/discriminator_model_weights.h5"
-    #     )
-    #     del original_model  # deletes the existing model
-
-    #     # initialize model with same architecture
-    #     model = load_model("keras_outputs/" + dir_name + "/final_model.h5")
-    #     discriminator_model = load_model(
-    #         "keras_outputs/" + dir_name + "/discriminator_model.h5",
-    #         custom_objects={"DenseSN": DenseSN},
-    #     )
-    #     # load weights
-    #     model.load_weights("keras_outputs/" + dir_name + "/final_model_weights.h5")
-    #     discriminator_model.load_weights(
-    #         "keras_outputs/" + dir_name + "/adv_checkpoint.h5"
-    #     )
 
     # Evaluate Model with ROC curves
     logging.debug("Evaluating model...")
@@ -1012,84 +837,5 @@ def build_train_evaluate_model(
     )
     logging.info("ROC area under curve: %.3f" % roc_auc)
     logging.info("Max S over Root B: %.3f" % SoverB)
-
-    #     return roc_auc
-    # # This happens if we skip training
-    # else:
-    #     # initialize model with same architecture
-    #     # model = load_model('keras_outputs/' + skipTraining[1] + '/final_model.h5')
-    #     (
-    #         original_model,
-    #         discriminator_model,
-    #         discriminator_out,
-    #         model,
-    #     ) = setup_model_architecture(
-    #         constit_input,
-    #         track_input,
-    #         MSeg_input,
-    #         jet_input,
-    #         X_train_constit,
-    #         X_train_track,
-    #         X_train_MSeg,
-    #         X_train_jet,
-    #         x_to_adversary,
-    #         y_to_train_adversary,
-    #         weights_train_adversary_s,
-    #         training_params,
-    #     )
-    #     # model = load_model('keras_outputs/' + skipTraining[1]
-    #     #      + '/cpu_model_weights_hm_0_resume.h5')
-    #     # load weights
-    #     model_architecture = (
-    #         "keras_outputs/"
-    #         + skipTraining[1]
-    #         + "/final_keras_cpu_model_hm_0_apr28.json"
-    #     )
-    #     with open(model_architecture, "r") as json_file:
-    #         # architecture = json.load(json_file)
-    #         model = model_from_json(json_file.read())
-    #     # model = tf.compat.v1.keras.models.model_from_json('keras_outputs/'
-    #     #      + skipTraining[1] + '/final_keras_cpu_model_hm_0_apr28.json')
-    #     model.load_weights(
-    #         "keras_outputs/" + skipTraining[1] + "/cpu_model_weights_hm_0_resume.h5"
-    #     )
-    #     optimizer = Nadam(
-    #         learning_rate=current_lr,
-    #         beta_1=0.9,
-    #         beta_2=0.999,
-    #         epsilon=1e-07,
-    #         schedule_decay=0.05,
-    #     )
-    #     model.compile(
-    #         optimizer=optimizer,
-    #         loss="categorical_crossentropy",
-    #         metrics=[metrics.categorical_accuracy],
-    #     )
-    #     # model.save('keras_outputs/backups/cpu_model_hm_apr12.h5',
-    #           include_optimizer=False)  # creates a HDF5 file
-    #     # model.save('keras_outputs/f deep/final_keras_cpu_model_lm_1_apr28.h5')
-
-    #     # Evaluate Model with ROC curves
-    #     print("\nEvaluating model...\n")
-    #     # TODO: improve doc on Z and mcWeights
-    #     roc_auc, SoverB = evaluate_model(
-    #         model,
-    #         discriminator_model,
-    #         dir_name,
-    #         x_to_test,
-    #         y_test,
-    #         weights_to_test,
-    #         Z_test,
-    #         mcWeights_test,
-    #         x_to_test_adversary,
-    #         y_test_adversary,
-    #         weights_test_adversary,
-    #         n_folds,
-    #         eval_object,
-    #         Z_test_adversary,
-    #         skipTraining[0],
-    #     )
-    #     print("ROC area under curve: %.3f" % roc_auc)
-    #     print("Max S over Root B: %.3f" % SoverB)
 
     return roc_auc
