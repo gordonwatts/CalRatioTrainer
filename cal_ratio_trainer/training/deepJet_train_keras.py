@@ -670,7 +670,8 @@ def build_train_evaluate_model(
                 train_inputs, train_outputs, train_weights
             )
 
-            # TODO: this is printed out at the end - we should do an average and a sigma or something
+            # TODO: this is printed out at the end - we should do an average and a
+            # sigma or something
             # not just the last mini-batch.
             last_loss = original_hist[0]
             last_main_output_loss = original_hist[1]
