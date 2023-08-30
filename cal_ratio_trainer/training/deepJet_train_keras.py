@@ -759,10 +759,10 @@ def build_train_evaluate_model(
         # Helpful to monitor training performance with large variations in loss
         # making the graph hard to parse
 
-        # with open("plots/" + dir_name + "train_loss.txt", "w") as train_file:
-        #     train_file.write(str(last_main_output_loss) + "\n")
-        # with open("plots/" + dir_name + "test_loss.txt", "w") as test_file:
-        #     test_file.write(str(val_last_main_output_loss) + "\n")
+        with open("plots/" + dir_name + "train_loss.txt", "w") as train_file:
+            train_file.write(str(last_main_output_loss) + "\n")
+        with open("plots/" + dir_name + "test_loss.txt", "w") as test_file:
+            test_file.write(str(val_last_main_output_loss) + "\n")
 
         # generating checkpoint plots of the model performance during training
         # checkpoint_pred_hist_main(
@@ -786,12 +786,12 @@ def build_train_evaluate_model(
         # val_adv_acc.append(val_last_disc_bin_acc)
         original_lossf.append(last_main_output_loss)
         original_acc.append(last_main_cat_acc)
-        # val_original_lossf.append(val_last_main_output_loss)
-        # val_original_acc.append(val_last_main_cat_acc)
+        val_original_lossf.append(val_last_main_output_loss)
+        val_original_acc.append(val_last_main_cat_acc)
         original_adv_lossf.append(last_adversary_loss)
         original_adv_acc.append(last_adv_bin_acc)
-        # val_original_adv_lossf.append(val_last_adversary_loss)
-        # val_original_adv_acc.append(val_last_adv_bin_acc)
+        val_original_adv_lossf.append(val_last_adversary_loss)
+        val_original_adv_acc.append(val_last_adv_bin_acc)
 
         # print_history_plots(
         #     advw_array,
