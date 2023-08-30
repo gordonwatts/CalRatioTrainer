@@ -1444,7 +1444,7 @@ def evaluate_model(
             third_label,
             threshold,
             destination,
-            f,
+            f,  # type: ignore
             eval_object,
             n_folds,
         )
