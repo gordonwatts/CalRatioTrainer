@@ -670,12 +670,15 @@ def build_train_evaluate_model(
                 train_inputs, train_outputs, train_weights
             )
 
+            # TODO: this is printed out at the end - we should do an average and a sigma or something
+            # not just the last mini-batch.
             last_loss = original_hist[0]
             last_main_output_loss = original_hist[1]
             last_adversary_loss = original_hist[2]
             last_main_cat_acc = original_hist[3]
             last_adv_bin_acc = original_hist[6]
 
+        logging.info("  Info for last mini-batch of epoch")
         logging.info(f"  loss: {last_loss:.4f}")
         logging.info(f"  main_output_loss: {last_main_output_loss:.4f}")
         logging.info(f"  adversary_loss: {last_adversary_loss:.4f}")
@@ -683,7 +686,7 @@ def build_train_evaluate_model(
         logging.debug(f"  Adversary binary accuracy: {last_adv_bin_acc}")
 
         # At the end of the epoch run testing.
-        logging.debug("End of Epoch Testing")
+        logging.debug("End of Epoch Training")
 
         # Do test on small batch
         original_val_hist = original_model.test_on_batch(
