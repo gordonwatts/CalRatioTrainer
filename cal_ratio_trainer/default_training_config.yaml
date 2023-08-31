@@ -16,6 +16,7 @@ nodes_MSeg_lstm: 5
 batch_size: 512
 epochs: 100
 num_splits: 50
+# TODO: Why is there lr_values and learning_rate?
 lr_values: 0.0008
 hidden_layer_fraction: 1.0
 
