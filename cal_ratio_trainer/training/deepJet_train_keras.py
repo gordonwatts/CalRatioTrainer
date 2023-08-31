@@ -689,7 +689,7 @@ def build_train_evaluate_model(
         # At the end of the epoch run testing.
         logging.debug("End of Epoch Training")
 
-        # Do test on small batch
+        # # Do test on small batch
         original_val_hist = original_model.test_on_batch(
             [*(x_to_validate_split[0]), *(x_to_validate_adv_split[0])],
             [y_to_validate_0[0], y_to_validate_adv_squeeze[0]],
@@ -712,45 +712,48 @@ def build_train_evaluate_model(
             f"  Adversary binary accuracy on test dataset: {val_last_adv_bin_acc}"
         )
 
-        adversary_val_hist = discriminator_model.test_on_batch(
-            small_x_val_adversary,
-            small_y_val_adversary[0],
-            small_weights_val_adversary,
-        )
-        val_last_disc_loss = adversary_val_hist[0]
-        val_last_disc_bin_acc = adversary_val_hist[1]
-        logging.debug(f"Val Adversary Loss: {val_last_disc_loss:.4f}")
-        logging.debug(f"Val Adversary binary Accuracy: {val_last_disc_bin_acc:.4f}")
+        # adversary_val_hist = discriminator_model.test_on_batch(
+        #     small_x_val_adversary,
+        #     small_y_val_adversary[0],
+        #     small_weights_val_adversary,
+        # )
+        # val_last_disc_loss = adversary_val_hist[0]
+        # val_last_disc_bin_acc = adversary_val_hist[1]
+        # logging.debug(f"Val Adversary Loss: {val_last_disc_loss:.4f}")
+        # logging.debug(f"Val Adversary binary Accuracy: {val_last_disc_bin_acc:.4f}")
 
-        # Check to see if things have gotten better
-        ks_qcd, ks_sig, ks_bib = do_checkpoint_prediction_histogram(
-            final_model,
-            dir_name,
-            small_x_val_adversary,
-            small_y_val_adversary[0],
-            small_mcWeights_val_adversary,
-            str(i_epoch) + "_val",
-            high_mass,
-            low_mass,
-        )
+        # # Check to see if things have gotten better
+        # ks_qcd, ks_sig, ks_bib = do_checkpoint_prediction_histogram(
+        #     final_model,
+        #     dir_name,
+        #     small_x_val_adversary,
+        #     small_y_val_adversary[0],
+        #     small_mcWeights_val_adversary,
+        #     str(i_epoch) + "_val",
+        #     high_mass,
+        #     low_mass,
+        # )
 
-        # Every epoch save weights if KS test below some threshold (0.3 seems good)
-        if ks_bib < 0.3:
-            final_model.save_weights(
-                "keras_outputs/" + dir_name + f"/final_model_weights_{i_epoch}.keras"
-            )
+        # # Every epoch save weights if KS test below some threshold (0.3 seems good)
+        # if ks_bib < 0.3:
+        #     final_model.save_weights(
+        #         "keras_outputs/" + dir_name + f"/final_model_weights_{i_epoch}.keras"
+        #     )
 
         final_model.save_weights(
-            "keras_outputs/" + dir_name + "/final_model_weights.keras"
+            "keras_outputs/"
+            + dir_name
+            + f"/final_model_weights_{i_epoch}.keras"
+            # "keras_outputs/" + dir_name + "/final_model_weights.keras"
         )
         original_model.save_weights("keras_outputs/" + dir_name + "/checkpoint.keras")
         discriminator_model.save_weights(
             "keras_outputs/" + dir_name + "/adv_checkpoint.keras"
         )
 
-        ks_qcd_hist.append(ks_qcd)
-        ks_sig_hist.append(ks_sig)
-        ks_bib_hist.append(ks_bib)
+        # ks_qcd_hist.append(ks_qcd)
+        # ks_sig_hist.append(ks_sig)
+        # ks_bib_hist.append(ks_bib)
 
         # Adding the train and test loss to a text function to save the loss
         # Helpful to monitor training performance with large variations in loss
@@ -762,16 +765,16 @@ def build_train_evaluate_model(
             test_file.write(str(val_last_main_output_loss) + "\n")
 
         # generating checkpoint plots of the model performance during training
-        checkpoint_pred_hist_main(
-            final_model,
-            dir_name,
-            x_to_test,
-            y_test,
-            mcWeights_test,
-            i_epoch,
-            high_mass,
-            low_mass,
-        )
+        # checkpoint_pred_hist_main(
+        #     final_model,
+        #     dir_name,
+        #     x_to_test,
+        #     y_test,
+        #     mcWeights_test,
+        #     i_epoch,
+        #     high_mass,
+        #     low_mass,
+        # )
 
         # Append some lists with stats of latest epoch
         # and dump them out so they can be seen in "real-time"
@@ -779,8 +782,8 @@ def build_train_evaluate_model(
         lr_array.append(current_lr)
         adv_loss.append(last_disc_loss)
         adv_acc.append(last_disc_bin_acc)
-        val_adv_loss.append(val_last_disc_loss)
-        val_adv_acc.append(val_last_disc_bin_acc)
+        # val_adv_loss.append(val_last_disc_loss)
+        # val_adv_acc.append(val_last_disc_bin_acc)
         original_lossf.append(last_main_output_loss)
         original_acc.append(last_main_cat_acc)
         val_original_lossf.append(val_last_main_output_loss)
@@ -790,29 +793,31 @@ def build_train_evaluate_model(
         val_original_adv_lossf.append(val_last_adversary_loss)
         val_original_adv_acc.append(val_last_adv_bin_acc)
 
-        print_history_plots(
-            advw_array,
-            adv_loss,
-            adv_acc,
-            val_adv_loss,
-            val_adv_acc,
-            original_lossf,
-            original_acc,
-            val_original_lossf,
-            val_original_acc,
-            original_adv_lossf,
-            original_adv_acc,
-            val_original_adv_lossf,
-            val_original_adv_acc,
-            lr_array,
-            ks_qcd_hist,
-            ks_sig_hist,
-            ks_bib_hist,
-            accept_epoch_array,
-            dir_name,
-        )
         logging.debug("Finished Epoch Validation")
     logging.info("Finished training")
+
+    # Print out the history plots at the end.
+    print_history_plots(
+        advw_array,
+        adv_loss,
+        adv_acc,
+        val_adv_loss,
+        val_adv_acc,
+        original_lossf,
+        original_acc,
+        val_original_lossf,
+        val_original_acc,
+        original_adv_lossf,
+        original_adv_acc,
+        val_original_adv_lossf,
+        val_original_adv_acc,
+        lr_array,
+        ks_qcd_hist,
+        ks_sig_hist,
+        ks_bib_hist,
+        accept_epoch_array,
+        dir_name,
+    )
 
     # Evaluate Model with ROC curves
     logging.debug("Evaluating model...")
