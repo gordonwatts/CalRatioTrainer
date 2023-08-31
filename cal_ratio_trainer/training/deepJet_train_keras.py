@@ -793,29 +793,31 @@ def build_train_evaluate_model(
         val_original_adv_lossf.append(val_last_adversary_loss)
         val_original_adv_acc.append(val_last_adv_bin_acc)
 
-        # print_history_plots(
-        #     advw_array,
-        #     adv_loss,
-        #     adv_acc,
-        #     val_adv_loss,
-        #     val_adv_acc,
-        #     original_lossf,
-        #     original_acc,
-        #     val_original_lossf,
-        #     val_original_acc,
-        #     original_adv_lossf,
-        #     original_adv_acc,
-        #     val_original_adv_lossf,
-        #     val_original_adv_acc,
-        #     lr_array,
-        #     ks_qcd_hist,
-        #     ks_sig_hist,
-        #     ks_bib_hist,
-        #     accept_epoch_array,
-        #     dir_name,
-        # )
         logging.debug("Finished Epoch Validation")
     logging.info("Finished training")
+
+    # Print out the history plots at the end.
+    print_history_plots(
+        advw_array,
+        adv_loss,
+        adv_acc,
+        val_adv_loss,
+        val_adv_acc,
+        original_lossf,
+        original_acc,
+        val_original_lossf,
+        val_original_acc,
+        original_adv_lossf,
+        original_adv_acc,
+        val_original_adv_lossf,
+        val_original_adv_acc,
+        lr_array,
+        ks_qcd_hist,
+        ks_sig_hist,
+        ks_bib_hist,
+        accept_epoch_array,
+        dir_name,
+    )
 
     # Evaluate Model with ROC curves
     logging.debug("Evaluating model...")
