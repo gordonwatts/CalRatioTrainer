@@ -591,15 +591,15 @@ def build_train_evaluate_model(
     # Train each epoch
     for i_epoch in epoch_list:
         logging.info(f"Training Epoch {i_epoch+1} of {len(epoch_list)}")
-        # Set up decaying learning rate
-        current_lr = training_params.lr_values * (1.0 / (1.0 + 0.03 * i_epoch))
-        # Set up increasing adversary weight, increases per epoch
-        current_adversary_weight = training_params.adversary_weight * (
-            1.0 / (1.0 - 0.005 * i_epoch)
-        )
-        main_model_weight = 1 * (1.0 / (1.0 + 0.01125 * i_epoch))
-        logging.debug(f"main model weight: {main_model_weight}")
-        logging.debug(f"adv weight: {current_adversary_weight}")
+        # # Set up decaying learning rate
+        # current_lr = training_params.lr_values  # * (1.0 / (1.0 + 0.03 * i_epoch))
+        # # Set up increasing adversary weight, increases per epoch
+        # current_adversary_weight = training_params.adversary_weight * (
+        #     1.0 / (1.0 - 0.005 * i_epoch)
+        # )
+        # main_model_weight = 1 * (1.0 / (1.0 + 0.01125 * i_epoch))
+        # logging.debug(f"main model weight: {main_model_weight}")
+        # logging.debug(f"adv weight: {current_adversary_weight}")
 
         last_loss = -1
         last_main_output_loss = -1
@@ -634,7 +634,7 @@ def build_train_evaluate_model(
 
             # training adversary twice with two different learning rates
             for x in [19, 0.1]:
-                optimizer_adv.learning_rate.assign(current_lr * x)
+                # optimizer_adv.learning_rate.assign(current_lr * x)
                 logging.debug(
                     "  Training adversary with "
                     f"lr {optimizer_adv.learning_rate.value()}"
@@ -657,7 +657,7 @@ def build_train_evaluate_model(
             # learning rate - do we need it in both places?
             # Is there any point in using Adam if we are re-creating it
             # for every single iteration?
-            optimizer.learning_rate.assign(current_lr)
+            # optimizer.learning_rate.assign(current_lr)
 
             # original_model.compile(
             #     optimizer=optimizer,
@@ -775,8 +775,8 @@ def build_train_evaluate_model(
 
         # Append some lists with stats of latest epoch
         # and dump them out so they can be seen in "real-time"
-        advw_array.append(current_adversary_weight)
-        lr_array.append(current_lr)
+        # advw_array.append(current_adversary_weight)
+        # lr_array.append(current_lr)
         adv_loss.append(last_disc_loss)
         adv_acc.append(last_disc_bin_acc)
         val_adv_loss.append(val_last_disc_loss)
