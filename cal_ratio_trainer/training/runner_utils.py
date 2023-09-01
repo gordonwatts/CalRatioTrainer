@@ -61,7 +61,7 @@ def initialize_model(
     ModelInput,
 ]:
     p_list = [
-        "learning_rate",
+        "lr_values",
         "filters_cnn_constit",
         "frac_list",
         "nodes_constit_lstm",
