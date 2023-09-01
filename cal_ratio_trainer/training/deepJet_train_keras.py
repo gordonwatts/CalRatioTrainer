@@ -490,7 +490,6 @@ def build_train_evaluate_model(
         accept_epoch_array,
         adv_acc,
         adv_loss,
-        advw_array,
         checkpoint_ks_bib,
         checkpoint_ks_qcd,
         checkpoint_ks_sig,
@@ -498,7 +497,6 @@ def build_train_evaluate_model(
         ks_bib_hist,
         ks_qcd_hist,
         ks_sig_hist,
-        lr_array,
         num_epochs,
         num_splits,
         original_acc,
@@ -591,15 +589,6 @@ def build_train_evaluate_model(
     # Train each epoch
     for i_epoch in epoch_list:
         logging.info(f"Training Epoch {i_epoch+1} of {len(epoch_list)}")
-        # Set up decaying learning rate
-        current_lr = training_params.lr_values * (1.0 / (1.0 + 0.03 * i_epoch))
-        # Set up increasing adversary weight, increases per epoch
-        current_adversary_weight = training_params.adversary_weight * (
-            1.0 / (1.0 - 0.005 * i_epoch)
-        )
-        main_model_weight = 1 * (1.0 / (1.0 + 0.01125 * i_epoch))
-        logging.debug(f"main model weight: {main_model_weight}")
-        logging.debug(f"adv weight: {current_adversary_weight}")
 
         last_loss = -1
         last_main_output_loss = -1
@@ -633,12 +622,8 @@ def build_train_evaluate_model(
             logging.debug("  -> Training adversary")
 
             # training adversary twice with two different learning rates
-            for x in [19, 0.1]:
-                optimizer_adv.learning_rate.assign(current_lr * x)
-                logging.debug(
-                    "  Training adversary with "
-                    f"lr {optimizer_adv.learning_rate.value()}"
-                )
+            for _ in range(2):
+                logging.debug("  Training adversary ")
 
                 adversary_hist = discriminator_model.train_on_batch(
                     small_x_to_adversary_split[i_batch],
@@ -652,19 +637,6 @@ def build_train_evaluate_model(
                 logging.debug(f"  Adversary binary Accuracy: {last_disc_bin_acc:.4f}")
 
             logging.debug("  -> Training main network")
-
-            # TODO: This is the second place we are setting the
-            # learning rate - do we need it in both places?
-            # Is there any point in using Adam if we are re-creating it
-            # for every single iteration?
-            optimizer.learning_rate.assign(current_lr)
-
-            # original_model.compile(
-            #     optimizer=optimizer,
-            #     loss=["categorical_crossentropy", "binary_crossentropy"],
-            #     metrics=[metrics.categorical_accuracy, metrics.binary_accuracy],
-            #     loss_weights=[1 * main_model_weight, -current_adversary_weight],
-            # )
 
             original_hist = original_model.train_on_batch(
                 train_inputs, train_outputs, train_weights
@@ -775,8 +747,6 @@ def build_train_evaluate_model(
 
         # Append some lists with stats of latest epoch
         # and dump them out so they can be seen in "real-time"
-        advw_array.append(current_adversary_weight)
-        lr_array.append(current_lr)
         adv_loss.append(last_disc_loss)
         adv_acc.append(last_disc_bin_acc)
         val_adv_loss.append(val_last_disc_loss)
@@ -791,7 +761,6 @@ def build_train_evaluate_model(
         val_original_adv_acc.append(val_last_adv_bin_acc)
 
         print_history_plots(
-            advw_array,
             adv_loss,
             adv_acc,
             val_adv_loss,
@@ -804,7 +773,6 @@ def build_train_evaluate_model(
             original_adv_acc,
             val_original_adv_lossf,
             val_original_adv_acc,
-            lr_array,
             ks_qcd_hist,
             ks_sig_hist,
             ks_bib_hist,

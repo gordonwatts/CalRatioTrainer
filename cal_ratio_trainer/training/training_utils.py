@@ -707,8 +707,6 @@ def setup_adversary_arrays(
     :param training_params: class of training parameters
     :return: set up arrays for training
     """
-    advw_array = []
-    lr_array = []
     adv_loss = []
     adv_acc = []
     val_adv_loss = []
@@ -805,7 +803,6 @@ def setup_adversary_arrays(
         accept_epoch_array,
         adv_acc,
         adv_loss,
-        advw_array,
         checkpoint_ks_bib,
         checkpoint_ks_qcd,
         checkpoint_ks_sig,
@@ -813,7 +810,6 @@ def setup_adversary_arrays(
         ks_bib_hist,
         ks_qcd_hist,
         ks_sig_hist,
-        lr_array,
         num_epochs,
         num_splits,
         original_acc,

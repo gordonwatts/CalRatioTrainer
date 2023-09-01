@@ -1105,7 +1105,6 @@ def checkpoint_pred_hist_main(
 
 
 def print_history_plots(
-    advw_array: List[float],
     adv_loss: List[float],
     adv_acc: List[float],
     val_adv_loss: List[float],
@@ -1118,7 +1117,6 @@ def print_history_plots(
     original_adv_acc: List[float],
     val_original_adv_lossf: List[float],
     val_original_adv_acc: List[float],
-    lr_array: List[float],
     ks_qcd_hist: List[float],
     ks_sig_hist: List[float],
     ks_bib_hist: List[float],
@@ -1246,27 +1244,6 @@ def print_history_plots(
     plt.legend(loc="best")
     plt.savefig(
         "plots/" + dir_name + "/main_adv_acc.png", format="png", transparent=True
-    )
-    # Clear axes, figure, and figure window
-    plt.clf()
-    plt.cla()
-    plt.figure()
-    plt.plot(advw_array)
-    plt.title("Adversary Weight")
-    plt.ylabel("Weight")
-    plt.xlabel("Epoch")
-    plt.savefig(
-        "plots/" + dir_name + "/adversary_weight.png", format="png", transparent=True
-    )
-    plt.clf()
-    plt.cla()
-    plt.figure()
-    plt.plot(lr_array)
-    plt.title("Learning Rate")
-    plt.ylabel("Learning Rate")
-    plt.xlabel("Epoch")
-    plt.savefig(
-        "plots/" + dir_name + "/learning_rate.png", format="png", transparent=True
     )
     plt.clf()
     plt.cla()
