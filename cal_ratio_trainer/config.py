@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 from typing import List, Optional
 import fsspec
-from pydantic import AnyUrl, BaseModel
+from pydantic import AnyUrl, BaseModel, Field
 import yaml
 
 # WARNING:
@@ -14,8 +14,17 @@ class TrainingConfig(BaseModel):
     """Configuration to run a complete training, from source data files on!"""
 
     # Name of the model - for user reference only
-    model_name: Optional[str]
+    model_name: Optional[str] = Field(
+        description="Name of the model - for user reference only"
+    )
+
+    # TODO: Why do we have two learning rates?
     learning_rate: Optional[float]
+    # NAdam learning rate.
+    lr_values: Optional[float] = Field(
+        description="NAdam learning rate for both main network and adversary"
+    )
+
     filters_cnn_constit: Optional[List[int]]
     frac_list: Optional[float]
     nodes_constit_lstm: Optional[int]
@@ -27,15 +36,13 @@ class TrainingConfig(BaseModel):
     nodes_track_lstm: Optional[int]
     filters_cnn_MSeg: Optional[List[int]]
     nodes_MSeg_lstm: Optional[int]
-    batch_size: Optional[int]
 
     # Number of epochs for training
     epochs: Optional[int]
     # Number of mini-batches
     num_splits: Optional[int]
-
-    # NAdam learning rate.
-    lr_values: Optional[float]
+    # TODO: Why do we have both batch_size and num_splits?
+    batch_size: Optional[int]
 
     hidden_layer_fraction: Optional[float]
 

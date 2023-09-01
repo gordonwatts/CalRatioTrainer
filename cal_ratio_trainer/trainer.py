@@ -3,21 +3,27 @@ import logging
 from pathlib import Path
 
 from cal_ratio_trainer.config import load_config
+from cal_ratio_trainer.utils import add_config_args, apply_config_args
 
 
 def do_train(args):
     # Get the config loaded.
-    c = load_config(args.config)
+    c_config = load_config(args.config)
 
     # Next, look at the arguments and see if anything should be changed.
-    if args.epochs is not None:
-        c.epochs = args.epochs
-    if args.num_splits is not None:
-        c.num_splits = args.num_splits
+    c = apply_config_args(c_config, args)
 
-    from cal_ratio_trainer.training.runner_utils import training_runner_util
+    # Figure out what to do next
+    if args.print_settings:
+        # Pretty Print the training configuration
+        for k, v in c.dict().items():
+            print(f"{k}: {str(v)}")
+        return
+    else:
+        # Now, run the training.
+        from cal_ratio_trainer.training.runner_utils import training_runner_util
 
-    training_runner_util(c)
+        training_runner_util(c)
 
 
 def main():
@@ -40,9 +46,15 @@ def main():
         type=Path,
         help="Path to the config file to use for training",
     )
+    parser_train.add_argument(
+        "--print-settings",
+        action="store_true",
+        default=False,
+        help="Print the training configuration and exit",
+    )
+
     # Add all the training configuration options
-    parser_train.add_argument("--epochs", type=int, help="Number of epochs to train")
-    parser_train.add_argument("--num_splits", type=int, help="Number of mini-batches")
+    add_config_args(parser_train)
     parser_train.set_defaults(func=do_train)
 
     # Parse the command line arguments
