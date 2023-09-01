@@ -1,5 +1,4 @@
 import argparse
-from types import NoneType
 from typing import Generator, Tuple, Union
 from .config import TrainingConfig
 
@@ -22,7 +21,7 @@ def as_bare_type(t: type) -> Union[type, None]:
     elif hasattr(t, "__origin__") and t.__origin__ == Union:  # type: ignore
         # This is an Optional[T], so we need to get T.
         # We can only deal with T if it is one of the above types.
-        if len(t.__args__) != 2 and NoneType not in t.__args__:  # type: ignore
+        if len(t.__args__) != 2 and type(None) not in t.__args__:  # type: ignore
             return None
         for t2 in t.__args__:  # type: ignore
             if t2 == str or t2 == float or t2 == int:
