@@ -18,8 +18,6 @@ class TrainingConfig(BaseModel):
         description="Name of the model - for user reference only"
     )
 
-    # TODO: Why do we have two learning rates?
-    learning_rate: Optional[float]
     # NAdam learning rate.
     lr_values: Optional[float] = Field(
         description="NAdam learning rate for both main network and adversary"

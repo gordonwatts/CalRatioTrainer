@@ -1,5 +1,4 @@
 model_name: RNN_Adversary
-learning_rate: 0.0008
 filters_cnn_constit: [64, 32, 32, 16]
 frac_list: 0.5
 nodes_constit_lstm: 10
@@ -16,7 +15,6 @@ nodes_MSeg_lstm: 5
 batch_size: 512
 epochs: 100
 num_splits: 50
-# TODO: Why is there lr_values and learning_rate?
 lr_values: 0.0008
 hidden_layer_fraction: 1.0
 
