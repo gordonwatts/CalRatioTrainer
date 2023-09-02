@@ -7,8 +7,9 @@ import pandas as pd
 from sklearn.utils import shuffle
 
 
-def create_directories(model_to_do: str, base_dir: Path = Path("."), 
-                       continue_from: Optional[int] = None) -> Path:
+def create_directories(
+    model_to_do: str, base_dir: Path = Path("."), continue_from: Optional[int] = None
+) -> Path:
     """Create a directory for all output files for a given model. The directory
     structure is:
 
@@ -21,7 +22,8 @@ def create_directories(model_to_do: str, base_dir: Path = Path("."),
     checkpoint files.
 
     Given a `continue_from`, we will return that directory. Failing with a ValueError
-    if that directory does not exist.
+    if that directory does not exist. And a negative value means that many back from
+    the end (e.g. -1 means the last run, -2 means the second to last run, etc.)
 
     Args:
         model_to_do (str): Name of the model
@@ -38,11 +40,21 @@ def create_directories(model_to_do: str, base_dir: Path = Path("."),
     # If we have been given a continue_from directory, make sure it exists
     # and then use that.
     if continue_from is not None:
-        run_dir = model_dir / f"{continue_from:05d}"
-        if not run_dir.exists():
-            raise ValueError(
-                f"Directory {run_dir} does not exist. Cannot continue from it."
-            )
+        if continue_from < 0:
+            # get a sorted list of all sub-directories, and then take the one
+            # one back from the end.
+            try:
+                run_dir = sorted(model_dir.iterdir(), key=lambda x: int(x.name))[
+                    continue_from
+                ]
+            except IndexError:
+                raise ValueError(f"No runs in {model_dir} to continue from.")
+        else:
+            run_dir = model_dir / f"{continue_from:05d}"
+            if not run_dir.exists():
+                raise ValueError(
+                    f"Directory {run_dir} does not exist. Cannot continue from it."
+                )
         return run_dir
 
     # Ok - we will do a new run, but we will continue from where we are.

@@ -577,6 +577,14 @@ def build_train_evaluate_model(
         loss_weights=[1, -training_params.adversary_weight],
     )
 
+    # If this from a previous run, load the weights.
+    keras_dir = dir_name / "keras"
+    if (keras_dir / "final_weights_checkpoint.keras").exists():
+        logging.info("Loading weights from previous run")
+        final_model.load_weights(keras_dir / "final_weights_checkpoint.keras")
+        original_model.load_weights(keras_dir / "original_model_checkpoint.keras")
+        discriminator_model.load_weights(keras_dir / "discriminator_checkpoint.keras")
+
     # Train each epoch
     for i_epoch in epoch_list:
         logging.info(f"Training Epoch {i_epoch+1} of {len(epoch_list)}")
@@ -699,13 +707,14 @@ def build_train_evaluate_model(
 
         # Every epoch save weights if KS test below some threshold (0.3 seems good)
         if ks_bib < 0.3:
-            final_model.save_weights(
-                dir_name / "keras" / f"final_model_weights_{i_epoch}.keras"
-            )
+            final_model.save_weights(keras_dir / f"final_model_weights_{i_epoch}.keras")
 
-        final_model.save_weights(dir_name / "keras" / "final_model_weights.keras")
-        original_model.save_weights(dir_name / "keras" / "checkpoint.keras")
-        discriminator_model.save_weights(dir_name / "keras" / "adv_checkpoint.keras")
+        # Save the checkpoints. If user hits ^C just right, we could get ourselves into
+        # an inconsistent state. But probably not likely enough to spend time
+        # protecting.
+        final_model.save_weights(keras_dir / "final_weights_checkpoint.keras")
+        original_model.save_weights(keras_dir / "original_model_checkpoint.keras")
+        discriminator_model.save_weights(keras_dir / "discriminator_checkpoint.keras")
 
         ks_qcd_hist.append(ks_qcd)
         ks_sig_hist.append(ks_sig)
