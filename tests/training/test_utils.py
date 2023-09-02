@@ -28,6 +28,32 @@ def test_create_directories_continue_from_no(tmp_path):
     assert "does not" in str(e)
 
 
+def test_create_directories_bad_file(tmp_path):
+    create_directories("me_model", tmp_path)
+    create_directories("me_model", tmp_path)
+
+    bogus_file = tmp_path / "training_results" / "me_model" / "bogus.txt"
+    bogus_file.parent.mkdir(exist_ok=True, parents=True)
+    bogus_file.touch()
+
+    final_path = create_directories("me_model", tmp_path, continue_from=-1)
+
+    assert "00001" in str(final_path)
+
+
+def test_create_directories_bad_file_new_dir(tmp_path):
+    create_directories("me_model", tmp_path)
+
+    bogus_file = tmp_path / "training_results" / "me_model" / "bogus.txt"
+    bogus_file.parent.mkdir(exist_ok=True, parents=True)
+    bogus_file.touch()
+    (bogus_file.parent / "weird_dir").mkdir()
+
+    r = create_directories("me_model", tmp_path)
+
+    assert "00001" in str(r)
+
+
 def test_create_directories_continue_from_nothing_neg(tmp_path):
     "Good error message when nothing has been run"
     with pytest.raises(ValueError) as e:

@@ -46,9 +46,10 @@ def create_directories(
             # get a sorted list of all sub-directories, and then take the one
             # one back from the end.
             try:
-                run_dir = sorted(model_dir.iterdir(), key=lambda x: int(x.name))[
-                    continue_from
-                ]
+                run_number = sorted(
+                    int(md.name) for md in model_dir.iterdir() if md.name.isdigit()
+                )[continue_from]
+                run_dir = model_dir / f"{run_number:05d}"
             except IndexError:
                 raise ValueError(f"No runs in {model_dir} to continue from.")
         else:
@@ -62,7 +63,9 @@ def create_directories(
     # Ok - we will do a new run, but we will continue from where we are.
     try:
         biggest_run_number = max(
-            int(item.name) for item in model_dir.iterdir() if item.is_dir()
+            int(item.name)
+            for item in model_dir.iterdir()
+            if (item.is_dir() and item.name.isdigit())
         )
         biggest_run_number += 1
     except ValueError:
