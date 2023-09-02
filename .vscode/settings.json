@@ -4,6 +4,7 @@
         "amax",
         "ampl",
         "argmax",
+        "argparse",
         "binarize",
         "calratio",
         "cbar",

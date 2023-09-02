@@ -1,5 +1,4 @@
 import logging
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional, Tuple, TypeVar
 
@@ -8,23 +7,46 @@ import pandas as pd
 from sklearn.utils import shuffle
 
 
-def create_directories(model_to_do: str, signal_filename: str) -> str:
-    """Creates directories to store model plots + Keras files and returns directory
-    name."""
-    # Append time/date to directory name
-    creation_time = str(datetime.now().strftime("%Y-%m-%d_%H:%M:%S/"))
-    dir_name = model_to_do + signal_filename + "_" + creation_time
+def create_directories(model_to_do: str, base_dir: Path = Path(".")) -> Path:
+    """Create a directory for all output files for a given model. The directory
+    structure is:
 
-    # Create directories
-    plot_path = Path("./plots") / dir_name
-    plot_path.mkdir(parents=True, exist_ok=True)
-    logging.debug(f"Directory {plot_path} created!")
+    ./training_results/<model_name>/<run_number>
 
-    keras_outputs_path = Path("./keras_outputs") / dir_name
-    keras_outputs_path.mkdir(parents=True, exist_ok=True)
-    logging.debug(f"Directory {keras_outputs_path} created!")
+    Where <model_name> is `training_params.model_name` and <run_number> is the
+    highest integer in the directory + 1 (padded to 5 zeros).
 
-    return dir_name
+    A directory inside this will be created called `keras` to contain the model's
+    checkpoint files.
+
+    Args:
+        model_to_do (str): Name of the model
+        base_dir (Path): Directory where output should be written
+
+    Returns:
+        Path: The ./training_results/<model_name>/<run_number> directory.
+    """
+    # Create the model directory if it doesn't exist.
+    model_dir = base_dir / "training_results" / model_to_do
+    model_dir.mkdir(parents=True, exist_ok=True)
+
+    # Find the highest run number and increment it.
+    try:
+        biggest_run_number = max(
+            int(item.name) for item in model_dir.iterdir() if item.is_dir()
+        )
+        biggest_run_number += 1
+    except ValueError:
+        biggest_run_number = 0
+
+    # Create the run directory.
+    run_dir = model_dir / f"{biggest_run_number:05d}"
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    # Create the keras outputs
+    (run_dir / "keras").mkdir(parents=True, exist_ok=True)
+
+    return run_dir
 
 
 def load_dataset(filename: Path) -> pd.DataFrame:

@@ -2,6 +2,7 @@
 import logging
 import math
 from io import TextIOWrapper
+from pathlib import Path
 from typing import List, Optional, Tuple, Union, cast
 
 import atlas_mpl_style as ampl
@@ -46,7 +47,7 @@ def ks_w2(
 
 
 def plot_prediction_histograms(
-    destination: str,
+    destination: Path,
     prediction: np.ndarray,
     labels: Union[pd.Series, np.ndarray],
     weight: np.ndarray,
@@ -63,7 +64,7 @@ def plot_prediction_histograms(
     bib_rows = np.where(labels == 2)
 
     plt.clf()
-    extra_string = extra_string + "_"
+    extra_string = (extra_string + "_") if len(extra_string) > 0 else ""
     sig_string = "Signal"
     if len(bib_rows[0]) == 0:
         sig_string = "Data"
@@ -147,7 +148,7 @@ def plot_prediction_histograms(
         )
 
     plt.savefig(
-        destination + extra_string + "sig_predictions" + ".png",
+        destination / (extra_string + "sig_predictions.png"),
         format="png",
         transparent=True,
     )
@@ -223,7 +224,7 @@ def plot_prediction_histograms(
         )
 
     plt.savefig(
-        destination + extra_string + "qcd_predictions" + ".png",
+        destination / (extra_string + "qcd_predictions.png"),
         format="png",
         transparent=True,
     )
@@ -298,7 +299,7 @@ def plot_prediction_histograms(
         )
 
     plt.savefig(
-        destination + extra_string + "bib_predictions" + ".png",
+        destination / (extra_string + "bib_predictions.png"),
         format="png",
         transparent=True,
     )
@@ -311,7 +312,7 @@ def plot_prediction_histograms(
 
 
 def plot_prediction_histograms_linear(
-    destination: str,
+    destination: Path,
     prediction: np.ndarray,
     labels: pd.Series,
     weight: np.ndarray,
@@ -326,7 +327,7 @@ def plot_prediction_histograms_linear(
     bkg_rows = np.where(labels == 0)
     bib_rows = np.where(labels == 2)
     plt.clf()
-    extra_string = extra_string + "_"
+    extra_string = (extra_string + "_") if len(extra_string) > 0 else ""
     sig_string = "Signal"
     if len(bib_rows[0]) == 0:
         sig_string = "Data"
@@ -406,7 +407,7 @@ def plot_prediction_histograms_linear(
         )
 
     plt.savefig(
-        destination + extra_string + "sig_predictions_linear" + ".png",
+        destination / (extra_string + "sig_predictions_linear.png"),
         format="png",
         transparent=True,
     )
@@ -478,7 +479,7 @@ def plot_prediction_histograms_linear(
         )
 
     plt.savefig(
-        destination + extra_string + "qcd_predictions_linear" + ".png",
+        destination / (extra_string + "qcd_predictions_linear.png"),
         format="png",
         transparent=True,
     )
@@ -548,7 +549,7 @@ def plot_prediction_histograms_linear(
         )
 
     plt.savefig(
-        destination + extra_string + "bib_predictions_linear" + ".png",
+        destination / (extra_string + "bib_predictions_linear.png"),
         format="png",
         transparent=True,
     )
@@ -561,7 +562,7 @@ def plot_prediction_histograms_linear(
 
 
 def plot_prediction_histograms_halfLinear(
-    destination: str,
+    destination: Path,
     prediction: np.ndarray,
     labels: pd.Series,
     weight: np.ndarray,
@@ -584,7 +585,7 @@ def plot_prediction_histograms_halfLinear(
     bkg_rows = np.where(labels == 0)
     bib_rows = np.where(labels == 2)
     plt.clf()
-    extra_string = extra_string + "_"
+    extra_string = (extra_string + "_") if len(extra_string) > 0 else ""
     sig_string = "Signal"
     if len(bib_rows[0]) == 0:
         sig_string = "Data"
@@ -674,7 +675,7 @@ def plot_prediction_histograms_halfLinear(
         )
 
     plt.savefig(
-        destination + extra_string + "sig_predictions_linear" + ".png",
+        destination / (extra_string + "sig_predictions_linear.png"),
         format="png",
         transparent=True,
     )
@@ -755,7 +756,7 @@ def plot_prediction_histograms_halfLinear(
         )
 
     plt.savefig(
-        destination + extra_string + "qcd_predictions_linear" + ".png",
+        destination / (extra_string + "qcd_predictions_linear.png"),
         format="png",
         transparent=True,
     )
@@ -834,7 +835,7 @@ def plot_prediction_histograms_halfLinear(
         )
 
     plt.savefig(
-        destination + extra_string + "bib_predictions_linear" + ".png",
+        destination / (extra_string + "bib_predictions_linear.png"),
         format="png",
         transparent=True,
     )
@@ -850,7 +851,7 @@ def signal_llp_efficiencies(
     prediction: np.ndarray,
     y_test: pd.Series,
     Z_test: pd.DataFrame,
-    destination: str,
+    destination: Path,
     f: TextIOWrapper,
 ):
     """Plot signal efficiency as function of mH, mS
@@ -906,7 +907,7 @@ def signal_llp_efficiencies(
     plt.ylabel("Signal Efficiency")
 
     plt.savefig(
-        destination + "signal_llp_efficiencies" + ".png", format="png", transparent=True
+        destination / "signal_llp_efficiencies.png", format="png", transparent=True
     )
     plt.clf()
 
@@ -915,7 +916,7 @@ def bkg_falsePositives(
     prediction: np.ndarray,
     y_test: pd.Series,
     Z_test: pd.DataFrame,
-    destination: str,
+    destination: Path,
     f: TextIOWrapper,
 ):
     """Makes plot of false positives for signal
@@ -975,15 +976,13 @@ def bkg_falsePositives(
     plt.xlabel("mH")
     plt.ylabel("False Positive Rate")
 
-    plt.savefig(
-        destination + "bkg_falsePositives" + ".png", format="png", transparent=True
-    )
+    plt.savefig(destination / "bkg_falsePositives.png", format="png", transparent=True)
     plt.clf()
 
 
 def do_checkpoint_prediction_histogram(
     model: Model,
-    dir_name: str,
+    dir_name: Path,
     adv_x: List[np.ndarray],
     adv_y: np.ndarray,
     adv_weights: np.ndarray,
@@ -1004,12 +1003,11 @@ def do_checkpoint_prediction_histogram(
 
     validation_prediction = model.predict(adv_x, verbose=0)  # type: ignore
 
-    destination = "plots/" + dir_name + "/"
     jet_pt = adv_x[3]
     jet_pt = jet_pt[:, 0]
 
     r = plot_prediction_histograms(
-        destination,
+        dir_name,
         validation_prediction,
         adv_y,
         adv_weights,
@@ -1025,7 +1023,7 @@ def do_checkpoint_prediction_histogram(
     lowPt_adv_y = adv_y[jet_pt < 0.25]
     lowPt_adv_weights = adv_weights[jet_pt < 0.25]
     r = plot_prediction_histograms(
-        destination,
+        dir_name,
         lowPt_validation_prediction,
         lowPt_adv_y,
         lowPt_adv_weights,
@@ -1044,7 +1042,7 @@ def do_checkpoint_prediction_histogram(
     midPt_adv_y = adv_y[(jet_pt > 0.25) & (jet_pt < 0.5)]
     midPt_adv_weights = adv_weights[(jet_pt > 0.25) & (jet_pt < 0.5)]
     r = plot_prediction_histograms(
-        destination,
+        dir_name,
         midPt_validation_prediction,
         midPt_adv_y,
         midPt_adv_weights,
@@ -1060,7 +1058,7 @@ def do_checkpoint_prediction_histogram(
     highPt_adv_y = adv_y[jet_pt > 0.5]
     highPt_adv_weights = adv_weights[jet_pt > 0.5]
     r = plot_prediction_histograms(
-        destination,
+        dir_name,
         highPt_validation_prediction,
         highPt_adv_y,
         highPt_adv_weights,
@@ -1080,7 +1078,7 @@ def do_checkpoint_prediction_histogram(
 
 def checkpoint_pred_hist_main(
     model: Model,
-    dir_name: str,
+    dir_name: Path,
     x_test: List[np.ndarray],
     y_test: pd.Series,
     mcWeights_test: pd.Series,
@@ -1092,9 +1090,8 @@ def checkpoint_pred_hist_main(
     assert isinstance(validation_prediction, np.ndarray)
     assert isinstance(mcWeights_test.values, np.ndarray)
 
-    destination = "plots/" + dir_name + "/"
     plot_prediction_histograms_linear(
-        destination,
+        dir_name,
         validation_prediction,
         y_test,
         mcWeights_test.values,
@@ -1121,7 +1118,7 @@ def print_history_plots(
     ks_sig_hist: List[float],
     ks_bib_hist: List[float],
     accept_epoch_array: List[bool],
-    dir_name: str,
+    dir_name: Path,
 ):
     """Makes plots like loss, KS divergence, etc... every epoch - for adversary training
 
@@ -1157,7 +1154,7 @@ def print_history_plots(
     plt.ylabel("Loss")
     plt.xlabel("Epoch")
     plt.legend(loc="best")
-    plt.savefig(f"plots/{dir_name}/train_adv_loss.png", format="png", transparent=True)
+    plt.savefig(dir_name / "train_adv_loss.png", format="png", transparent=True)
 
     # Clear axes, figure, and figure window
     plt.clf()
@@ -1168,9 +1165,7 @@ def print_history_plots(
     plt.ylabel("Loss")
     plt.xlabel("Epoch")
     plt.legend(loc="best")
-    plt.savefig(
-        "plots/" + dir_name + "/test_adv_loss.png", format="png", transparent=True
-    )
+    plt.savefig(dir_name / "test_adv_loss.png", format="png", transparent=True)
     # Clear axes, figure, and figure window
     plt.clf()
     plt.cla()
@@ -1181,7 +1176,7 @@ def print_history_plots(
     plt.ylabel("Accuracy")
     plt.xlabel("Epoch")
     plt.legend(loc="best")
-    plt.savefig("plots/" + dir_name + "/adv_acc.png", format="png", transparent=True)
+    plt.savefig(dir_name / "adv_acc.png", format="png", transparent=True)
     # Clear axes, figure, and figure window
     plt.clf()
     plt.cla()
@@ -1192,9 +1187,7 @@ def print_history_plots(
     plt.ylabel("Loss")
     plt.xlabel("Epoch")
     plt.legend(loc="best")
-    plt.savefig(
-        "plots/" + dir_name + "/main_nn_loss.png", format="png", transparent=True
-    )
+    plt.savefig(dir_name / "main_nn_loss.png", format="png", transparent=True)
     # Clear axes, figure, and figure window
     plt.clf()
     plt.cla()
@@ -1205,9 +1198,7 @@ def print_history_plots(
     plt.ylabel("Accuracy")
     plt.xlabel("Epoch")
     plt.legend(loc="best")
-    plt.savefig(
-        "plots/" + dir_name + "/main_network_acc.png", format="png", transparent=True
-    )
+    plt.savefig(dir_name / "main_network_acc.png", format="png", transparent=True)
     # Clear axes, figure, and figure window
     plt.clf()
     plt.cla()
@@ -1217,9 +1208,7 @@ def print_history_plots(
     plt.ylabel("Loss")
     plt.xlabel("Epoch")
     plt.legend(loc="best")
-    plt.savefig(
-        "plots/" + dir_name + "/train_main_adv_loss.png", format="png", transparent=True
-    )
+    plt.savefig(dir_name / "train_main_adv_loss.png", format="png", transparent=True)
     # Clear axes, figure, and figure window
     plt.clf()
     plt.cla()
@@ -1229,9 +1218,7 @@ def print_history_plots(
     plt.ylabel("Loss")
     plt.xlabel("Epoch")
     plt.legend(loc="best")
-    plt.savefig(
-        "plots/" + dir_name + "/test_main_adv_loss.png", format="png", transparent=True
-    )
+    plt.savefig(dir_name / "test_main_adv_loss.png", format="png", transparent=True)
     # Clear axes, figure, and figure window
     plt.clf()
     plt.cla()
@@ -1242,9 +1229,7 @@ def print_history_plots(
     plt.ylabel("Loss")
     plt.xlabel("Epoch")
     plt.legend(loc="best")
-    plt.savefig(
-        "plots/" + dir_name + "/main_adv_acc.png", format="png", transparent=True
-    )
+    plt.savefig(dir_name / "main_adv_acc.png", format="png", transparent=True)
     plt.clf()
     plt.cla()
     plt.figure()
@@ -1253,7 +1238,7 @@ def print_history_plots(
     plt.ylabel("KS Divergence")
     plt.xlabel("Epoch")
     plt.legend(loc="best")
-    plt.savefig("plots/" + dir_name + "/ks_qcd.png", format="png", transparent=True)
+    plt.savefig(dir_name / "ks_qcd.png", format="png", transparent=True)
     plt.clf()
     plt.cla()
     plt.figure()
@@ -1262,7 +1247,7 @@ def print_history_plots(
     plt.ylabel("KS Divergence")
     plt.xlabel("Epoch")
     plt.legend(loc="best")
-    plt.savefig("plots/" + dir_name + "/ks_sig.png", format="png", transparent=True)
+    plt.savefig(dir_name / "ks_sig.png", format="png", transparent=True)
     plt.clf()
     plt.cla()
     plt.figure()
@@ -1271,7 +1256,7 @@ def print_history_plots(
     plt.ylabel("KS Divergence")
     plt.xlabel("Epoch")
     plt.legend(loc="best")
-    plt.savefig("plots/" + dir_name + "/ks_bib.png", format="png", transparent=True)
+    plt.savefig(dir_name / "ks_bib.png", format="png", transparent=True)
     plt.clf()
     plt.cla()
     plt.figure()
@@ -1279,9 +1264,7 @@ def print_history_plots(
     plt.title("Accept Epoch")
     plt.ylabel("Accept")
     plt.xlabel("Epoch")
-    plt.savefig(
-        "plots/" + dir_name + "/accept_epoch.png", format="png", transparent=True
-    )
+    plt.savefig(dir_name / "accept_epoch.png", format="png", transparent=True)
     # Clear axes, figure, and figure window
     plt.clf()
     plt.cla()
@@ -1292,7 +1275,7 @@ def print_history_plots(
 def evaluate_model(
     model: Model,
     discriminator_model: Model,
-    dir_name: str,
+    dir_name: Path,
     X_test: List[np.ndarray],
     y_test: pd.Series,
     weights_test: List[np.ndarray],
@@ -1340,11 +1323,10 @@ def evaluate_model(
 
     # TODO: Go through and change these `verbose=0` to whatever they should be.
     validation_prediction_adv = model.predict(X_test_adv, verbose=0)  # type: ignore
-    destination = "plots/" + dir_name + "/"
 
     # TODO: Make sure these types are right!
     plot_prediction_histograms(
-        destination,
+        dir_name,
         prediction,
         y_test,
         mcWeights_test.values,  # type: ignore
@@ -1353,7 +1335,7 @@ def evaluate_model(
         low_mass,
     )
     plot_prediction_histograms_linear(
-        destination,
+        dir_name,
         prediction,
         y_test,
         mcWeights_test.values,  # type: ignore
@@ -1362,7 +1344,7 @@ def evaluate_model(
         low_mass,
     )
     plot_prediction_histograms_halfLinear(
-        destination,
+        dir_name,
         prediction,
         y_test,
         mcWeights_test.values,  # type: ignore
@@ -1371,7 +1353,7 @@ def evaluate_model(
         low_mass,
     )
     plot_prediction_histograms(
-        destination,
+        dir_name,
         validation_prediction_adv,
         y_test_adv,
         weights_test_adversary.values,  # type: ignore
@@ -1402,7 +1384,7 @@ def evaluate_model(
     # classes will make the ROC curve
     third_label = 2
     # We'll be writing the stats to training_details.txt
-    with open(destination + "training_details.txt", "a") as f:
+    with (dir_name / "training_details.txt").open("a") as f:
         if n_folds:
             f.write("\nKFold iteration # %s" % str(n_folds))
         f.write("\nEvaluation metrics\n")
@@ -1410,8 +1392,8 @@ def evaluate_model(
         # Find threshold, or at what label we will have the required
         # percentage of 'test_label' correctly predicted
         # Make plots of signal efficiency vs mH, mS
-        signal_llp_efficiencies(prediction, y_test, Z_test, destination, f)
-        bkg_falsePositives(prediction, y_test, Z_test, destination, f)
+        signal_llp_efficiencies(prediction, y_test, Z_test, dir_name, f)
+        bkg_falsePositives(prediction, y_test, Z_test, dir_name, f)
 
         max_SoverB, roc_auc = setup_separate_evaluations(
             prediction,
@@ -1420,7 +1402,7 @@ def evaluate_model(
             Z_test,
             third_label,
             threshold,
-            destination,
+            dir_name,
             f,  # type: ignore
             eval_object,
             n_folds,
@@ -1436,7 +1418,7 @@ def setup_separate_evaluations(
     Z_test: pd.DataFrame,
     third_label: int,
     threshold: int,
-    destination: str,
+    destination: Path,
     f: TextIOWrapper,
     eval_object: evaluationObject,
     n_folds: Optional[int],
@@ -1567,7 +1549,7 @@ def significance_scan(
     prediction: np.ndarray,
     y_test: Union[pd.Series, np.ndarray],
     weight: Union[pd.Series, np.ndarray],
-    destination: str,
+    destination: Path,
     f: TextIOWrapper,
     label_string: str,
     eval_object: evaluationObject,
@@ -1628,7 +1610,8 @@ def significance_scan(
     plt.xscale("log")
 
     plt.savefig(
-        destination + "SoverB_scan_" + str(label_string) + "_" + str(n_folds) + ".png",
+        destination
+        / ("SoverB_scan_" + str(label_string) + "_" + str(n_folds) + ".png"),
         format="png",
         transparent=True,
     )
@@ -1648,7 +1631,7 @@ def significance_scan(
 
 
 def plot_roc_curve(
-    destination: str,
+    destination: Path,
     f: TextIOWrapper,
     mcWeights_test: np.ndarray,
     prediction: np.ndarray,
@@ -1714,11 +1697,13 @@ def plot_roc_curve(
         plt.ylabel("QCD Rejection")
         plt.savefig(
             destination
-            + "roc_curve_atlas_rej_bib_"
-            + str(label_string)
-            + "_"
-            + str(n_folds)
-            + ".png",
+            / (
+                "roc_curve_atlas_rej_bib_"
+                + str(label_string)
+                + "_"
+                + str(n_folds)
+                + ".png"
+            ),
             format="png",
             transparent=True,
         )
@@ -1726,11 +1711,13 @@ def plot_roc_curve(
         plt.ylabel("BIB Rejection")
         plt.savefig(
             destination
-            + "roc_curve_atlas_rej_qcd_"
-            + str(label_string)
-            + "_"
-            + str(n_folds)
-            + ".png",
+            / (
+                "roc_curve_atlas_rej_qcd_"
+                + str(label_string)
+                + "_"
+                + str(n_folds)
+                + ".png"
+            ),
             format="png",
             transparent=True,
         )

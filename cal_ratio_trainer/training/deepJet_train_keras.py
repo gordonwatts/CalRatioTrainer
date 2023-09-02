@@ -1,5 +1,4 @@
 import logging
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import Tuple
@@ -36,7 +35,6 @@ from cal_ratio_trainer.training.utils import (
 
 def train_llp(
     training_params: TrainingConfig,
-    model_to_do: str,
     constit_input: ModelInput,
     track_input: ModelInput,
     MSeg_input: ModelInput,
@@ -46,13 +44,12 @@ def train_llp(
     MSeg_input_adversary: ModelInput,
     jet_input_adversary: JetInput,
     plt_model: bool = False,
-) -> Tuple[float, str]:
+) -> Tuple[float, Path]:
     """
     Takes in arguments to change architecture of network, does training, then runs
         evaluate_training
 
     :param training_params: Class of many input parameters to training
-    :param model_to_do: Name of the model
     :param useGPU2: True to use GPU2
     :param constit_input: ModelInput object for constituents
     :param track_input: ModelInput object for tracks
@@ -78,23 +75,17 @@ def train_llp(
     ), f"Main training file ({training_params.main_file}) does not exist"
 
     # Setup directories for output.
-    logging.debug("Setting up directories...")
-    # TODO: dir_name should be path(s) - rather than multiple directories
-    # which require the path to be known in other places and assumptions
-    # being made.
-    dir_name = create_directories(
-        model_to_do, os.path.split(os.path.splitext(training_params.main_file)[0])[1]
-    )
+    assert training_params.model_name is not None
+    dir_name = create_directories(training_params.model_name)
     logging.debug(f"Main directory for output: {dir_name}")
 
     # Write a file with some details of architecture, will append final stats at end
-    # of
-    # training
+    # of training
     logging.debug("Writing to file training details...")
-    training_details_file = Path("plots/") / dir_name / "training_details.txt"
+    training_details_file = dir_name / "training_details.txt"
     with training_details_file.open("wt+") as f_out:
         print(f"Starting Training {datetime.now()}", file=f_out)
-        print(f"ModeL: {model_to_do}", file=f_out)
+        print(f"ModeL: {training_details_file}", file=f_out)
         print(str(training_params), file=f_out)
 
     # Load dataset
@@ -257,7 +248,7 @@ def build_train_evaluate_model(
     Z_test_adversary: pd.DataFrame,
     Z_train_adversary: pd.DataFrame,
     plt_model: bool,
-    dir_name: str,
+    dir_name: Path,
     eval_object: evaluationObject,
     training_params: TrainingConfig,
 ):
@@ -471,17 +462,13 @@ def build_train_evaluate_model(
     )
 
     # Show summary of model architecture
-    original_model.save(
-        "keras_outputs/" + dir_name + "/model.keras"
-    )  # creates a HDF5 file
-    final_model.save(
-        "keras_outputs/" + dir_name + "/final_model.keras"
-    )  # creates a HDF5 file
+    original_model.save(dir_name / "keras" / "model.keras")
+    final_model.save(dir_name / "keras" / "final_model.keras")  # creates a HDF5 file
     discriminator_model.save(
-        "keras_outputs/" + dir_name + "/discriminator_model.keras"
+        dir_name / "keras" / "discriminator_model.keras"
     )  # creates a HDF5 file
     discriminator_model.save_weights(
-        "keras_outputs/" + dir_name + "/initial_discriminator_model_weights.keras"
+        dir_name / "keras" / "initial_discriminator_model_weights.keras"
     )
 
     # Do training
@@ -709,16 +696,12 @@ def build_train_evaluate_model(
         # Every epoch save weights if KS test below some threshold (0.3 seems good)
         if ks_bib < 0.3:
             final_model.save_weights(
-                "keras_outputs/" + dir_name + f"/final_model_weights_{i_epoch}.keras"
+                dir_name / "keras" / f"final_model_weights_{i_epoch}.keras"
             )
 
-        final_model.save_weights(
-            "keras_outputs/" + dir_name + "/final_model_weights.keras"
-        )
-        original_model.save_weights("keras_outputs/" + dir_name + "/checkpoint.keras")
-        discriminator_model.save_weights(
-            "keras_outputs/" + dir_name + "/adv_checkpoint.keras"
-        )
+        final_model.save_weights(dir_name / "keras" / "final_model_weights.keras")
+        original_model.save_weights(dir_name / "keras" / "checkpoint.keras")
+        discriminator_model.save_weights(dir_name / "keras" / "adv_checkpoint.keras")
 
         ks_qcd_hist.append(ks_qcd)
         ks_sig_hist.append(ks_sig)
@@ -728,9 +711,9 @@ def build_train_evaluate_model(
         # Helpful to monitor training performance with large variations in loss
         # making the graph hard to parse
 
-        with open("plots/" + dir_name + "train_loss.txt", "w") as train_file:
+        with (dir_name / "train_loss.txt").open("w") as train_file:
             train_file.write(str(last_main_output_loss) + "\n")
-        with open("plots/" + dir_name + "test_loss.txt", "w") as test_file:
+        with (dir_name / "test_loss.txt").open("w") as test_file:
             test_file.write(str(val_last_main_output_loss) + "\n")
 
         # generating checkpoint plots of the model performance during training
