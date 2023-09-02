@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Tuple
+from typing import Optional, Tuple
 
 import pandas as pd
 import tensorflow as tf
@@ -35,6 +35,7 @@ from cal_ratio_trainer.training.utils import (
 
 def train_llp(
     training_params: TrainingConfig,
+    continue_from: Optional[int],
     constit_input: ModelInput,
     track_input: ModelInput,
     MSeg_input: ModelInput,
@@ -76,7 +77,7 @@ def train_llp(
 
     # Setup directories for output.
     assert training_params.model_name is not None
-    dir_name = create_directories(training_params.model_name)
+    dir_name = create_directories(training_params.model_name, continue_from=continue_from)
     logging.debug(f"Main directory for output: {dir_name}")
 
     # Write a file with some details of architecture, will append final stats at end

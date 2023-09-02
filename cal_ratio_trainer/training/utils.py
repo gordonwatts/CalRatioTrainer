@@ -7,7 +7,8 @@ import pandas as pd
 from sklearn.utils import shuffle
 
 
-def create_directories(model_to_do: str, base_dir: Path = Path(".")) -> Path:
+def create_directories(model_to_do: str, base_dir: Path = Path("."), 
+                       continue_from: Optional[int] = None) -> Path:
     """Create a directory for all output files for a given model. The directory
     structure is:
 
@@ -19,9 +20,13 @@ def create_directories(model_to_do: str, base_dir: Path = Path(".")) -> Path:
     A directory inside this will be created called `keras` to contain the model's
     checkpoint files.
 
+    Given a `continue_from`, we will return that directory. Failing with a ValueError
+    if that directory does not exist.
+
     Args:
         model_to_do (str): Name of the model
         base_dir (Path): Directory where output should be written
+        continue_from (Optional[int]): If not None, the run number to continue from.
 
     Returns:
         Path: The ./training_results/<model_name>/<run_number> directory.
@@ -30,7 +35,17 @@ def create_directories(model_to_do: str, base_dir: Path = Path(".")) -> Path:
     model_dir = base_dir / "training_results" / model_to_do
     model_dir.mkdir(parents=True, exist_ok=True)
 
-    # Find the highest run number and increment it.
+    # If we have been given a continue_from directory, make sure it exists
+    # and then use that.
+    if continue_from is not None:
+        run_dir = model_dir / f"{continue_from:05d}"
+        if not run_dir.exists():
+            raise ValueError(
+                f"Directory {run_dir} does not exist. Cannot continue from it."
+            )
+        return run_dir
+
+    # Ok - we will do a new run, but we will continue from where we are.
     try:
         biggest_run_number = max(
             int(item.name) for item in model_dir.iterdir() if item.is_dir()
