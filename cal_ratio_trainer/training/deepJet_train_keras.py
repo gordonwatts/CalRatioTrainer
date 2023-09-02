@@ -485,11 +485,9 @@ def build_train_evaluate_model(
         checkpoint_ks_bib,
         checkpoint_ks_qcd,
         checkpoint_ks_sig,
-        epoch_list,
         ks_bib_hist,
         ks_qcd_hist,
         ks_sig_hist,
-        num_epochs,
         num_splits,
         original_acc,
         original_adv_acc,
@@ -588,9 +586,14 @@ def build_train_evaluate_model(
         discriminator_model.load_weights(keras_dir / "discriminator_checkpoint.keras")
         epoch_h.load(keras_dir / "history_checkpoint")
 
+    # The number of epochs we are going to run, and how we are going to get started!
+    assert training_params.epochs is not None
+    first_epoch = len(epoch_h)
+    last_epoch = first_epoch + training_params.epochs
+
     # Train each epoch
-    for i_epoch in epoch_list:
-        logging.info(f"Training Epoch {i_epoch+1} of {len(epoch_list)}")
+    for i_epoch in range(first_epoch, last_epoch):
+        logging.info(f"Training Epoch {i_epoch+1} of {last_epoch}")
 
         last_loss = -1
         last_main_output_loss = -1

@@ -754,8 +754,6 @@ def setup_adversary_arrays(
     )[0]
 
     assert training_params.epochs is not None
-    num_epochs = training_params.epochs
-    epoch_list = list(range(num_epochs))
     stable_counter = 0
 
     # Basically how many mini-batches
@@ -806,11 +804,9 @@ def setup_adversary_arrays(
         checkpoint_ks_bib,
         checkpoint_ks_qcd,
         checkpoint_ks_sig,
-        epoch_list,
         ks_bib_hist,
         ks_qcd_hist,
         ks_sig_hist,
-        num_epochs,
         num_splits,
         original_acc,
         original_adv_acc,
