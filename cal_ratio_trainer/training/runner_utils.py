@@ -21,7 +21,6 @@ def training_runner_util(training_parameters: TrainingConfig):
         constit_input_adversary,
         jet_input,
         jet_input_adversary,
-        model_to_do,
         track_input,
         track_input_adversary,
     ) = initialize_model(training_parameters)
@@ -29,7 +28,6 @@ def training_runner_util(training_parameters: TrainingConfig):
     # Train model
     roc_scores, dir_name = train_llp(
         training_parameters,
-        model_to_do,
         constit_input,
         track_input,
         MSeg_input,
@@ -56,23 +54,10 @@ def initialize_model(
     ModelInput,
     JetInput,
     JetInput,
-    str,
     ModelInput,
     ModelInput,
 ]:
-    p_list = [
-        "lr_values",
-        "filters_cnn_constit",
-        "frac_list",
-        "nodes_constit_lstm",
-        "reg_values",
-        "dropout_array",
-        "adversary_weight",
-    ]
-    p_text = ",".join([f"{p}={getattr(training_params, p)}" for p in p_list])
-    model_name = f"{training_params.model_name},{p_text}"
-
-    logging.info(f"Initializing model {model_name}")
+    logging.info(f"Initializing model {training_params.model_name}")
 
     assert training_params.filters_cnn_constit is not None
     assert training_params.nodes_constit_lstm is not None
@@ -188,7 +173,6 @@ def initialize_model(
         constit_input_adversary,
         jet_input,
         jet_input_adversary,
-        model_name,
         track_input,
         track_input_adversary,
     )

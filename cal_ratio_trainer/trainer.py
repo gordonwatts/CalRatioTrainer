@@ -16,8 +16,7 @@ def do_train(args):
     # Figure out what to do next
     if args.print_settings:
         # Pretty Print the training configuration
-        for k, v in c.dict().items():
-            print(f"{k}: {str(v)}")
+        print(c)
         return
     else:
         # Now, run the training.

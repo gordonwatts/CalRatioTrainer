@@ -83,3 +83,4 @@ calratio_training/
 coverage.xml
 timings.txt
 /*.yaml
+training_results/

@@ -16,3 +16,9 @@ def test_config_default_with_new():
     assert c.epochs is not None
     # loaded from the new file
     assert c.nodes_track_lstm == 22
+
+
+def test_str():
+    c = load_config()
+    assert "epochs" in str(c)
+    assert "\n" in str(c)
