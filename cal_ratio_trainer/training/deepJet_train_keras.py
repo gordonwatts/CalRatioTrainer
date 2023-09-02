@@ -77,7 +77,10 @@ def train_llp(
 
     # Setup directories for output.
     assert training_params.model_name is not None
-    dir_name = create_directories(training_params.model_name, continue_from=continue_from)
+
+    dir_name = create_directories(
+        training_params.model_name, continue_from=continue_from
+    )
     logging.debug(f"Main directory for output: {dir_name}")
 
     # Write a file with some details of architecture, will append final stats at end
