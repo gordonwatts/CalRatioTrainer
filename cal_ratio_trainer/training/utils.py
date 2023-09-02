@@ -1,3 +1,5 @@
+from collections import defaultdict
+import json
 import logging
 from pathlib import Path
 from typing import Any, Optional, Tuple, TypeVar
@@ -7,7 +9,9 @@ import pandas as pd
 from sklearn.utils import shuffle
 
 
-def create_directories(model_to_do: str, base_dir: Path = Path(".")) -> Path:
+def create_directories(
+    model_to_do: str, base_dir: Path = Path("."), continue_from: Optional[int] = None
+) -> Path:
     """Create a directory for all output files for a given model. The directory
     structure is:
 
@@ -19,9 +23,14 @@ def create_directories(model_to_do: str, base_dir: Path = Path(".")) -> Path:
     A directory inside this will be created called `keras` to contain the model's
     checkpoint files.
 
+    Given a `continue_from`, we will return that directory. Failing with a ValueError
+    if that directory does not exist. And a negative value means that many back from
+    the end (e.g. -1 means the last run, -2 means the second to last run, etc.)
+
     Args:
         model_to_do (str): Name of the model
         base_dir (Path): Directory where output should be written
+        continue_from (Optional[int]): If not None, the run number to continue from.
 
     Returns:
         Path: The ./training_results/<model_name>/<run_number> directory.
@@ -30,7 +39,27 @@ def create_directories(model_to_do: str, base_dir: Path = Path(".")) -> Path:
     model_dir = base_dir / "training_results" / model_to_do
     model_dir.mkdir(parents=True, exist_ok=True)
 
-    # Find the highest run number and increment it.
+    # If we have been given a continue_from directory, make sure it exists
+    # and then use that.
+    if continue_from is not None:
+        if continue_from < 0:
+            # get a sorted list of all sub-directories, and then take the one
+            # one back from the end.
+            try:
+                run_dir = sorted(model_dir.iterdir(), key=lambda x: int(x.name))[
+                    continue_from
+                ]
+            except IndexError:
+                raise ValueError(f"No runs in {model_dir} to continue from.")
+        else:
+            run_dir = model_dir / f"{continue_from:05d}"
+            if not run_dir.exists():
+                raise ValueError(
+                    f"Directory {run_dir} does not exist. Cannot continue from it."
+                )
+        return run_dir
+
+    # Ok - we will do a new run, but we will continue from where we are.
     try:
         biggest_run_number = max(
             int(item.name) for item in model_dir.iterdir() if item.is_dir()
@@ -407,3 +436,43 @@ def low_or_high_pt_selection_train(
     )  # type: ignore
 
     return X, Y, Z, weights, mc_weights
+
+
+class HistoryTracker:
+    "Keep together all the arrays we want to track per-epoch"
+
+    def __init__(self, file: Optional[Path] = None):
+        self._cache = defaultdict(list)
+
+        if file is not None:
+            self.load(file)
+
+    def __getattr__(self, name):
+        "Return the list for the requested tracking name"
+        return self._cache[name]
+
+    def __len__(self):
+        if len(self._cache) == 0:
+            return 0
+
+        else:
+            # Return the max length of all the lists
+            return max(len(item) for item in self._cache.values())
+
+    def save(self, filename: Path):
+        "Save the history to a file"
+
+        if filename.suffix != ".json":
+            filename = filename.with_suffix(".json")
+
+        with filename.open("w") as f:
+            json.dump(self._cache, f)
+
+    def load(self, filename: Path):
+        "Load history from a file"
+
+        if filename.suffix != ".json":
+            filename = filename.with_suffix(".json")
+
+        with filename.open("r") as f:
+            self._cache = json.load(f)

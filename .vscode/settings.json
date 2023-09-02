@@ -31,6 +31,7 @@
         "keras",
         "kfold",
         "labelsize",
+        "levelname",
         "linewidth",
         "linewidths",
         "logspace",

@@ -1,5 +1,5 @@
 import logging
-from typing import Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 
@@ -9,7 +9,8 @@ from cal_ratio_trainer.training.model_input.jet_input import JetInput
 from cal_ratio_trainer.training.model_input.model_input import ModelInput
 
 
-def training_runner_util(training_parameters: TrainingConfig):
+def training_runner_util(training_parameters: TrainingConfig,
+                         continue_from: Optional[int] = None):
     """Run the training for the LLP neural network."""
 
     # initialize the model
@@ -26,8 +27,9 @@ def training_runner_util(training_parameters: TrainingConfig):
     ) = initialize_model(training_parameters)
 
     # Train model
-    roc_scores, dir_name = train_llp(
+    roc_scores, _ = train_llp(
         training_parameters,
+        continue_from,
         constit_input,
         track_input,
         MSeg_input,

@@ -22,7 +22,7 @@ def do_train(args):
         # Now, run the training.
         from cal_ratio_trainer.training.runner_utils import training_runner_util
 
-        training_runner_util(c)
+        training_runner_util(c, continue_from=args.continue_from)
 
 
 def main():
@@ -50,6 +50,14 @@ def main():
         action="store_true",
         default=False,
         help="Print the training configuration and exit",
+    )
+    parser_train.add_argument(
+        "--continue",
+        dest="continue_from",
+        type=int,
+        default=None,
+        help="Continue training from the end of a previous training run. The argument "
+        "is the training number to start from. Use -1 for the most recently completed.",
     )
 
     # Add all the training configuration options

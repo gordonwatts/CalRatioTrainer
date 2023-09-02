@@ -73,6 +73,7 @@ Cosmetic:
 * Use `pydantic` to steer the training, and allow for command line arguments to be used.
 * Use the directory `training_results` to store all results. That directory contains the `model_name`,
   and under that the run number.
+* It is possible to "continue" a training from a previous one. See help strings for `--continue-n` from the command help `cr_trainer train --help`.
 
 Algorithmic:
 

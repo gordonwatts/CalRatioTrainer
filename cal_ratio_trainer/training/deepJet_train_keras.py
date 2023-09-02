@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Tuple
+from typing import Optional, Tuple
 
 import pandas as pd
 import tensorflow as tf
@@ -26,6 +26,7 @@ from cal_ratio_trainer.training.training_utils import (
     setup_model_architecture,
 )
 from cal_ratio_trainer.training.utils import (
+    HistoryTracker,
     create_directories,
     load_dataset,
     low_or_high_pt_selection_train,
@@ -35,6 +36,7 @@ from cal_ratio_trainer.training.utils import (
 
 def train_llp(
     training_params: TrainingConfig,
+    continue_from: Optional[int],
     constit_input: ModelInput,
     track_input: ModelInput,
     MSeg_input: ModelInput,
@@ -76,7 +78,10 @@ def train_llp(
 
     # Setup directories for output.
     assert training_params.model_name is not None
-    dir_name = create_directories(training_params.model_name)
+
+    dir_name = create_directories(
+        training_params.model_name, continue_from=continue_from
+    )
     logging.debug(f"Main directory for output: {dir_name}")
 
     # Write a file with some details of architecture, will append final stats at end
@@ -474,22 +479,7 @@ def build_train_evaluate_model(
     # Do training
     logging.info("Starting training")
     (
-        accept_epoch_array,
-        adv_acc,
-        adv_loss,
-        checkpoint_ks_bib,
-        checkpoint_ks_qcd,
-        checkpoint_ks_sig,
-        epoch_list,
-        ks_bib_hist,
-        ks_qcd_hist,
-        ks_sig_hist,
-        num_epochs,
         num_splits,
-        original_acc,
-        original_adv_acc,
-        original_adv_lossf,
-        original_lossf,
         small_mcWeights_val_adversary,
         small_weights_train_adversary,
         small_weights_val_adversary,
@@ -497,13 +487,6 @@ def build_train_evaluate_model(
         small_x_val_adversary,
         small_y_to_train_adversary_0,
         small_y_val_adversary,
-        stable_counter,
-        val_adv_acc,
-        val_adv_loss,
-        val_original_acc,
-        val_original_adv_acc,
-        val_original_adv_lossf,
-        val_original_lossf,
         weights_to_train_0,
         weights_to_validate_0,
         weights_train_adversary_s,
@@ -573,9 +556,24 @@ def build_train_evaluate_model(
         loss_weights=[1, -training_params.adversary_weight],
     )
 
+    # If this from a previous run, load the weights and our tracking history
+    keras_dir = dir_name / "keras"
+    epoch_h = HistoryTracker()
+    if (keras_dir / "final_weights_checkpoint.keras").exists():
+        logging.info("Loading weights from previous run")
+        final_model.load_weights(keras_dir / "final_weights_checkpoint.keras")
+        original_model.load_weights(keras_dir / "original_model_checkpoint.keras")
+        discriminator_model.load_weights(keras_dir / "discriminator_checkpoint.keras")
+        epoch_h.load(keras_dir / "history_checkpoint")
+
+    # The number of epochs we are going to run, and how we are going to get started!
+    assert training_params.epochs is not None
+    first_epoch = len(epoch_h)
+    last_epoch = first_epoch + training_params.epochs
+
     # Train each epoch
-    for i_epoch in epoch_list:
-        logging.info(f"Training Epoch {i_epoch+1} of {len(epoch_list)}")
+    for i_epoch in range(first_epoch, last_epoch):
+        logging.info(f"Training Epoch {i_epoch+1} of {last_epoch}")
 
         last_loss = -1
         last_main_output_loss = -1
@@ -695,17 +693,18 @@ def build_train_evaluate_model(
 
         # Every epoch save weights if KS test below some threshold (0.3 seems good)
         if ks_bib < 0.3:
-            final_model.save_weights(
-                dir_name / "keras" / f"final_model_weights_{i_epoch}.keras"
-            )
+            final_model.save_weights(keras_dir / f"final_model_weights_{i_epoch}.keras")
 
-        final_model.save_weights(dir_name / "keras" / "final_model_weights.keras")
-        original_model.save_weights(dir_name / "keras" / "checkpoint.keras")
-        discriminator_model.save_weights(dir_name / "keras" / "adv_checkpoint.keras")
+        # Save the checkpoints. If user hits ^C just right, we could get ourselves into
+        # an inconsistent state. But probably not likely enough to spend time
+        # protecting.
+        final_model.save_weights(keras_dir / "final_weights_checkpoint.keras")
+        original_model.save_weights(keras_dir / "original_model_checkpoint.keras")
+        discriminator_model.save_weights(keras_dir / "discriminator_checkpoint.keras")
 
-        ks_qcd_hist.append(ks_qcd)
-        ks_sig_hist.append(ks_sig)
-        ks_bib_hist.append(ks_bib)
+        epoch_h.ks_qcd_hist.append(ks_qcd)
+        epoch_h.ks_sig_hist.append(ks_sig)
+        epoch_h.ks_bib_hist.append(ks_bib)
 
         # Adding the train and test loss to a text function to save the loss
         # Helpful to monitor training performance with large variations in loss
@@ -729,37 +728,39 @@ def build_train_evaluate_model(
         )
 
         # Append some lists with stats of latest epoch
-        # and dump them out so they can be seen in "real-time"
-        adv_loss.append(last_disc_loss)
-        adv_acc.append(last_disc_bin_acc)
-        val_adv_loss.append(val_last_disc_loss)
-        val_adv_acc.append(val_last_disc_bin_acc)
-        original_lossf.append(last_main_output_loss)
-        original_acc.append(last_main_cat_acc)
-        val_original_lossf.append(val_last_main_output_loss)
-        val_original_acc.append(val_last_main_cat_acc)
-        original_adv_lossf.append(last_adversary_loss)
-        original_adv_acc.append(last_adv_bin_acc)
-        val_original_adv_lossf.append(val_last_adversary_loss)
-        val_original_adv_acc.append(val_last_adv_bin_acc)
+        epoch_h.adv_loss.append(last_disc_loss)
+        epoch_h.adv_acc.append(last_disc_bin_acc)
+        epoch_h.val_adv_loss.append(val_last_disc_loss)
+        epoch_h.val_adv_acc.append(val_last_disc_bin_acc)
+        epoch_h.original_lossf.append(last_main_output_loss)
+        epoch_h.original_acc.append(last_main_cat_acc)
+        epoch_h.val_original_lossf.append(val_last_main_output_loss)
+        epoch_h.val_original_acc.append(val_last_main_cat_acc)
+        epoch_h.original_adv_lossf.append(last_adversary_loss)
+        epoch_h.original_adv_acc.append(last_adv_bin_acc)
+        epoch_h.val_original_adv_lossf.append(val_last_adversary_loss)
+        epoch_h.val_original_adv_acc.append(val_last_adv_bin_acc)
 
+        # Save them
+        epoch_h.save(keras_dir / "history_checkpoint")
+
+        # And make run-time plots.
         print_history_plots(
-            adv_loss,
-            adv_acc,
-            val_adv_loss,
-            val_adv_acc,
-            original_lossf,
-            original_acc,
-            val_original_lossf,
-            val_original_acc,
-            original_adv_lossf,
-            original_adv_acc,
-            val_original_adv_lossf,
-            val_original_adv_acc,
-            ks_qcd_hist,
-            ks_sig_hist,
-            ks_bib_hist,
-            accept_epoch_array,
+            epoch_h.adv_loss,
+            epoch_h.adv_acc,
+            epoch_h.val_adv_loss,
+            epoch_h.val_adv_acc,
+            epoch_h.original_lossf,
+            epoch_h.original_acc,
+            epoch_h.val_original_lossf,
+            epoch_h.val_original_acc,
+            epoch_h.original_adv_lossf,
+            epoch_h.original_adv_acc,
+            epoch_h.val_original_adv_lossf,
+            epoch_h.val_original_adv_acc,
+            epoch_h.ks_qcd_hist,
+            epoch_h.ks_sig_hist,
+            epoch_h.ks_bib_hist,
             dir_name,
         )
         logging.debug("Finished Epoch Validation")
