@@ -1,3 +1,4 @@
+import io
 import logging
 from pathlib import Path
 from typing import List, Optional
@@ -73,6 +74,12 @@ class TrainingConfig(BaseModel):
             self.data_cache is not None
         ), "Must have a valid data_cache in configuration parameters"
         return make_local(str(self.cr_training_file), self.data_cache)
+
+    def __str__(self) -> str:
+        string_out = io.StringIO()
+        for k, v in self.dict().items():
+            print(f"{k}: {v}", file=string_out)
+        return string_out.getvalue()
 
 
 def _load_config_from_file(p: Path) -> TrainingConfig:
