@@ -707,26 +707,6 @@ def setup_adversary_arrays(
     :param training_params: class of training parameters
     :return: set up arrays for training
     """
-    adv_loss = []
-    adv_acc = []
-    val_adv_loss = []
-    val_adv_acc = []
-    original_lossf = []
-    original_acc = []
-    val_original_lossf = []
-    val_original_acc = []
-    original_adv_lossf = []
-    original_adv_acc = []
-    val_original_adv_lossf = []
-    val_original_adv_acc = []
-    ks_qcd_hist = []
-    ks_sig_hist = []
-    ks_bib_hist = []
-    accept_epoch_array = []
-    checkpoint_ks_qcd = 999
-    checkpoint_ks_sig = 999
-    checkpoint_ks_bib = 999
-
     small_x_to_adversary = x_to_adversary_orig.copy()
     small_y_to_train_adversary = y_to_train_adversary_orig.copy()
     small_weights_train_adversary = weights_train_adversary_s.values.copy()
@@ -752,9 +732,6 @@ def setup_adversary_arrays(
     weights_val_adversary = _pad_arrays(
         [weights_val_adversary_values], weights_to_validate
     )[0]
-
-    assert training_params.epochs is not None
-    stable_counter = 0
 
     # Basically how many mini-batches
     # Important as too few, too much data, GPU cannot handle it
@@ -798,20 +775,7 @@ def setup_adversary_arrays(
     weights_val_adversary_split = np.array_split(weights_val_adversary, num_splits_adv)
 
     return (
-        accept_epoch_array,
-        adv_acc,
-        adv_loss,
-        checkpoint_ks_bib,
-        checkpoint_ks_qcd,
-        checkpoint_ks_sig,
-        ks_bib_hist,
-        ks_qcd_hist,
-        ks_sig_hist,
         num_splits,
-        original_acc,
-        original_adv_acc,
-        original_adv_lossf,
-        original_lossf,
         small_mcWeights_val_adversary,
         small_weights_train_adversary_s,
         small_weights_val_adversary,
@@ -819,13 +783,6 @@ def setup_adversary_arrays(
         small_x_val_adversary,
         small_y_to_train_adversary_0,
         small_y_val_adversary,
-        stable_counter,
-        val_adv_acc,
-        val_adv_loss,
-        val_original_acc,
-        val_original_adv_acc,
-        val_original_adv_lossf,
-        val_original_lossf,
         weights_to_train_0,
         weights_to_validate_0,
         weights_train_adversary,
