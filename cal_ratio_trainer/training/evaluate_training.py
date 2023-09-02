@@ -1117,7 +1117,6 @@ def print_history_plots(
     ks_qcd_hist: List[float],
     ks_sig_hist: List[float],
     ks_bib_hist: List[float],
-    accept_epoch_array: List[bool],
     dir_name: Path,
 ):
     """Makes plots like loss, KS divergence, etc... every epoch - for adversary training
@@ -1257,15 +1256,6 @@ def print_history_plots(
     plt.xlabel("Epoch")
     plt.legend(loc="best")
     plt.savefig(dir_name / "ks_bib.png", format="png", transparent=True)
-    plt.clf()
-    plt.cla()
-    plt.figure()
-    plt.plot(accept_epoch_array, color="blue")
-    plt.title("Accept Epoch")
-    plt.ylabel("Accept")
-    plt.xlabel("Epoch")
-    plt.savefig(dir_name / "accept_epoch.png", format="png", transparent=True)
-    # Clear axes, figure, and figure window
     plt.clf()
     plt.cla()
     plt.figure()

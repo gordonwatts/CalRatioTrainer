@@ -1,6 +1,6 @@
 from typing import Tuple
 import pytest
-from cal_ratio_trainer.training.utils import create_directories
+from cal_ratio_trainer.training.utils import create_directories, HistoryTracker
 
 
 def test_create_directories(tmp_path):
@@ -47,3 +47,27 @@ def test_create_directories_continue_from_last(tmp_path, back_from: Tuple[int, s
     final_path = create_directories("me_model", tmp_path, continue_from=back_from[0])
 
     assert back_from[1] in str(final_path)
+
+
+def test_history_basic_storage():
+    h = HistoryTracker()
+
+    h.adv_loss.append(20)
+
+    assert h.adv_loss == [20]
+
+    h.second_loss.append(33)
+    h.second_loss.append(33)
+
+    assert len(h) == 2
+
+
+def test_history_file_io(tmp_path):
+    h = HistoryTracker()
+
+    h.adv_loss.append(20)
+    h.save(tmp_path / "test")
+
+    h1 = HistoryTracker(file=tmp_path / "test")
+    assert len(h1) == 1
+    assert h1.adv_loss == [20]

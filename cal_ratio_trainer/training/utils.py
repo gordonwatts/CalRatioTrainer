@@ -1,3 +1,5 @@
+from collections import defaultdict
+import json
 import logging
 from pathlib import Path
 from typing import Any, Optional, Tuple, TypeVar
@@ -434,3 +436,43 @@ def low_or_high_pt_selection_train(
     )  # type: ignore
 
     return X, Y, Z, weights, mc_weights
+
+
+class HistoryTracker:
+    "Keep together all the arrays we want to track per-epoch"
+
+    def __init__(self, file: Optional[Path] = None):
+        self._cache = defaultdict(list)
+
+        if file is not None:
+            self.load(file)
+
+    def __getattr__(self, name):
+        "Return the list for the requested tracking name"
+        return self._cache[name]
+
+    def __len__(self):
+        if len(self._cache) == 0:
+            return 0
+
+        else:
+            # Return the max length of all the lists
+            return max(len(item) for item in self._cache.values())
+
+    def save(self, filename: Path):
+        "Save the history to a file"
+
+        if filename.suffix != ".json":
+            filename = filename.with_suffix(".json")
+
+        with filename.open("w") as f:
+            json.dump(self._cache, f)
+
+    def load(self, filename: Path):
+        "Load history from a file"
+
+        if filename.suffix != ".json":
+            filename = filename.with_suffix(".json")
+
+        with filename.open("r") as f:
+            self._cache = json.load(f)

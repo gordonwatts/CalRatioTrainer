@@ -26,6 +26,7 @@ from cal_ratio_trainer.training.training_utils import (
     setup_model_architecture,
 )
 from cal_ratio_trainer.training.utils import (
+    HistoryTracker,
     create_directories,
     load_dataset,
     low_or_high_pt_selection_train,
@@ -478,7 +479,7 @@ def build_train_evaluate_model(
     # Do training
     logging.info("Starting training")
     (
-        accept_epoch_array,
+        accept_epoch_array,  # not used, remove
         adv_acc,
         adv_loss,
         checkpoint_ks_bib,
@@ -577,13 +578,15 @@ def build_train_evaluate_model(
         loss_weights=[1, -training_params.adversary_weight],
     )
 
-    # If this from a previous run, load the weights.
+    # If this from a previous run, load the weights and our tracking history
     keras_dir = dir_name / "keras"
+    epoch_h = HistoryTracker()
     if (keras_dir / "final_weights_checkpoint.keras").exists():
         logging.info("Loading weights from previous run")
         final_model.load_weights(keras_dir / "final_weights_checkpoint.keras")
         original_model.load_weights(keras_dir / "original_model_checkpoint.keras")
         discriminator_model.load_weights(keras_dir / "discriminator_checkpoint.keras")
+        epoch_h.load(keras_dir / "history_checkpoint")
 
     # Train each epoch
     for i_epoch in epoch_list:
@@ -716,9 +719,9 @@ def build_train_evaluate_model(
         original_model.save_weights(keras_dir / "original_model_checkpoint.keras")
         discriminator_model.save_weights(keras_dir / "discriminator_checkpoint.keras")
 
-        ks_qcd_hist.append(ks_qcd)
-        ks_sig_hist.append(ks_sig)
-        ks_bib_hist.append(ks_bib)
+        epoch_h.ks_qcd_hist.append(ks_qcd)
+        epoch_h.ks_sig_hist.append(ks_sig)
+        epoch_h.ks_bib_hist.append(ks_bib)
 
         # Adding the train and test loss to a text function to save the loss
         # Helpful to monitor training performance with large variations in loss
@@ -742,37 +745,39 @@ def build_train_evaluate_model(
         )
 
         # Append some lists with stats of latest epoch
-        # and dump them out so they can be seen in "real-time"
-        adv_loss.append(last_disc_loss)
-        adv_acc.append(last_disc_bin_acc)
-        val_adv_loss.append(val_last_disc_loss)
-        val_adv_acc.append(val_last_disc_bin_acc)
-        original_lossf.append(last_main_output_loss)
-        original_acc.append(last_main_cat_acc)
-        val_original_lossf.append(val_last_main_output_loss)
-        val_original_acc.append(val_last_main_cat_acc)
-        original_adv_lossf.append(last_adversary_loss)
-        original_adv_acc.append(last_adv_bin_acc)
-        val_original_adv_lossf.append(val_last_adversary_loss)
-        val_original_adv_acc.append(val_last_adv_bin_acc)
+        epoch_h.adv_loss.append(last_disc_loss)
+        epoch_h.adv_acc.append(last_disc_bin_acc)
+        epoch_h.val_adv_loss.append(val_last_disc_loss)
+        epoch_h.val_adv_acc.append(val_last_disc_bin_acc)
+        epoch_h.original_lossf.append(last_main_output_loss)
+        epoch_h.original_acc.append(last_main_cat_acc)
+        epoch_h.val_original_lossf.append(val_last_main_output_loss)
+        epoch_h.val_original_acc.append(val_last_main_cat_acc)
+        epoch_h.original_adv_lossf.append(last_adversary_loss)
+        epoch_h.original_adv_acc.append(last_adv_bin_acc)
+        epoch_h.val_original_adv_lossf.append(val_last_adversary_loss)
+        epoch_h.val_original_adv_acc.append(val_last_adv_bin_acc)
 
+        # Save them
+        epoch_h.save(keras_dir / "history_checkpoint")
+
+        # And make run-time plots.
         print_history_plots(
-            adv_loss,
-            adv_acc,
-            val_adv_loss,
-            val_adv_acc,
-            original_lossf,
-            original_acc,
-            val_original_lossf,
-            val_original_acc,
-            original_adv_lossf,
-            original_adv_acc,
-            val_original_adv_lossf,
-            val_original_adv_acc,
-            ks_qcd_hist,
-            ks_sig_hist,
-            ks_bib_hist,
-            accept_epoch_array,
+            epoch_h.adv_loss,
+            epoch_h.adv_acc,
+            epoch_h.val_adv_loss,
+            epoch_h.val_adv_acc,
+            epoch_h.original_lossf,
+            epoch_h.original_acc,
+            epoch_h.val_original_lossf,
+            epoch_h.val_original_acc,
+            epoch_h.original_adv_lossf,
+            epoch_h.original_adv_acc,
+            epoch_h.val_original_adv_lossf,
+            epoch_h.val_original_adv_acc,
+            epoch_h.ks_qcd_hist,
+            epoch_h.ks_sig_hist,
+            epoch_h.ks_bib_hist,
             dir_name,
         )
         logging.debug("Finished Epoch Validation")
