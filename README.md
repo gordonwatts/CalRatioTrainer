@@ -62,3 +62,20 @@ You should be ready to go!
 
 This is based on the work originally done by Felix in the CalRatio group in ATLAS. This RNN was published in xxx.
 The running and design has been improved since then.
+
+Changes from Felix's original code.
+
+Cosmetic:
+
+* Only code directly used to do the training, etc., was copied over.
+* All code is formatted using `black` and `flake8` for readability.
+* Sub-commands using `argparse` are used to control
+* Use `pydantic` to steer the training, and allow for command line arguments to be used.
+
+Algorithmic:
+
+* Do not recompile the model every or during all the adversary during mini-batches.
+* Do not change the learning rate as a function of the epoch
+* Removed cross-validation code
+
+Typical training takes about 40 minutes on the full dataset, 100 epochs.
