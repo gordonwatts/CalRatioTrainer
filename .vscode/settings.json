@@ -39,6 +39,7 @@
         "lstm",
         "lumi",
         "mseg",
+        "Mulitjet",
         "multiclass",
         "Nadam",
         "ndarray",

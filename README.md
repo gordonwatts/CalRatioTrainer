@@ -38,11 +38,43 @@ The following training datasets are used:
 
 ```mermaid
 graph TD;
-    A-->B;
-    A-->C;
-    B-->D;
-    C-->D;
+    `main_training_file`-->X;
+    `main_training_file`-->Z;
+    `main_training_file`-->weights;
+    `main_training_file`-->mcWeights;
+    weights-->weights_train (90%);
+    weights-->weights_test (90%);
+    mcWeights-->mcWeights_train (90%);
+    mcWeights-->mcWeights_test (90%);
+    `cr_training_file`-->X_adversary;
+    `cr_training_file`-->Z_adversary;
+    `cr_training_file`-->weights_adversary;
+    `cr_training_file`-->mcWeights_adversary;
+    weights_adversary-->weights_train_adversary (90%);
+    weights_adversary-->weights_test_adversary (90%);
+    mcWeights_adversary-->mcWeights_train_adversary (90%);
+    mcWeights_adversary-->mcWeights_test_adversary (90%);
+    X-->X_train (90%);
+    X-->X_test (10%);
+    Z-->Z_train (90%);
+    Z-->Z_test (10%);
+    X_adversary-->X_train_adversary;
+    X_adversary-->X_test_adversary;
+    Z_adversary-->Z_train_adversary;
+    Z_adversary-->Z_test_adversary;
+    X_test-->X_test2 (50%);
+    X_test-->X_val (50%);
 ```
+
+Notes:
+
+* A `2` at the end of the same name, `X_test2` means that the variable `X_test` was replaced (and so on).
+* There are three catagories for the main data, `0: Signal`, `1: MC Mulitjet`, and `2: BIB`.
+* There are two catagories for the adversary data, `0:xxx` and `1:xxx`
+* `Y` variables are not mentioned as they contain the "truth".
+* `X` is all columns including jet info and clusterSS, and track, and muon segment.
+* `Z` is the LLP truth information (for parameterize training?)
+* `weights` are the raw weights that come from the file we read in. `mcWeights` is rescaled so QCD and Signal have the same weight.
 
 ### Plots
 
