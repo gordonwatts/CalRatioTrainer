@@ -41,7 +41,7 @@ graph TD;
     main_training_file-->X;
     main_training_file-->Z;
     main_training_file-->weights;
-    main_training_file-->mcWeights;
+    main_training_file-->mcWeights[mcWeights _reweight_];
     weights-->weights_train[weights_train 90%];
     weights-->weights_test[weights_test 10%];
     mcWeights-->mcWeights_train[mcWeights_train 90%];
@@ -49,7 +49,7 @@ graph TD;
     cr_training_file-->X_adversary;
     cr_training_file-->Z_adversary;
     cr_training_file-->weights_adversary;
-    cr_training_file-->mcWeights_adversary;
+    cr_training_file-->mcWeights_adversary[mcWeights _reweight_];
     weights_adversary-->weights_train_adversary[weights_train_adversary 90%];
     weights_adversary-->weights_test_adversary[weights_test_adversary 90%];
     mcWeights_adversary-->mcWeights_train_adversary[mcWeights_train_adversary 90%];
@@ -58,12 +58,31 @@ graph TD;
     X-->X_test[X_test 10%];
     Z-->Z_train[Z_train 90%];
     Z-->Z_test[Z_test 10%];
-    X_adversary-->X_train_adversary;
-    X_adversary-->X_test_adversary;
-    Z_adversary-->Z_train_adversary;
-    Z_adversary-->Z_test_adversary;
+    X_adversary-->X_train_adversary[X_train_adversary 90%];
+    X_adversary-->X_test_adversary[X_test_adversary 10%];
+    Z_adversary-->Z_train_adversary[Z_train_adversary 90%];
+    Z_adversary-->Z_test_adversary[Z_test_adversary 10%];
     X_test-->X_test2[X_test 50%];
     X_test-->X_val[X_val 50%];
+    weights_test-->weights_test2[weights_test 50%];
+    weights_test-->weights_val[weights_val 50%];
+    mcWeights_test-->mcWeights_test2[mcWeights_test 50%];
+    mcWeights_test-->mcWeights_val[mcWeights_val 50%];
+    Z_test-->Z_test2[Z_test 50%];
+    Z_test-->Z_val[Z_val 50%];
+    X_test_adversary-->X_test_adversary2[x_test_adversary 50%];
+    X_test_adversary-->X_val_adversary[x_val_adversary 50%];
+    weights_test_adversary-->weights_test_adversary2[weights_test_adversary 50%];
+    weights_test_adversary-->weights_val_adversary[weights_val_adversary 50%];
+    mcWeights_test_adversary-->mcWeights_test_adversary2[mcWeights_test_adversary 50%];
+    mcWeights_test_adversary-->mcWeights_val_adversary[mcWeights_val_adversary 50%];
+    X_train-->X_train2[X_train hi/lo mass];
+    Z_train-->X_train2;
+    Z_train-->Z_train2[Z_train hi/lo mass];
+    weights_train-->weights_train2[weights_train hi/lo mass];
+    Z_train-->weights_train2
+    mcWeights_train-->mcWeights_train2[mcWeights_train hi/lo mass];
+    Z_train-->mcWeights_train
 ```
 
 Notes:
