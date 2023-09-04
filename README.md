@@ -28,16 +28,28 @@ This is always an issue of trying to keep the number of min batches small to imp
 * Chicago AF, V100 (16 GV), 4 CPU with 32 GB, running on the full Run 2 data: `--num_splits 230`. Running a full 100 epochs takes 2 hours.
 * Chicago AF, A100 (40 GB), 4 CPU with 32 GB, running on the full Run 2 data: `--num_splits 7`. Not clear this is well behaved from a training POV, however.
 
+### Data
+
+The following training datasets are used:
+
+| Dataset Name | Source | Description |
+| --- | --- | --- |
+| X | `main_training_file` | The main Training File |
+
+```mermaid
+graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;
+```
+
 ### Plots
 
 By default, as the training runs, a great deal of plots are produced. This list below is an attempt to understand those plots.
 
 * The `keras` directory contains a copy of the model and check points of the training parameters. The training parameters aren't written for every epoch, only where the K-S test for BIB is below `0.3` (see below). The `checkpoint` files are written after every epoch and give you the most recently completed weights, good or bad.
 * The output directory for the run contains lots of files that begin with an integer - these.
-* There are several datasets that are used for the plots:
-  * training:
-  * test:
-  * validation:
 
 #### Per-Epoch Plots
 
