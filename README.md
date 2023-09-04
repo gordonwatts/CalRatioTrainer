@@ -28,6 +28,34 @@ This is always an issue of trying to keep the number of min batches small to imp
 * Chicago AF, V100 (16 GV), 4 CPU with 32 GB, running on the full Run 2 data: `--num_splits 230`. Running a full 100 epochs takes 2 hours.
 * Chicago AF, A100 (40 GB), 4 CPU with 32 GB, running on the full Run 2 data: `--num_splits 7`. Not clear this is well behaved from a training POV, however.
 
+### Plots
+
+By default, as the training runs, a great deal of plots are produced. This list below is an attempt to understand those plots.
+
+* The `keras` directory contains a copy of the model and check points of the training parameters. The training parameters aren't written for every epoch, only where the K-S test for BIB is below `0.3` (see below). The `checkpoint` files are written after every epoch and give you the most recently completed weights, good or bad.
+* The output directory for the run contains lots of files that begin with an integer - these.
+* There are several datasets that are used for the plots:
+  * training:
+  * test:
+  * validation:
+
+#### Per-Epoch Plots
+
+15 plots are produced each epoch to make for easy tracking.
+
+| file-name | Description |
+| --- | --- |
+| `<nnn>_main__(bib, qcd, sig)_predictions_linear` | Each plot shows one of the three outputs of the NN when run on xxx by the type of data. Excellent to see the performance: one expects the signal to be piled at the right, for example, for the signal output of the NN. The test data is used to generate these plots. |
+| `<nnn>_val_adversary__(bib, qcd, sig)_predictions` | Same plots, but using the `small_val_adversary` dataset. |
+| `<nnn>_val_adversary_(highPt, midPt, lowPt)_(bib, qcd, sig)_predictions` | Same as the `val_adversary` plots above, but split by $p_T$. Low is $p_T < 0.25$, mid is $0.25 < p_T < 0.50$, and high is $p_T > 0.5$. |
+
+#### Final Plots
+
+| file-name | Description |
+| --- | --- |
+| `main_nn_loss` | The loss from the main network on test data and training data. Can check by-eye for performance and (see warning) overtraining. Dumped from `original_lossf` and `val_original_lossf`. The validation dataset is the full dataset. WARNING (TODO): The main loss is only the last mini-batch and so will be statistically limited! |
+| `ks_(bib, qcd, sig)` | The K-S test results per epoch. Calculated in the `do_checkpoint_prediction_histogram` method (called once per epoch). |
+
 ## Installation
 
 Installation instructions are generally tricky: this really needs to be trained on a GPU.
