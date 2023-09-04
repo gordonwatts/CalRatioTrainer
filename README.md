@@ -36,6 +36,8 @@ The following training datasets are used:
 | --- | --- | --- |
 | X | `main_training_file` | The main Training File |
 
+The following dataflow diagram attempts to follow the flow of training and control input data through the algorithm.
+
 ```mermaid
 graph TD;
     main_training_file-->X;
@@ -76,13 +78,14 @@ graph TD;
     weights_test_adversary-->weights_val_adversary[weights_val_adversary 50%];
     mcWeights_test_adversary-->mcWeights_test_adversary2[mcWeights_test_adversary 50%];
     mcWeights_test_adversary-->mcWeights_val_adversary[mcWeights_val_adversary 50%];
-    X_train-->X_train2[X_train hi/lo mass];
+    X_train-->X_train2[X_train hi/lo mass, pad];
     Z_train-->X_train2;
-    Z_train-->Z_train2[Z_train hi/lo mass];
-    weights_train-->weights_train2[weights_train hi/lo mass];
+    Z_train-->Z_train2[Z_train hi/lo mass, pad];
+    weights_train-->weights_train2[weights_train hi/lo mass, pad];
     Z_train-->weights_train2
-    mcWeights_train-->mcWeights_train2[mcWeights_train hi/lo mass];
-    Z_train-->mcWeights_train
+    mcWeights_train-->mcWeights_train2[mcWeights_train hi/lo mass, pad];
+    Z_train-->mcWeights_train;
+    Z_train0-->Z_train2[Z_train hi/lo mass, pad];
 ```
 
 Notes:

@@ -476,8 +476,6 @@ def build_train_evaluate_model(
         dir_name / "keras" / "initial_discriminator_model_weights.keras"
     )
 
-    # Do training
-    logging.info("Starting training")
     (
         num_splits,
         small_mcWeights_val_adversary,
@@ -572,6 +570,7 @@ def build_train_evaluate_model(
     last_epoch = first_epoch + training_params.epochs
 
     # Train each epoch
+    logging.info("Starting training")
     for i_epoch in range(first_epoch, last_epoch):
         logging.info(f"Training Epoch {i_epoch+1} of {last_epoch}")
 
