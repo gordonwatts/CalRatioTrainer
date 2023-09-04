@@ -38,18 +38,18 @@ The following training datasets are used:
 
 ```mermaid
 graph TD;
-    `main_training_file`-->X;
-    `main_training_file`-->Z;
-    `main_training_file`-->weights;
-    `main_training_file`-->mcWeights;
+    main_training_file-->X;
+    main_training_file-->Z;
+    main_training_file-->weights;
+    main_training_file-->mcWeights;
     weights-->weights_train (90%);
     weights-->weights_test (90%);
     mcWeights-->mcWeights_train (90%);
     mcWeights-->mcWeights_test (90%);
-    `cr_training_file`-->X_adversary;
-    `cr_training_file`-->Z_adversary;
-    `cr_training_file`-->weights_adversary;
-    `cr_training_file`-->mcWeights_adversary;
+    cr_training_file-->X_adversary;
+    cr_training_file-->Z_adversary;
+    cr_training_file-->weights_adversary;
+    cr_training_file-->mcWeights_adversary;
     weights_adversary-->weights_train_adversary (90%);
     weights_adversary-->weights_test_adversary (90%);
     mcWeights_adversary-->mcWeights_train_adversary (90%);
