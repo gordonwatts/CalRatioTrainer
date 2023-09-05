@@ -43,7 +43,7 @@ graph TD;
     main_training_file-->X;
     main_training_file-->Z;
     main_training_file-->weights;
-    main_training_file-->mcWeights[mcWeights _reweight_];
+    weights-->|reweighed to signal| mcWeights;
     weights-->weights_train[weights_train 90%];
     weights-->weights_test[weights_test 10%];
     mcWeights-->mcWeights_train[mcWeights_train 90%];
