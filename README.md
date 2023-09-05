@@ -144,6 +144,41 @@ graph TD;
     original_model-->last_adversary_loss;
     original_model-->last_main_cat_acc;
     original_model-->last_adv_bin_acc;
+
+    small_x_val_adversary-->discriminator_model[evaluate discriminator_model];
+    small_weights_val_adversary-->discriminator_model[evaluate discriminator_model];
+
+    discriminator_model-->|Adversary Loss|file_test_adv_loss[test_adv_loss.png];
+    discriminator_model-->|Adversary Accuracy|file_adv_acc[adv_acc.png];
+
+    style file_test_adv_loss fill:#f00,stroke:#333,stroke-width:4px;
+    style file_adv_acc fill:#f00,stroke:#333,stroke-width:4px;
+
+    small_x_val_adversary-->|signal| file_epoch_val_adversary_sig_prediction[<nnn>_val_adversary_sig_predictions];
+    small_x_val_adversary-->|QCD| file_epoch_val_adversary_qcd_prediction[<nnn>_val_adversary_qcd_predictions];
+    small_x_val_adversary-->|BIB| file_epoch_val_adversary_bib_prediction[<nnn>_val_adversary_bib_predictions];
+    small_mcWeights_val_adversary-->|signal| file_epoch_val_adversary_sig_prediction;
+    small_mcWeights_val_adversary-->|QCD| file_epoch_val_adversary_qcd_prediction;
+    small_mcWeights_val_adversary-->|BIB| file_epoch_val_adversary_bib_prediction;
+
+    style file_epoch_val_adversary_sig_prediction fill:#f00,stroke:#333,stroke-width:4px;
+    style file_epoch_val_adversary_qcd_prediction fill:#f00,stroke:#333,stroke-width:4px;
+    style file_epoch_val_adversary_bib_prediction fill:#f00,stroke:#333,stroke-width:4px;
+
+    small_x_val_adversary-->ks_test;
+    small_mcWeights_val_adversary-->ks_test;
+
+    ks_test-->|qcd|ks_qcd;
+    ks_test-->|BIB|ks_bib;
+    ks_test-->|signal|ks_sig;
+
+    ks_qcd-->file_ks_qcd[ks_qcd.png];
+    ks_bib-->file_ks_bib[ks_bib.png];
+    ks_sig-->file_ks_sig[ks_sig.png];
+    style file_ks_qcd fill:#f00,stroke:#333,stroke-width:4px;
+    style file_ks_bib fill:#f00,stroke:#333,stroke-width:4px;
+    style file_ks_sig fill:#f00,stroke:#333,stroke-width:4px;
+
 ```
 
 Notes:
