@@ -93,11 +93,10 @@ graph TD;
     weights_val_adversary-->small_weights_val_adversary;
     x_to_validate_adv-->small_x_val_adversary;
     weights_train_adversary_s-->small_weights_train_adversary;
-    y_to_train_adversary_orig-->small_y_to_train_adversary;
-    x_to_adversary_orig-->small_x_to_adversary;
+    x_to_adversary-->small_x_to_adversary;
 
-    x_to_adversary_orig-->|pad| x_to_adversary;
-    x_to_train-->|pad value| x_to_adversary;
+    x_to_adversary-->|pad| x_to_adversary2[x_to_adversary];
+    x_to_train-->|pad value| x_to_adversary2;
 
     x_to_validate_adv-->|pad| x_to_validate_adv2[x_to_validate_adv];
     x_to_validate-->|pad value| x_to_validate_adv;
@@ -109,7 +108,7 @@ graph TD;
     weights_to_validate-->weights_val_adversary_values2
 
     x_to_train-->|split by mini-batch|x_to_train_split;
-    x_to_adversary-->|split by mini-batch|x_to_adversary_split;
+    x_to_adversary2-->|split by mini-batch|x_to_adversary_split;
 
     weights_to_train-->|split by mini-match| weights_to_train_0;
     weights_train_adversary2-->|split by mini-batch| small_x_to_adversary_split;
