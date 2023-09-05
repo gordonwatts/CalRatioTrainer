@@ -1006,6 +1006,8 @@ def do_checkpoint_prediction_histogram(
     jet_pt = adv_x[3]
     jet_pt = jet_pt[:, 0]
 
+    # TODO: This first call to the prediction isn't having its results used.
+    # Can we just delete it?
     r = plot_prediction_histograms(
         dir_name,
         validation_prediction,
