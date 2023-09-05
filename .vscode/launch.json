@@ -19,6 +19,18 @@
             ],
             "console": "integratedTerminal",
             "justMyCode": true
+        },
+        {
+            "name": "Python: cr_trainer report",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/cal_ratio_trainer/trainer.py",
+            "args": [
+                "plot",
+                "https://cernbox.cern.ch/remote.php/dav/public-files/r0GQeSVMuu0mDKX/processed_output_controlRegion_corrected.pkl",
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": true
         }
     ]
 }

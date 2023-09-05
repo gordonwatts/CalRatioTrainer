@@ -41,6 +41,7 @@
         "mseg",
         "multiclass",
         "Nadam",
+        "nans",
         "ndarray",
         "ndim",
         "npad",
