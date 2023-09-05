@@ -87,10 +87,11 @@ graph TD;
     Z_train-->mcWeights_train;
     Z_train0-->Z_train2[Z_train hi/lo mass, pad];
 
+    X_val_adversary-->|training vars|x_to_validate_adv;
+
     mcWeights_val_adversary-->small_mcWeights_val_adversary;
-    weights_val_adversary_orig-->small_weights_val_adversary;
-    y_to_validate_adv-->small_y_val_adversary;
-    x_to_validate_adv_orig-->small_x_val_adversary;
+    weights_val_adversary-->small_weights_val_adversary;
+    x_to_validate_adv-->small_x_val_adversary;
     weights_train_adversary_s-->small_weights_train_adversary;
     y_to_train_adversary_orig-->small_y_to_train_adversary;
     x_to_adversary_orig-->small_x_to_adversary;
