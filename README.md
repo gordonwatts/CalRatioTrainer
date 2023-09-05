@@ -71,7 +71,7 @@ graph TD;
     mcWeights_test-->|50% split|mcWeights_test2[mcWeights_test];
     mcWeights_test-->|50% split|mcWeights_val;
     Z_test-->|50% split|Z_test2[Z_test];
-    Z_test-->|50% split|Z_val[Z_val;
+    Z_test-->|50% split|Z_val;
     X_test_adversary-->|50% split|X_test_adversary2[x_test_adversary];
     X_test_adversary-->|50% split|X_val_adversary[x_val_adversary];
     weights_test_adversary-->|50% split|weights_test_adversary2[weights_test_adversary];
