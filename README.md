@@ -86,6 +86,64 @@ graph TD;
     mcWeights_train-->mcWeights_train2[mcWeights_train hi/lo mass, pad];
     Z_train-->mcWeights_train;
     Z_train0-->Z_train2[Z_train hi/lo mass, pad];
+
+    mcWeights_val_adversary-->small_mcWeights_val_adversary;
+    weights_val_adversary_orig-->small_weights_val_adversary;
+    y_to_validate_adv-->small_y_val_adversary;
+    x_to_validate_adv_orig-->small_x_val_adversary;
+    weights_train_adversary_s-->small_weights_train_adversary;
+    y_to_train_adversary_orig-->small_y_to_train_adversary;
+    x_to_adversary_orig-->small_x_to_adversary;
+
+    x_to_adversary_orig-->|pad| x_to_adversary;
+    x_to_train-->|pad value| x_to_adversary;
+
+    x_to_validate_adv-->|pad| x_to_validate_adv2[x_to_validate_adv];
+    x_to_validate-->|pad value| x_to_validate_adv;
+
+    weights_train_adversary-->|pad| weights_train_adversary_s[weights_train_adversary];
+    weights_to_train-->|pad value| weights_train_adversary2;
+
+    weights_val_adversary-->|pad|weights_val_adversary_values2[weights_val_adversary_values];
+    weights_to_validate-->weights_val_adversary_values2
+
+    x_to_train-->|split by mini-batch|x_to_train_split;
+    x_to_adversary-->|split by mini-batch|x_to_adversary_split;
+
+    weights_to_train-->|split by mini-match| weights_to_train_0;
+    weights_train_adversary2-->|split by mini-batch| small_x_to_adversary_split;
+
+    small_weights_train_adversary-->|split by mini-batch| small_weights_train_adversary_s;
+
+    x_to_validate-->|split by mini-batch| x_to_validate_split;
+    x_to_validate_adv2-->|split by mini-batch| x_to_validate_adv_split;
+
+    weights_to_validate-->|split by mini-batch| weights_to_validate_0;
+    weights_val_adversary-->|split by mini-batch| weights_val_adversary_split;
+
+    small_x_to_adversary_split-->|mini-batch| discriminator_model[discriminator_model training];
+    small_y_to_train_adversary_0-->|mini-batch| discriminator_model;
+    small_weights_train_adversary-->|mini-batch| discriminator_model;
+    discriminator_model-->last_disc_loss;
+    discriminator_model-->last_disc_bin_acc;
+
+    x_to_train_split-->|mini-batch| train_inputs;
+    x_to_adversary_split-->|mini-batch| train_inputs;
+
+    y_to_train_0-->|mini-batch| train_outputs;
+    y_to_train_adversary_squeeze-->|mini-batch| train_outputs
+
+    weights_to_train_0-->|mini-batch| train_weights;
+    weights_train_adversary_s-->|mini-batch| train_weights;
+
+    train_inputs-->original_model[original_model training];
+    train_outputs-->original_model;
+    train_weights-->original_model;
+    original_model-->last_loss;
+    original_model-->last_main_output_loss;
+    original_model-->last_adversary_loss;
+    original_model-->last_main_cat_acc;
+    original_model-->last_adv_bin_acc;
 ```
 
 Notes:
