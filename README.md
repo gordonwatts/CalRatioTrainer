@@ -39,7 +39,7 @@ The following training datasets are used:
 The following dataflow diagram attempts to follow the flow of training and control input data through the algorithm.
 
 ```mermaid
-graph TD;
+graph LR;
     main_training_file-->X;
     main_training_file-->Z;
     main_training_file-->weights;
