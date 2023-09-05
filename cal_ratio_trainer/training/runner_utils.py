@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from typing import Optional, Tuple
 
 import numpy as np
@@ -9,8 +10,11 @@ from cal_ratio_trainer.training.model_input.jet_input import JetInput
 from cal_ratio_trainer.training.model_input.model_input import ModelInput
 
 
-def training_runner_util(training_parameters: TrainingConfig,
-                         continue_from: Optional[int] = None):
+def training_runner_util(
+    training_parameters: TrainingConfig,
+    cache: Path,
+    continue_from: Optional[int] = None,
+):
     """Run the training for the LLP neural network."""
 
     # initialize the model
@@ -29,6 +33,7 @@ def training_runner_util(training_parameters: TrainingConfig,
     # Train model
     roc_scores, _ = train_llp(
         training_parameters,
+        cache,
         continue_from,
         constit_input,
         track_input,

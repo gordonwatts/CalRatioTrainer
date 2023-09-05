@@ -28,5 +28,3 @@ include_high_mass: True
 main_training_file: "https://cernbox.cern.ch/remote.php/dav/public-files/32dqr9gSbmQdj3W/processed_output_Lxy1500_Lz3000_3_slim05.pkl"
 # The control region training file for use by the adversary
 cr_training_file: https://cernbox.cern.ch/remote.php/dav/public-files/r0GQeSVMuu0mDKX/processed_output_controlRegion_corrected.pkl
-
-data_cache: "./calratio_training"
