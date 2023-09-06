@@ -234,6 +234,15 @@ graph LR;
     X_test2-->file_signal_llp_efficiencies;
     Z_test-->file_signal_llp_efficiencies;
     style file_signal_llp_efficiencies fill:#f00,stroke:#333,stroke-width:4px;
+
+    val_last_adversary_loss-->file_test_main_adv_loss;
+    style file_test_main_adv_loss fill:#f00,stroke:#333,stroke-width:4px;
+
+    last_disc_loss-->file_train_adv_loss;
+    style file_train_adv_loss fill:#f00,stroke:#333,stroke-width:4px;
+
+    last_adversary_loss-->file_train_main_adv_loss;
+    style file_train_main_adv_loss fill:#f00,stroke:#333,stroke-width:4px;
 ```
 
 Notes:
