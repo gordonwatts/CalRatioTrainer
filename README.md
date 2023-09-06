@@ -154,9 +154,9 @@ graph LR;
     style file_test_adv_loss fill:#f00,stroke:#333,stroke-width:4px;
     style file_adv_acc fill:#f00,stroke:#333,stroke-width:4px;
 
-    small_x_val_adversary-->|signal| file_epoch_val_adversary_sig_prediction[<nnn>_val_adversary_sig_predictions];
-    small_x_val_adversary-->|QCD| file_epoch_val_adversary_qcd_prediction[<nnn>_val_adversary_qcd_predictions];
-    small_x_val_adversary-->|BIB| file_epoch_val_adversary_bib_prediction[<nnn>_val_adversary_bib_predictions];
+    small_x_val_adversary-->|signal| file_epoch_val_adversary_sig_prediction[nnn_val_adversary_sig_predictions];
+    small_x_val_adversary-->|QCD| file_epoch_val_adversary_qcd_prediction[nnn_val_adversary_qcd_predictions];
+    small_x_val_adversary-->|BIB| file_epoch_val_adversary_bib_prediction[nnn_val_adversary_bib_predictions];
     small_mcWeights_val_adversary-->|signal| file_epoch_val_adversary_sig_prediction;
     small_mcWeights_val_adversary-->|QCD| file_epoch_val_adversary_qcd_prediction;
     small_mcWeights_val_adversary-->|BIB| file_epoch_val_adversary_bib_prediction;
@@ -179,6 +179,19 @@ graph LR;
     style file_ks_bib fill:#f00,stroke:#333,stroke-width:4px;
     style file_ks_sig fill:#f00,stroke:#333,stroke-width:4px;
 
+    X_test2-->|inference|final_model;
+
+    final_model-->file_epoch_main_sig_prediction[nnn_main_sig_predictions];
+    mcWeights_test-->file_epoch_main_sig_prediction;
+    final_model-->file_epoch_main_qcd_prediction[nnn_main_qcd_predictions];
+    mcWeights_test-->file_epoch_main_qcd_prediction;
+    final_model-->file_epoch_main_bib_prediction[nnn_main_bib_predictions];
+    mcWeights_test-->file_epoch_main_bib_prediction;
+
+    style file_epoch_main_sig_prediction fill:#f00,stroke:#333,stroke-width:4px;
+    style file_epoch_main_qcd_prediction fill:#f00,stroke:#333,stroke-width:4px;
+    style file_epoch_main_bib_prediction fill:#f00,stroke:#333,stroke-width:4px;
+
 ```
 
 Notes:
@@ -190,6 +203,7 @@ Notes:
 * `X` is all columns including jet info and clusterSS, and track, and muon segment.
 * `Z` is the LLP truth information (for parameterize training?)
 * `weights` are the raw weights that come from the file we read in. `mcWeights` is rescaled so QCD and Signal have the same weight.
+* The `small` data variables are basically the unpadded/unextended data. They are often used to evaluate the discriminator.
 
 ### Plots
 
@@ -205,8 +219,11 @@ By default, as the training runs, a great deal of plots are produced. This list 
 | file-name | Description |
 | --- | --- |
 | `<nnn>_main__(bib, qcd, sig)_predictions_linear` | Each plot shows one of the three outputs of the NN when run on xxx by the type of data. Excellent to see the performance: one expects the signal to be piled at the right, for example, for the signal output of the NN. The test data is used to generate these plots. |
-| `<nnn>_val_adversary__(bib, qcd, sig)_predictions` | Same plots, but using the `small_val_adversary` dataset. |
+| `<nnn>_val_adversary__(bib, qcd, sig)_predictions` | Same plots, but using the `small_val_adversary` dataset, which is half the dataset that was originally used for testing. This are on the adversary dataset, with only data and multijet MC (you'll note there is no BIB in these plots). Do not be fooled by the legend text. |
 | `<nnn>_val_adversary_(highPt, midPt, lowPt)_(bib, qcd, sig)_predictions` | Same as the `val_adversary` plots above, but split by $p_T$. Low is $p_T < 0.25$, mid is $0.25 < p_T < 0.50$, and high is $p_T > 0.5$. |
+| `nnnn_main_(bib, qcd, sig)_predictions` | |
+
+* $p_T$ is rescaled to xx. This means 0.25 is xx, and 0.50 is yy.
 
 #### Final Plots
 
