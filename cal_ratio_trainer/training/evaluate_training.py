@@ -675,7 +675,7 @@ def plot_prediction_histograms_halfLinear(
         )
 
     plt.savefig(
-        destination / (extra_string + "sig_predictions_linear.png"),
+        destination / (extra_string + "sig_predictions_half_linear.png"),
         format="png",
         transparent=True,
     )
@@ -756,7 +756,7 @@ def plot_prediction_histograms_halfLinear(
         )
 
     plt.savefig(
-        destination / (extra_string + "qcd_predictions_linear.png"),
+        destination / (extra_string + "qcd_predictions_half_linear.png"),
         format="png",
         transparent=True,
     )
@@ -835,7 +835,7 @@ def plot_prediction_histograms_halfLinear(
         )
 
     plt.savefig(
-        destination / (extra_string + "bib_predictions_linear.png"),
+        destination / (extra_string + "bib_predictions_half_linear.png"),
         format="png",
         transparent=True,
     )
