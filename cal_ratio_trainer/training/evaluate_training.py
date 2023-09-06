@@ -1301,6 +1301,9 @@ def evaluate_model(
     :param skipTraining: if we skipped training
     :return: roc curves
     """
+    # TODO: Many of these plots are already made on a per-epoch basis.
+    # Can we just save those instead of making them again here?
+
     # evaluate the model using Keras api
     # model.evaluate expects target data to be the same shape/format as model.fit
     y_eval = np_utils.to_categorical(y_test)
