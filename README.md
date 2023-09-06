@@ -85,7 +85,6 @@ graph LR;
     Z_train-->weights_train2
     mcWeights_train-->mcWeights_train2[mcWeights_train hi/lo mass, pad];
     Z_train-->mcWeights_train;
-    Z_train0-->Z_train2[Z_train hi/lo mass, pad];
 
     X_val_adversary-->|training vars|x_to_validate_adv;
 
@@ -93,15 +92,20 @@ graph LR;
     weights_val_adversary-->small_weights_val_adversary;
     x_to_validate_adv-->small_x_val_adversary;
     weights_train_adversary_s-->small_weights_train_adversary;
+
+    X_train_adversary-->|training vars|x_to_adversary;
     x_to_adversary-->small_x_to_adversary;
 
     x_to_adversary-->|pad| x_to_adversary2[x_to_adversary];
+    X_train-->|training vars|x_to_train;
     x_to_train-->|pad value| x_to_adversary2;
 
     x_to_validate_adv-->|pad| x_to_validate_adv2[x_to_validate_adv];
+    X_val-->x_to_validate;
     x_to_validate-->|pad value| x_to_validate_adv;
 
     weights_train_adversary-->|pad| weights_train_adversary_s[weights_train_adversary];
+    weights_train-->weights_to_train;
     weights_to_train-->|pad value| weights_train_adversary2;
 
     weights_val_adversary-->|pad|weights_val_adversary_values2[weights_val_adversary_values];
@@ -122,16 +126,12 @@ graph LR;
     weights_val_adversary-->|split by mini-batch| weights_val_adversary_split;
 
     small_x_to_adversary_split-->|mini-batch| discriminator_model[discriminator_model training];
-    small_y_to_train_adversary_0-->|mini-batch| discriminator_model;
     small_weights_train_adversary-->|mini-batch| discriminator_model;
     discriminator_model-->last_disc_loss;
     discriminator_model-->last_disc_bin_acc;
 
     x_to_train_split-->|mini-batch| train_inputs;
     x_to_adversary_split-->|mini-batch| train_inputs;
-
-    y_to_train_0-->|mini-batch| train_outputs;
-    y_to_train_adversary_squeeze-->|mini-batch| train_outputs
 
     weights_to_train_0-->|mini-batch| train_weights;
     weights_train_adversary_s-->|mini-batch| train_weights;
@@ -155,11 +155,11 @@ graph LR;
     original_model2-->val_last_main_cat_acc;
     original_model2-->val_last_adv_bin_acc;
 
-    small_x_val_adversary-->discriminator_model[evaluate discriminator_model];
-    small_weights_val_adversary-->discriminator_model[evaluate discriminator_model];
+    small_x_val_adversary-->discriminator_model2[evaluate discriminator_model];
+    small_weights_val_adversary-->discriminator_model2[evaluate discriminator_model];
 
-    discriminator_model-->|Adversary Loss|file_test_adv_loss[test_adv_loss.png];
-    discriminator_model-->|Adversary Accuracy|file_adv_acc[adv_acc.png];
+    discriminator_model2-->|Adversary Loss|file_test_adv_loss[test_adv_loss.png];
+    discriminator_model2-->|Adversary Accuracy|file_adv_acc[adv_acc.png];
 
     style file_test_adv_loss fill:#f00,stroke:#333,stroke-width:4px;
     style file_adv_acc fill:#f00,stroke:#333,stroke-width:4px;
@@ -247,7 +247,7 @@ graph LR;
 
 Notes:
 
-* A `2` at the end of the same name, `X_test2` means that the variable `X_test` was replaced (and so on).
+* There are cases where an operation is done on a variable and resulting variable has the same name. This is because in the code the label is transfered to the new data, and we are trying to remain faithful to the code.
 * There are three catagories for the main data, `0: Signal`, `1: MC Mulitjet`, and `2: BIB`.
 * There are two catagories for the adversary data, `0:xxx` and `1:xxx`
 * `Y` variables are not mentioned as they contain the "truth".
@@ -278,12 +278,15 @@ By default, as the training runs, a great deal of plots are produced. This list 
 
 #### Final Plots
 
+Most final plots are made after every single epoch so that you can see the progress as training is running (the `ROC` and $S/\sqrt{B}$ are the exception).
+
 | file-name | Description |
 | --- | --- |
 | `main_nn_loss` | The loss from the main network on test data and training data. Can check by-eye for performance and (see warning) overtraining. Dumped from `original_lossf` and `val_original_lossf`. The validation dataset is the full dataset. WARNING (TODO): The main loss is only the last mini-batch and so will be statistically limited! |
 | `ks_(bib, qcd, sig)` | The K-S test results per epoch. Calculated in the `do_checkpoint_prediction_histogram` method (called once per epoch). |
 | `(qcd, bib, sig)_signal_predictions` | |
 | `main_adv_acc` | The loss of the adversary network on the test and training datasets. |
+| `test_adv_loss`, `test_adv_acc` | The loss and accuracy of the adversary network on the test dataset. |
 
 ## Installation
 
