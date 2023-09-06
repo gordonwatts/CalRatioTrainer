@@ -192,6 +192,17 @@ graph LR;
     style file_epoch_main_qcd_prediction fill:#f00,stroke:#333,stroke-width:4px;
     style file_epoch_main_bib_prediction fill:#f00,stroke:#333,stroke-width:4px;
 
+    X_test2-->|most recent epoch|final_model_2[evaluate final_model]
+    final_model_2-->file_sig_predictions[sig, qcd, bib_predictions"", _linear, _half_linear];
+    mcWeights_test-->file_sig_predictions;
+
+    style file_sig_predictions fill:#f00,stroke:#333,stroke-width:4px;
+
+    X_test_adversary2-->|most recent epoch|final_model_3[evaluate final_model]
+    final_model_3-->file_adv_prediction[adv_sig, bkg, bib];
+    mcWeights_adversary-->file_adv_prediction;
+
+    style file_adv_prediction fill:#f00,stroke:#333,stroke-width:4px;
 ```
 
 Notes:
@@ -219,9 +230,10 @@ By default, as the training runs, a great deal of plots are produced. This list 
 | file-name | Description |
 | --- | --- |
 | `<nnn>_main__(bib, qcd, sig)_predictions_linear` | Each plot shows one of the three outputs of the NN when run on xxx by the type of data. Excellent to see the performance: one expects the signal to be piled at the right, for example, for the signal output of the NN. The test data is used to generate these plots. |
-| `<nnn>_val_adversary__(bib, qcd, sig)_predictions` | Same plots, but using the `small_val_adversary` dataset, which is half the dataset that was originally used for testing. This are on the adversary dataset, with only data and multijet MC (you'll note there is no BIB in these plots). Do not be fooled by the legend text. |
+| `<nnn>_val_adversary__(bib, qcd, sig)_predictions` | Same plots, but using the `small_val_adversary` dataset, which is half the dataset that was originally used for testing. This are on the adversary dataset, with only data and multijet MC (you'll note there is no BIB in these plots). Do not be fooled by the legend text |
 | `<nnn>_val_adversary_(highPt, midPt, lowPt)_(bib, qcd, sig)_predictions` | Same as the `val_adversary` plots above, but split by $p_T$. Low is $p_T < 0.25$, mid is $0.25 < p_T < 0.50$, and high is $p_T > 0.5$. |
-| `nnnn_main_(bib, qcd, sig)_predictions` | |
+| `<nnn>_main_(bib, qcd, sig)_predictions` | The main network output distributions for each of the output variables (bib, qcd, and signal). In each plot, if the training is working well, you should see the bib pushed up against the right edge of the bib NN output, and same for QCD for the QCD NN output, etc. Good to check to see if the network is learning how to differentiate between signal and its two backgrounds. |
+| `(qcd, bib, sig)_signal_predictions` | |
 
 * $p_T$ is rescaled to xx. This means 0.25 is xx, and 0.50 is yy.
 
