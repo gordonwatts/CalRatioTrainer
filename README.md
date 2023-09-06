@@ -226,6 +226,10 @@ graph LR;
     val_last_main_cat_acc-->file_main_network_acc;
     style file_main_network_acc fill:#f00,stroke:#333,stroke-width:4px;
 
+    X_test2-->file_roc_and_soverb[ROC and SoverB Plots];
+    Z_test2-->file_roc_and_soverb;
+    mcWeights_test2-->file_roc_and_soverb;
+    style file_roc_and_soverb fill:#f00,stroke:#333,stroke-width:4px;
 ```
 
 Notes:
