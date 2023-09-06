@@ -199,8 +199,8 @@ graph LR;
     style file_sig_predictions fill:#f00,stroke:#333,stroke-width:4px;
 
     X_test_adversary2-->|most recent epoch|final_model_3[evaluate final_model]
-    final_model_3-->file_adv_prediction[adv_sig, bkg, bib];
-    mcWeights_adversary-->file_adv_prediction;
+    final_model_3-->file_adv_prediction[adv_sig, bkg, bib_prediction];
+    weights_test_adversary2-->file_adv_prediction;
 
     style file_adv_prediction fill:#f00,stroke:#333,stroke-width:4px;
 ```
