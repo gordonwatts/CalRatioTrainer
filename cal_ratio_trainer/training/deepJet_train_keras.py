@@ -685,7 +685,7 @@ def build_train_evaluate_model(
             small_x_val_adversary,
             small_y_val_adversary[0],
             small_mcWeights_val_adversary,
-            str(i_epoch) + "_val",
+            f"{i_epoch:03d}_val",
             high_mass,
             low_mass,
         )
