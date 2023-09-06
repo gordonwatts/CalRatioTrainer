@@ -32,11 +32,12 @@ This is always an issue of trying to keep the number of min batches small to imp
 
 The following training datasets are used:
 
-| Dataset Name | Source | Description |
-| --- | --- | --- |
-| X | `main_training_file` | The main Training File |
+Dataset Name | Description |
+| --- | --- |
+| `main_training_file` | This training file contains the three types of jets the NN is to discriminate against - ones from decays in the calorimeter, ones from QCD, and ones from BIB (labeled with 0, 1, or 2). |
+| `cr_training_file` | This training input file contains MC and Data for the multi-jets (labeled 0 and 1). They adversary uses these to punish the network from telling the difference between data and MC. |
 
-The following dataflow diagram attempts to follow the flow of training and control input data through the algorithm.
+The following dataflow diagram attempts to follow the flow of training and control input data through the algorithm. This was made by scanning the code. Red items are output plots.
 
 ```mermaid
 graph LR;
@@ -137,7 +138,6 @@ graph LR;
     weights_train_adversary_s-->|mini-batch| train_weights;
 
     train_inputs-->original_model[original_model training];
-    train_outputs-->original_model;
     train_weights-->original_model;
     original_model-->last_loss;
     original_model-->last_main_output_loss;
@@ -203,26 +203,26 @@ graph LR;
     style file_epoch_main_bib_prediction fill:#f00,stroke:#333,stroke-width:4px;
 
     X_test2-->|most recent epoch|final_model_2[evaluate final_model]
-    final_model_2-->file_sig_predictions[sig, qcd, bib_predictions"", _linear, _half_linear];
+    final_model_2-->file_sig_predictions[sig, qcd, bib_predictions, _linear, _half_linear];
     mcWeights_test-->file_sig_predictions;
 
     style file_sig_predictions fill:#f00,stroke:#333,stroke-width:4px;
 
     X_test_adversary2-->|most recent epoch|final_model_3[evaluate final_model]
-    final_model_3-->file_adv_prediction[adv_sig, bkg, bib_prediction];
+    final_model_3-->file_adv_prediction[adv sig, bkg, bib_prediction];
     weights_test_adversary2-->file_adv_prediction;
 
     style file_adv_prediction fill:#f00,stroke:#333,stroke-width:4px;
 
-    last_adv_bin_acc-->file_main_adv_acc;
+    last_adv_bin_acc-->file_main_adv_acc[main_adv_acc.png];
     val_last_adv_bin_acc-->file_main_adv_acc;
     style file_main_adv_acc fill:#f00,stroke:#333,stroke-width:4px;
 
-    last_main_output_loss-->file_main_nn_loss;
+    last_main_output_loss-->file_main_nn_loss[main_nn_loss.png];
     val_last_main_output_loss-->file_main_nn_loss;
     style file_main_nn_loss fill:#f00,stroke:#333,stroke-width:4px;
 
-    last_main_cat_acc-->file_main_network_acc;
+    last_main_cat_acc-->file_main_network_acc[main_network_acc.png];
     val_last_main_cat_acc-->file_main_network_acc;
     style file_main_network_acc fill:#f00,stroke:#333,stroke-width:4px;
 
@@ -231,17 +231,17 @@ graph LR;
     mcWeights_test2-->file_roc_and_soverb;
     style file_roc_and_soverb fill:#f00,stroke:#333,stroke-width:4px;
 
-    X_test2-->file_signal_llp_efficiencies;
+    X_test2-->file_signal_llp_efficiencies[signal_llp_efficiencies.png];
     Z_test-->file_signal_llp_efficiencies;
     style file_signal_llp_efficiencies fill:#f00,stroke:#333,stroke-width:4px;
 
-    val_last_adversary_loss-->file_test_main_adv_loss;
+    val_last_adversary_loss-->file_test_main_adv_loss[test_main_adv_loss.png];
     style file_test_main_adv_loss fill:#f00,stroke:#333,stroke-width:4px;
 
-    last_disc_loss-->file_train_adv_loss;
+    last_disc_loss-->file_train_adv_loss[train_adv_loss.png];
     style file_train_adv_loss fill:#f00,stroke:#333,stroke-width:4px;
 
-    last_adversary_loss-->file_train_main_adv_loss;
+    last_adversary_loss-->file_train_main_adv_loss[train_main_adv_loss.png];
     style file_train_main_adv_loss fill:#f00,stroke:#333,stroke-width:4px;
 ```
 
@@ -261,7 +261,8 @@ Notes:
 By default, as the training runs, a great deal of plots are produced. This list below is an attempt to understand those plots.
 
 * The `keras` directory contains a copy of the model and check points of the training parameters. The training parameters aren't written for every epoch, only where the K-S test for BIB is below `0.3` (see below). The `checkpoint` files are written after every epoch and give you the most recently completed weights, good or bad.
-* The output directory for the run contains lots of files that begin with an integer - these.
+* The output directory for the run contains lots of files that begin with an integer - these are the per-epoch plots.
+* There are three types of data: training data, test data, and validation data. The training data is 90% of the data in the input data-files. The test and validation data are the remaining 10% split 50-50.
 
 #### Per-Epoch Plots
 
@@ -283,10 +284,18 @@ Most final plots are made after every single epoch so that you can see the progr
 | file-name | Description |
 | --- | --- |
 | `main_nn_loss` | The loss from the main network on test data and training data. Can check by-eye for performance and (see warning) overtraining. Dumped from `original_lossf` and `val_original_lossf`. The validation dataset is the full dataset. WARNING (TODO): The main loss is only the last mini-batch and so will be statistically limited! |
-| `ks_(bib, qcd, sig)` | The K-S test results per epoch. Calculated in the `do_checkpoint_prediction_histogram` method (called once per epoch). |
-| `(qcd, bib, sig)_signal_predictions` | |
-| `main_adv_acc` | The loss of the adversary network on the test and training datasets. |
-| `test_adv_loss`, `test_adv_acc` | The loss and accuracy of the adversary network on the test dataset. |
+| `main_network_acc` | The main network on the validation dataset |
+| `test_main_adv_loss` | The advisory network loss on the test dataset. |
+| `train_adv_loss` | The advisory network loss on the training dataset. |
+| `train_main_adv_loss` | The main network loss on the training adversary dataset. |
+| `main_adv_acc` | The loss of the adversary network on the test and training adversary datasets. Only the last mini-batch is used for this measurement. |
+| `ks_(bib, qcd, sig)` | The K-S test results per epoch. Calculated once per epoch on the adversary validation dataset. The similarity test is between the QCD and MC data, making sure the NN output is the same. Presumably, a small K-S value means small MC/Data systematic errors. |
+| `(qcd, bib, sig)_signal_predictions` | Plots of the three types of training data's NN output on the test dataset. Great for a quick eyeball of how the network is working. Run on the test sample. |
+| `adv (qcd, bib, sig)_signal_predictions` | Plots of the three types of training data's NN output on the adversary test dataset (no BIB data). Tells you how well the network is telling the difference between QCD and MC (see the K-S tests, which are exactly this). |
+| `test_adv_loss`, `test_adv_acc` | The loss and accuracy of the adversary network on the validation dataset.  |
+| `roc_curve_atlas_rej_bib_mH1000.0` and friends | ROC curves of various flavors calculated on the test dataset. |
+| `SoverB_scan_BIB only` and friends | Signal of Background of various flavors calculated on the test dataset. |
+| `signal_llp_efficiencies` | Summary plot in $m_S$ and $m_H$ space of the efficiencies of signal detection on the test dataset. |
 
 ## Installation
 
