@@ -145,6 +145,16 @@ graph LR;
     original_model-->last_main_cat_acc;
     original_model-->last_adv_bin_acc;
 
+    x_to_validate_split-->|mini-batch 0|original_model2[evaluate original_model];
+    x_to_validate_adv_split-->|mini-batch 0|original_model2;
+    weights_to_validate_0-->|mini-batch 0|original_model2;
+    weights_val_adversary_split-->|mini-batch 0|original_model2;
+    original_model2-->val_last_loss;
+    original_model2-->val_last_main_output_loss;
+    original_model2-->val_last_adversary_loss;
+    original_model2-->val_last_main_cat_acc;
+    original_model2-->val_last_adv_bin_acc;
+
     small_x_val_adversary-->discriminator_model[evaluate discriminator_model];
     small_weights_val_adversary-->discriminator_model[evaluate discriminator_model];
 
@@ -203,6 +213,19 @@ graph LR;
     weights_test_adversary2-->file_adv_prediction;
 
     style file_adv_prediction fill:#f00,stroke:#333,stroke-width:4px;
+
+    last_adv_bin_acc-->file_main_adv_acc;
+    val_last_adv_bin_acc-->file_main_adv_acc;
+    style file_main_adv_acc fill:#f00,stroke:#333,stroke-width:4px;
+
+    last_main_output_loss-->file_main_nn_loss;
+    val_last_main_output_loss-->file_main_nn_loss;
+    style file_main_nn_loss fill:#f00,stroke:#333,stroke-width:4px;
+
+    last_main_cat_acc-->file_main_network_acc;
+    val_last_main_cat_acc-->file_main_network_acc;
+    style file_main_network_acc fill:#f00,stroke:#333,stroke-width:4px;
+
 ```
 
 Notes:
@@ -233,7 +256,6 @@ By default, as the training runs, a great deal of plots are produced. This list 
 | `<nnn>_val_adversary__(bib, qcd, sig)_predictions` | Same plots, but using the `small_val_adversary` dataset, which is half the dataset that was originally used for testing. This are on the adversary dataset, with only data and multijet MC (you'll note there is no BIB in these plots). Do not be fooled by the legend text |
 | `<nnn>_val_adversary_(highPt, midPt, lowPt)_(bib, qcd, sig)_predictions` | Same as the `val_adversary` plots above, but split by $p_T$. Low is $p_T < 0.25$, mid is $0.25 < p_T < 0.50$, and high is $p_T > 0.5$. |
 | `<nnn>_main_(bib, qcd, sig)_predictions` | The main network output distributions for each of the output variables (bib, qcd, and signal). In each plot, if the training is working well, you should see the bib pushed up against the right edge of the bib NN output, and same for QCD for the QCD NN output, etc. Good to check to see if the network is learning how to differentiate between signal and its two backgrounds. |
-| `(qcd, bib, sig)_signal_predictions` | |
 
 * $p_T$ is rescaled to xx. This means 0.25 is xx, and 0.50 is yy.
 
@@ -243,6 +265,8 @@ By default, as the training runs, a great deal of plots are produced. This list 
 | --- | --- |
 | `main_nn_loss` | The loss from the main network on test data and training data. Can check by-eye for performance and (see warning) overtraining. Dumped from `original_lossf` and `val_original_lossf`. The validation dataset is the full dataset. WARNING (TODO): The main loss is only the last mini-batch and so will be statistically limited! |
 | `ks_(bib, qcd, sig)` | The K-S test results per epoch. Calculated in the `do_checkpoint_prediction_histogram` method (called once per epoch). |
+| `(qcd, bib, sig)_signal_predictions` | |
+| `main_adv_acc` | The loss of the adversary network on the test and training datasets. |
 
 ## Installation
 
