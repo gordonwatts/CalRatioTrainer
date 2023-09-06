@@ -179,14 +179,14 @@ graph LR;
     style file_ks_bib fill:#f00,stroke:#333,stroke-width:4px;
     style file_ks_sig fill:#f00,stroke:#333,stroke-width:4px;
 
-    X_test2-->|inference|final_model;
+    X_test2-->final_model[evaluate final_model];
 
     final_model-->file_epoch_main_sig_prediction[nnn_main_sig_predictions];
-    mcWeights_test-->file_epoch_main_sig_prediction;
+    mcWeights_test2-->file_epoch_main_sig_prediction;
     final_model-->file_epoch_main_qcd_prediction[nnn_main_qcd_predictions];
-    mcWeights_test-->file_epoch_main_qcd_prediction;
+    mcWeights_test2-->file_epoch_main_qcd_prediction;
     final_model-->file_epoch_main_bib_prediction[nnn_main_bib_predictions];
-    mcWeights_test-->file_epoch_main_bib_prediction;
+    mcWeights_test2-->file_epoch_main_bib_prediction;
 
     style file_epoch_main_sig_prediction fill:#f00,stroke:#333,stroke-width:4px;
     style file_epoch_main_qcd_prediction fill:#f00,stroke:#333,stroke-width:4px;
