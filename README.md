@@ -64,7 +64,7 @@ graph LR;
     X_adversary-->|10% split|X_test_adversary;
     Z_adversary-->|90% split|Z_train_adversary;
     Z_adversary-->|10% split|Z_test_adversary;
-    X_test-->|50% split|X_test2;
+    X_test-->|50% split|X_test2[X_test];
     X_test-->|50% split|X_val;
     weights_test-->|50% split|weights_test2[weights_test];
     weights_test-->|50% split|weights_val;
