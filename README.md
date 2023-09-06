@@ -230,6 +230,10 @@ graph LR;
     Z_test2-->file_roc_and_soverb;
     mcWeights_test2-->file_roc_and_soverb;
     style file_roc_and_soverb fill:#f00,stroke:#333,stroke-width:4px;
+
+    X_test2-->file_signal_llp_efficiencies;
+    Z_test-->file_signal_llp_efficiencies;
+    style file_signal_llp_efficiencies fill:#f00,stroke:#333,stroke-width:4px;
 ```
 
 Notes:
