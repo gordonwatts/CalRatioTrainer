@@ -1,10 +1,14 @@
+from dataclasses import dataclass
 from pathlib import Path
-from typing import List
+from typing import List, Union
+
+import matplotlib.pyplot as plt
 import pandas as pd
 from pydantic import BaseModel
-from dataclasses import dataclass
 
 from cal_ratio_trainer.common.fileio import load_dataset
+from cal_ratio_trainer.config import ReportingConfig
+
 from .md_report import MDReport
 
 
@@ -29,7 +33,44 @@ class file_info:
         return "llp_mH" in self.data.columns
 
 
-def make_report_plots(input_files: List[plot_file], cache: Path, output: Path):
+# Get the columns we want to plot for from each file:
+def find_column(name: List[str], file: file_info) -> str:
+    for n in name:
+        if n in file.data.columns:
+            return n
+    raise ValueError(
+        f"Asked to find column {name} in file {file.source_name}, but it is not there."
+    )
+
+
+def make_file_comparison_plot(files: List[file_info], col_names: Union[str, List[str]]):
+    # If the column names is a string, then make it a list.
+    if isinstance(col_names, str):
+        col_names = [col_names]
+
+    # Extract the data we will be plotting in common:
+    data = [
+        {"name": f.legend_name, "data": f.data[find_column(col_names, f)]}
+        for f in files
+    ]
+
+    # Now, make a histogram of the data using matplotlib.
+    fig = plt.figure(figsize=(8, 6))
+    ax = fig.add_subplot(1, 1, 1)
+    for d in data:
+        ax.hist(d["data"], bins=100, histtype="step", label=d["name"])
+
+    ax.legend()
+    ax.set_xlabel(col_names[0])
+    ax.set_ylabel("Number of Jets")
+    ax.set_title(col_names[0])
+
+    return fig
+
+
+def make_report_plots(
+    input_files: List[plot_file], cache: Path, output: Path, config: ReportingConfig
+):
     # Open the data for plotting.
     files = [
         file_info(
@@ -67,6 +108,13 @@ def make_report_plots(input_files: List[plot_file], cache: Path, output: Path):
             file_info_table, ["name", "Jets", "Signal (0)", "Multijet (1)", "BIB (2)"]
         )
 
+        # Plot the "headline" plots that are hopefully "in common".
+        if config.common_plots is not None:
+            report.header("## Common Plots")
+            for col_names in config.common_plots:
+                p = make_file_comparison_plot(files, col_names)
+                report.add_figure(p)
+
         # Next a list of all the columns:
         report.header("Some file specific information:")
         for f in files:
@@ -91,7 +139,20 @@ def make_report_plots(input_files: List[plot_file], cache: Path, output: Path):
                 ]
                 report.add_table(mass_table)
 
-            # dump a list of columns for each
-            report.write(f"{len(f.data.columns)} columns:\n")
-            # Indent the list in markdown
-            report.write(f"    {', '.join(f.data.columns)}")
+        # Dump the columns in each file as a table. The column names as rows, and a
+        # table column for each file, with a check if that file has that particular
+        # column.
+        report.header("## Column Information")
+
+        column_names = set()
+        for f in files:
+            column_names.update(f.data.columns)
+
+        col_table_dict = [
+            {
+                "Column": c,
+                **{f.legend_name: "X" if c in f.data.columns else "" for f in files},
+            }
+            for c in sorted(column_names, key=lambda x: x.lower())
+        ]
+        report.add_table(col_table_dict)

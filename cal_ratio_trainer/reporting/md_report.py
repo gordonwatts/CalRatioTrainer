@@ -66,3 +66,25 @@ class MDReport:
             self.write("|" + "|".join([str(row[c]) for c in col_order]) + "|")
 
         self.write("")
+
+    def add_figure(self, fig, display_size: int = 300):
+        """Add a matplotlib figure to the reporting.
+
+        We will:
+
+        * Save the figure to a file in the reporting directory (png file)
+        * Add a markdown image link to the file
+        * Make the markdown clickable to display the figure full size.
+
+        Args:
+            fig (matplotlib Figure): The figure to be added.
+        """
+        # Save the figure to a file
+        fig_name = fig.get_axes()[0].get_title()
+        fig.savefig(self.path.parent / f"{fig_name}.png")
+
+        # Add the markdown
+        path_name = f"./{fig_name}.png"
+        self.write(
+            f'<a href="{path_name}"><img src="{path_name}" width={display_size}></a>'
+        )

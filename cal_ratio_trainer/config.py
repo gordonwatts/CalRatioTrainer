@@ -1,6 +1,6 @@
 import io
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Union
 from pydantic import AnyUrl, BaseModel, Field
 import yaml
 
@@ -77,6 +77,38 @@ def load_config(p: Optional[Path] = None) -> TrainingConfig:
 
     if p is not None:
         specified = _load_config_from_file(p)
+        d = specified.dict()
+        for k, v in d.items():
+            if v is not None:
+                setattr(r, k, v)
+
+    return r
+
+
+class ReportingConfig(BaseModel):
+    "Configuration to run a plotting/reporting job for a training input file"
+
+    # List of the plots to make with all files. If the sources
+    # can have different names, then this is a list. Otherwise it is
+    # just a single item.
+    common_plots: Optional[List[Union[str, List[str]]]] = None
+
+
+def _load_reporting_config_from_file(p: Path) -> ReportingConfig:
+    """Load a TrainingConfig from a file, without taking into account defaults."""
+    with open(p, "r") as f:
+        config_dict = yaml.safe_load(f)
+    return ReportingConfig(**config_dict)
+
+
+def load_report_config(p: Optional[Path] = None) -> ReportingConfig:
+    """Load a ReportingConfig from a file, taking into account defaults."""
+    r = _load_reporting_config_from_file(
+        Path(__file__).parent / "default_reporting_config.yaml"
+    )
+
+    if p is not None:
+        specified = _load_reporting_config_from_file(p)
         d = specified.dict()
         for k, v in d.items():
             if v is not None:

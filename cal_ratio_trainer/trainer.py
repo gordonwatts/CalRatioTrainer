@@ -2,7 +2,7 @@ import argparse
 import logging
 from pathlib import Path
 
-from cal_ratio_trainer.config import load_config
+from cal_ratio_trainer.config import load_config, load_report_config
 from cal_ratio_trainer.utils import add_config_args, apply_config_args
 
 cache = Path("./calratio_training")
@@ -37,6 +37,7 @@ def do_plot(args):
         ],
         cache,
         Path("./reports/report.md"),
+        load_report_config(),
     )
 
 
