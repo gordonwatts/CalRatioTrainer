@@ -675,7 +675,7 @@ def plot_prediction_histograms_halfLinear(
         )
 
     plt.savefig(
-        destination / (extra_string + "sig_predictions_linear.png"),
+        destination / (extra_string + "sig_predictions_half_linear.png"),
         format="png",
         transparent=True,
     )
@@ -756,7 +756,7 @@ def plot_prediction_histograms_halfLinear(
         )
 
     plt.savefig(
-        destination / (extra_string + "qcd_predictions_linear.png"),
+        destination / (extra_string + "qcd_predictions_half_linear.png"),
         format="png",
         transparent=True,
     )
@@ -835,7 +835,7 @@ def plot_prediction_histograms_halfLinear(
         )
 
     plt.savefig(
-        destination / (extra_string + "bib_predictions_linear.png"),
+        destination / (extra_string + "bib_predictions_half_linear.png"),
         format="png",
         transparent=True,
     )
@@ -986,7 +986,7 @@ def do_checkpoint_prediction_histogram(
     adv_x: List[np.ndarray],
     adv_y: np.ndarray,
     adv_weights: np.ndarray,
-    epoch: str,
+    plot_name_prefix: str,
     high_mass: bool,
     low_mass: bool,
 ) -> Tuple[Union[int, np.ndarray], Union[int, np.ndarray], Union[int, np.ndarray]]:
@@ -1006,12 +1006,14 @@ def do_checkpoint_prediction_histogram(
     jet_pt = adv_x[3]
     jet_pt = jet_pt[:, 0]
 
+    # TODO: This first call to the prediction isn't having its results used.
+    # Can we just delete it?
     r = plot_prediction_histograms(
         dir_name,
         validation_prediction,
         adv_y,
         adv_weights,
-        str(epoch) + "_adversary_",
+        f"{plot_name_prefix}_adversary",
         high_mass,
         low_mass,
         do_ks=True,
@@ -1027,7 +1029,7 @@ def do_checkpoint_prediction_histogram(
         lowPt_validation_prediction,
         lowPt_adv_y,
         lowPt_adv_weights,
-        str(epoch) + "_adversary_lowPt_",
+        f"{plot_name_prefix}_adversary_lowPt",
         high_mass,
         low_mass,
         do_ks=True,
@@ -1046,7 +1048,7 @@ def do_checkpoint_prediction_histogram(
         midPt_validation_prediction,
         midPt_adv_y,
         midPt_adv_weights,
-        str(epoch) + "_adversary_midPt_",
+        f"{plot_name_prefix}_adversary_midPt",
         high_mass,
         low_mass,
         do_ks=True,
@@ -1062,7 +1064,7 @@ def do_checkpoint_prediction_histogram(
         highPt_validation_prediction,
         highPt_adv_y,
         highPt_adv_weights,
-        str(epoch) + "_adversary_highPt_",
+        f"{plot_name_prefix}_adversary_highPt",
         high_mass,
         low_mass,
         do_ks=True,
@@ -1095,7 +1097,7 @@ def checkpoint_pred_hist_main(
         validation_prediction,
         y_test,
         mcWeights_test.values,
-        str(epoch) + "_main_",
+        f"{epoch:03d}_main",
         high_mass,
         low_mass,
     )
@@ -1224,8 +1226,8 @@ def print_history_plots(
     plt.figure()
     plt.plot(original_adv_acc, label="Train", color="blue")
     plt.plot(val_original_adv_acc, label="Test", color="orange")
-    plt.title("Adversary only Loss Function")
-    plt.ylabel("Loss")
+    plt.title("Adversary only Accuracy")
+    plt.ylabel("Accuracy")
     plt.xlabel("Epoch")
     plt.legend(loc="best")
     plt.savefig(dir_name / "main_adv_acc.png", format="png", transparent=True)
@@ -1299,6 +1301,9 @@ def evaluate_model(
     :param skipTraining: if we skipped training
     :return: roc curves
     """
+    # TODO: Many of these plots are already made on a per-epoch basis.
+    # Can we just save those instead of making them again here?
+
     # evaluate the model using Keras api
     # model.evaluate expects target data to be the same shape/format as model.fit
     y_eval = np_utils.to_categorical(y_test)

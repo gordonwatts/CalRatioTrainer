@@ -62,6 +62,7 @@ def prepare_training_datasets(
     mcWeights.loc[Y == 0] = mcWeights[Y == 0] * (sig_weight / qcd_weight)
 
     # TODO: Why not rescale BIB so it also has the same weight?
+    # Perhaps because it is data?
 
     # Hard code start and end of names of variables
     # TODO: These following lines give a performance warning sometimes

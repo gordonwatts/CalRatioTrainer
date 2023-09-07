@@ -477,8 +477,6 @@ def build_train_evaluate_model(
         dir_name / "keras" / "initial_discriminator_model_weights.keras"
     )
 
-    # Do training
-    logging.info("Starting training")
     (
         num_splits,
         small_mcWeights_val_adversary,
@@ -573,6 +571,7 @@ def build_train_evaluate_model(
     last_epoch = first_epoch + training_params.epochs
 
     # Train each epoch
+    logging.info("Starting training")
     for i_epoch in range(first_epoch, last_epoch):
         logging.info(f"Training Epoch {i_epoch+1} of {last_epoch}")
 
@@ -594,16 +593,6 @@ def build_train_evaluate_model(
                 f"epoch {i_epoch+1}"
             )
 
-            train_inputs = [*x_to_train_split[i_batch], *x_to_adversary_split[i_batch]]
-            train_outputs = [
-                y_to_train_0[i_batch],
-                y_to_train_adversary_squeeze[i_batch],
-            ]
-            train_weights = [
-                weights_to_train_0[i_batch],
-                weights_train_adversary_s[i_batch],
-            ]
-
             # Train the adversary network
             logging.debug("  -> Training adversary")
 
@@ -623,6 +612,16 @@ def build_train_evaluate_model(
                 logging.debug(f"  Adversary binary Accuracy: {last_disc_bin_acc:.4f}")
 
             logging.debug("  -> Training main network")
+
+            train_inputs = [*x_to_train_split[i_batch], *x_to_adversary_split[i_batch]]
+            train_outputs = [
+                y_to_train_0[i_batch],
+                y_to_train_adversary_squeeze[i_batch],
+            ]
+            train_weights = [
+                weights_to_train_0[i_batch],
+                weights_train_adversary_s[i_batch],
+            ]
 
             original_hist = original_model.train_on_batch(
                 train_inputs, train_outputs, train_weights
@@ -687,7 +686,7 @@ def build_train_evaluate_model(
             small_x_val_adversary,
             small_y_val_adversary[0],
             small_mcWeights_val_adversary,
-            str(i_epoch) + "_val",
+            f"{i_epoch:03d}_val",
             high_mass,
             low_mass,
         )
