@@ -36,6 +36,7 @@ def do_plot(args):
             for i, pf in enumerate(args.input_files)
         ],
         cache,
+        Path("./reports/report.md"),
     )
 
 
