@@ -83,6 +83,22 @@ class MDReport:
         Args:
             fig (matplotlib Figure): The figure to be added.
         """
+        self.write(self.figure_md(fig, display_size=display_size))
+
+    def figure_md(self, fig, display_size: int = 300) -> str:
+        """Save the figure as a mat plot lib and return the markdown that
+        will reference it.
+
+        * Save the figure to a file in the reporting directory (png file)
+        * Make the markdown clickable to display the figure full size.
+
+        Args:
+            fig (matplotlib.figure.Figure): The figure to save to a local png file.
+            display_size (int, optional): Width in pixels for the image. Defaults to 300.
+
+        Returns:
+            str: The markdown that can be inserted into the markdown file to display this.
+        """
         # Save the figure to a file
         fig_name = f"{self.plot_index:04d}-{fig.get_axes()[0].get_title()}"
         self.plot_index += 1
@@ -92,6 +108,4 @@ class MDReport:
         fig.savefig(path)
 
         # Add the markdown
-        self.write(
-            f'<a href="{path.name}"><img src="{path.name}" width={display_size}></a>'
-        )
+        return f'<a href="{path.name}"><img src="{path.name}" width={display_size}></a>'

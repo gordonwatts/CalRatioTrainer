@@ -234,7 +234,7 @@ def make_report_plots(
             report.header("## Adversary File Comparisons")
             plot_common_files(control_samples, config.data_labels_control)
 
-        # Next a list of all the columns:
+        # Plot some info per file:
         report.header("Some file specific information:")
         for f in files:
             file_type = "control" if not f.is_signal else "signal"
@@ -299,17 +299,47 @@ def make_report_plots(
         # Dump the columns in each file as a table. The column names as rows, and a
         # table column for each file, with a check if that file has that particular
         # column.
+        # Also make plots per column - this is quite expensive in time.
         report.header("## Column Information")
 
         column_names = set()
         for f in files:
             column_names.update(f.data.columns)
 
+        def make_file_plots(
+            col_name: str, files: List[Tuple[str, pd.DataFrame]]
+        ) -> str:
+            fig = plt.figure(figsize=(8, 6))
+            ax = fig.add_subplot(1, 1, 1)
+
+            for name, data in files:
+                ax.hist(
+                    data,
+                    bins=100,
+                    histtype="step",
+                    label=name,
+                )
+
+            ax.legend()
+            ax.set_xlabel(col_name)
+            ax.set_ylabel("Number of Jets")
+            ax.set_title(f"{col_name} By File")
+
+            md_text = report.figure_md(fig, display_size=150)
+            plt.close(fig)
+            return md_text
+
         col_table_dict = [
             {
                 "Column": c,
+                "Plot": make_file_plots(
+                    c,
+                    [(f.legend_name, f.data[c]) for f in files if c in f.data.columns],
+                ),
                 **{f.legend_name: "X" if c in f.data.columns else "" for f in files},
             }
             for c in sorted(column_names, key=lambda x: x.lower())
         ]
-        report.add_table(col_table_dict)
+        report.add_table(
+            col_table_dict, ["Column", *[f.legend_name for f in files], "Plot"]
+        )
