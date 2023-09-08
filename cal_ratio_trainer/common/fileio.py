@@ -63,10 +63,12 @@ def load_dataset(file_url: str, cache: Path) -> pd.DataFrame:
     # here.
     df = df.fillna(0)
 
-    # Delete some 'virtual' variables only needed for pre-processing
+    # Delete some 'virtual' variables only needed for pre-processing.
+    # Make sure they exist before deleting them.
     # TODO: Remove these guys before writing them out too
-    del df["track_sign"]
-    del df["clus_sign"]
+    for t_name in ["track_sign", "clus_sign"]:
+        if t_name in df.columns:
+            del df[t_name]
 
     # Delete track_vertex vars in tracks
     # TODO: this should be removed ahead of time.
