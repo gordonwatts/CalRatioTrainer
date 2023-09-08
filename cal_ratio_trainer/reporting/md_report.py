@@ -94,10 +94,12 @@ class MDReport:
 
         Args:
             fig (matplotlib.figure.Figure): The figure to save to a local png file.
-            display_size (int, optional): Width in pixels for the image. Defaults to 300.
+            display_size (int, optional): Width in pixels for the image. Defaults to
+                300.
 
         Returns:
-            str: The markdown that can be inserted into the markdown file to display this.
+            str: The markdown that can be inserted into the markdown file to display
+                this.
         """
         # Save the figure to a file
         fig_name = f"{self.plot_index:04d}-{fig.get_axes()[0].get_title()}"
