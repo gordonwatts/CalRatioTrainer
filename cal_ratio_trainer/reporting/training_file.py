@@ -138,9 +138,12 @@ def make_report_plots(cache: Path, config: ReportingConfig):
                 "name": f.legend_name,
                 "file": f.source_name,
                 "Jets": len(f.data),
-                "Signal (0)": len(f.data[f.data["label"] == 0]),
-                "Multijet (1)": len(f.data[f.data["label"] == 1]),
-                "BIB (2)": len(f.data[f.data["label"] == 2]),
+                "Signal (0)": f'{len(f.data[f.data["label"] == 0])} '
+                f'({len(f.data[f.data["label"] == 0])/len(f.data):.1%})',
+                "Multijet (1)": f'{len(f.data[f.data["label"] == 1])} '
+                f'({len(f.data[f.data["label"] == 1])/len(f.data):.1%})',
+                "BIB (2)": f'{len(f.data[f.data["label"] == 2])} '
+                f'({len(f.data[f.data["label"] == 2])/len(f.data):.1%})',
             }
             for f in files
         ]
@@ -257,19 +260,24 @@ def make_report_plots(cache: Path, config: ReportingConfig):
             # that is found in the file.
             if f.is_signal:
                 mass_counts = (
-                    f.data.groupby(["llp_mH", "llp_mS"])
+                    f.data[f.data.label == 0]
+                    .groupby(["llp_mH", "llp_mS"])
                     .size()
                     .reset_index(name="count")
                     .to_dict("records")
                 )
                 mass_table = [
                     {
-                        "$m_H$, $m_S$": f"{d['llp_mH']}, {d['llp_mS']}",
+                        "$m_H$": d["llp_mH"],
+                        "$m_S$": d["llp_mS"],
                         "Jets": d["count"],
+                        "Fraction of File": f'{d["count"] / len(f.data):.1%}',
                     }
                     for d in mass_counts
                 ]
-                report.add_table(mass_table)
+                report.add_table(
+                    mass_table, ["$m_H$", "$m_S$", "Jets", "Fraction of File"]
+                )
 
                 # And now the common plots by mass category
                 plots = plot_comparison_for_plot_list(
