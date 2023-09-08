@@ -12,6 +12,8 @@ This isn't meant to be an exploratory thing as much as "easy-to-run".
 
 * `cr_trainer train --help` to see all the command line options.
 * `cr_trainer train` will run the default (test) training. The test training has a reduced size signal file. However, everything is large enough to stress out the system. Good for running tests locally on your CPU. Results are stored under `training_results`, which is created in your current directory.
+* `cr_trainer plot --help` will tell you how to make comparison plots between different training data files.
+* `cr_trainer plot` will generate a report comparing the test main training data and adversary training data file. The results are stored under `reports`, which is created in your current directory. Look at the `report.md` file for quick info.
 
 Some quick notes:
 
