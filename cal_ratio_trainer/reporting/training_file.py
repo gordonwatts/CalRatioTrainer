@@ -327,7 +327,7 @@ def make_report_plots(cache: Path, config: ReportingConfig):
             ax.set_ylabel("Number of Jets")
             ax.set_title(f"{col_name} By File")
 
-            md_text = report.figure_md(fig, display_size=150)
+            md_text = report.figure_link(fig, "Plot")
             plt.close(fig)
             return md_text
 

@@ -85,6 +85,27 @@ class MDReport:
         """
         self.write(self.figure_md(fig, display_size=display_size))
 
+    def _save_figure(self, fig, display_size: int = 300) -> Path:
+        """Save the figure as a mat plot lib and return the path to it
+
+        * Save the figure to a file in the reporting directory (png file)
+
+        Args:
+            fig (matplotlib.figure.Figure): The figure to save to a local png file.
+
+        Returns:
+            Path: The written out png file for the figure.
+        """
+        # Save the figure to a file
+        fig_name = f"{self.plot_index:04d}-{fig.get_axes()[0].get_title()}"
+        self.plot_index += 1
+        path = self.path.parent / f"{fig_name}.png"
+        if path.exists():
+            path.unlink()
+        fig.savefig(path)
+
+        return path
+
     def figure_md(self, fig, display_size: int = 300) -> str:
         """Save the figure as a mat plot lib and return the markdown that
         will reference it.
@@ -102,12 +123,23 @@ class MDReport:
                 this.
         """
         # Save the figure to a file
-        fig_name = f"{self.plot_index:04d}-{fig.get_axes()[0].get_title()}"
-        self.plot_index += 1
-        path = self.path.parent / f"{fig_name}.png"
-        if path.exists():
-            path.unlink()
-        fig.savefig(path)
+        path = self._save_figure(fig)
 
         # Add the markdown
         return f'<a href="{path.name}"><img src="{path.name}" width={display_size}></a>'
+
+    def figure_link(self, fig, text: str) -> str:
+        """Returns the markdown link to the figure with the given text.
+
+        Args:
+            fig (_type_): Figure to be saved to a png
+            text (str): Text for the link
+
+        Returns:
+            str: The markdown that uses the text to refer to the figure.
+        """
+        # Save the figure
+        path = self._save_figure(fig)
+
+        # Return the file.
+        return f"[{text}]({path.name})"
