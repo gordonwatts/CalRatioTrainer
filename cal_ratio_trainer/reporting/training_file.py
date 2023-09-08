@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import Callable, Dict, Generator, List, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -34,13 +34,12 @@ class file_info:
 
 
 # Get the columns we want to plot for from each file:
-def find_column(name: List[str], file: file_info) -> str:
+def find_column(name: List[str], file: Union[file_info, pd.DataFrame]) -> str:
+    d = file.data if isinstance(file, file_info) else file
     for n in name:
-        if n in file.data.columns:
+        if n in d.columns:
             return n
-    raise ValueError(
-        f"Asked to find column {name} in file {file.source_name}, but it is not there."
-    )
+    raise ValueError(f"Asked to find column {name} in file but it is not there.")
 
 
 def make_file_comparison_plot(files: List[file_info], col_names: Union[str, List[str]]):
@@ -95,6 +94,45 @@ def make_label_comparison_plot(
     ax.set_title(f"{col_name} By Data Type")
 
     return fig
+
+
+def make_comparison_plots(
+    col_names: Union[str, List[str]],
+    ds_generator: Generator[Tuple[pd.DataFrame, str], None, None],
+    by_string: str,
+):
+    # If the column names is a string, then make it a list.
+    if isinstance(col_names, str):
+        col_names = [col_names]
+
+    fig = plt.figure(figsize=(8, 6))
+    ax = fig.add_subplot(1, 1, 1)
+
+    for data, name in ds_generator:
+        ax.hist(
+            data[find_column(col_names, data)], bins=100, histtype="step", label=name
+        )
+
+    ax.legend()
+    ax.set_xlabel(col_names[0])
+    ax.set_ylabel("Number of Jets")
+    ax.set_title(f"{col_names[0]} By {by_string}")
+
+    return fig
+
+
+def plot_comparison_for_plot_list(
+    plots: Optional[List[Union[str, List[str]]]],
+    ds_generator: Callable[[], Generator[Tuple[pd.DataFrame, str], None, None]],
+    by_string: str,
+):
+    if plots is not None:
+        for col_names in plots:
+            yield make_comparison_plots(
+                col_names,
+                ds_generator(),
+                by_string,
+            )
 
 
 def make_report_plots(
@@ -183,6 +221,25 @@ def make_report_plots(
                     for d in mass_counts
                 ]
                 report.add_table(mass_table)
+
+                # And now the common plots by mass category
+                plots = plot_comparison_for_plot_list(
+                    config.common_plots,
+                    lambda: (
+                        (
+                            f.data[
+                                (f.data["llp_mH"] == d["llp_mH"])
+                                & (f.data["llp_mS"] == d["llp_mS"])
+                            ],
+                            f"{d['llp_mH']}-{d['llp_mS']}",
+                        )
+                        for d in mass_counts
+                    ),
+                    "Mass Category",
+                )
+                for p in plots:
+                    report.add_figure(p)
+                    plt.close(p)
 
         # Dump the columns in each file as a table. The column names as rows, and a
         # table column for each file, with a check if that file has that particular
