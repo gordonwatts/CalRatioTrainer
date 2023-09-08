@@ -72,9 +72,9 @@ def load_dataset(file_url: str, cache: Path) -> pd.DataFrame:
 
     # Delete track_vertex vars in tracks
     # TODO: this should be removed ahead of time.
-    vertex_delete = [col for col in df if col.startswith("nn_track_vertex_x")]
-    vertex_delete += [col for col in df if col.startswith("nn_track_vertex_y")]
-    vertex_delete += [col for col in df if col.startswith("nn_track_vertex_z")]
+    vertex_delete = [col for col in df.columns if col.startswith("nn_track_vertex_x")]
+    vertex_delete += [col for col in df.columns if col.startswith("nn_track_vertex_y")]
+    vertex_delete += [col for col in df.columns if col.startswith("nn_track_vertex_z")]
     for item in vertex_delete:
         del df[item]
 
