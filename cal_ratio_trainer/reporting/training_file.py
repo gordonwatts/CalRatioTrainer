@@ -1,6 +1,16 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Iterator, List, Optional, Tuple, Union
+from typing import (
+    Callable,
+    Dict,
+    Hashable,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    Union,
+)
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -158,6 +168,71 @@ def make_report_plots(
         ):
             report.add_figure(p)
             plt.close(p)
+
+        # See if we have any files that are "in common" for the signal or the
+        # control. If so, do the same common plots.
+        def plot_common_files(
+            common_files: Iterable[file_info], common_labels: Optional[Dict[int, str]]
+        ):
+            if common_labels is not None:
+                for k_dtype, v_dtype in common_labels.items():
+                    report.header(f"### Comparisons for `{v_dtype}`")
+                    for p in plot_comparison_for_plot_list(
+                        config.common_plots,
+                        lambda: (
+                            (f.data[f.data["label"] == k_dtype], f.legend_name)
+                            for f in common_files
+                        ),
+                        f"By File for {v_dtype}",
+                    ):
+                        report.add_figure(p)
+                        plt.close(p)
+
+        data_samples = [f for f in files if f.is_signal]
+        if len(data_samples) > 1:
+            report.header("## Training File Comparisons")
+            plot_common_files(data_samples, config.data_labels_signal)
+
+            # Next, lets do the same thing, but for the different signal samples.
+            def to_tuples(
+                mass_list: List[Dict[Hashable, int]]
+            ) -> List[Tuple[int, int]]:
+                return [(m["llp_mH"], m["llp_mS"]) for m in mass_list]
+
+            all_masses = [
+                f.data.groupby(["llp_mH", "llp_mS"])
+                .size()
+                .reset_index(name="count")
+                .to_dict("records")
+                for f in data_samples
+            ]
+            common_masses = set(to_tuples(all_masses[0])).intersection(
+                *[to_tuples(a) for a in all_masses[1:]]
+            )
+            common_masses = sorted(common_masses)
+            for c_m in common_masses:
+                report.header(f"### Comparisons for $m_H={c_m[0]}$, $m_S={c_m[1]}$")
+                for p in plot_comparison_for_plot_list(
+                    config.common_plots,
+                    lambda: (
+                        (
+                            f.data[
+                                (f.data["llp_mH"] == c_m[0])
+                                & (f.data["llp_mS"] == c_m[1])
+                            ],
+                            f.legend_name,
+                        )
+                        for f in data_samples
+                    ),
+                    f"By File for $m_H={c_m[0]}$, $m_S={c_m[1]}$",
+                ):
+                    report.add_figure(p)
+                    plt.close(p)
+
+        control_samples = [f for f in files if not f.is_signal]
+        if len(control_samples) > 1:
+            report.header("## Adversary File Comparisons")
+            plot_common_files(control_samples, config.data_labels_control)
 
         # Next a list of all the columns:
         report.header("Some file specific information:")
