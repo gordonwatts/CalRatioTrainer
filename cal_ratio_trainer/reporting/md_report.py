@@ -86,10 +86,12 @@ class MDReport:
         # Save the figure to a file
         fig_name = f"{self.plot_index:04d}-{fig.get_axes()[0].get_title()}"
         self.plot_index += 1
-        fig.savefig(self.path.parent / f"{fig_name}.png")
+        path = self.path.parent / f"{fig_name}.png"
+        if path.exists():
+            path.unlink()
+        fig.savefig(path)
 
         # Add the markdown
-        path_name = f"./{fig_name}.png"
         self.write(
-            f'<a href="{path_name}"><img src="{path_name}" width={display_size}></a>'
+            f'<a href="{path.name}"><img src="{path.name}" width={display_size}></a>'
         )
