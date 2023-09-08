@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Generator, List, Optional, Tuple, Union
+from typing import Callable, Iterator, List, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -44,9 +44,23 @@ def find_column(name: List[str], file: Union[file_info, pd.DataFrame]) -> str:
 
 def make_comparison_plots(
     col_names: Union[str, List[str]],
-    ds_generator: Generator[Tuple[pd.DataFrame, str], None, None],
+    ds_generator: Iterator[Tuple[pd.DataFrame, str]],
     by_string: str,
 ):
+    """Make a comparison plot for a given column name. The generator should yield
+    tuples of (data, name) where data is a pandas dataframe and name is a string
+    that will be used in the legend.
+
+    Args:
+        col_names (Union[str, List[str]]): Thames of the column of the DF we will plot
+        ds_generator (Generator[Tuple[pd.DataFrame, str], None, None]): Generator
+            that yields tuples of (data, name) where data is a pandas dataframe and
+            name is a string that will be used in the legend.
+        by_string (str): The string to use in the title of the plot.
+
+    Returns:
+        matplotlib.figure.Figure: The figure containing the plot.
+    """
     # If the column names is a string, then make it a list.
     if isinstance(col_names, str):
         col_names = [col_names]
@@ -69,9 +83,24 @@ def make_comparison_plots(
 
 def plot_comparison_for_plot_list(
     plots: Optional[List[Union[str, List[str]]]],
-    ds_generator: Callable[[], Generator[Tuple[pd.DataFrame, str], None, None]],
+    ds_generator: Callable[[], Iterator[Tuple[pd.DataFrame, str]]],
     by_string: str,
 ):
+    """Make a comparison plot for a given column name. The generator should yield
+    tuples of (data, name) where data is a pandas dataframe and name is a string
+    that will be used in the legend.
+
+    Args:
+        plots (Optional[List[Union[str, List[str]]]]): List of items to plot from each
+                sequence of data frames.
+        ds_generator (Callable[[], Iterator[Tuple[pd.DataFrame, str]]]): Generator that
+                yields tuples of (data, name) where data is a pandas dataframe and name
+                is a string that will be used in the legend.
+        by_string (str): The string to use in the title of the plot.
+
+    Yields:
+        Generator[matplotlib.figure.Figure]: The figure containing the plot.
+    """
     if plots is not None:
         for col_names in plots:
             yield make_comparison_plots(
