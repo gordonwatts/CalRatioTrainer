@@ -125,7 +125,7 @@ def plot_comparison_for_plot_list(
 
 
 def make_report_plots(
-    input_files: List[plot_file], cache: Path, output: Path, config: ReportingConfig
+    input_files: List[plot_file], cache: Path, config: ReportingConfig
 ):
     # Open the data for plotting.
     files = [
@@ -138,7 +138,8 @@ def make_report_plots(
     ]
 
     # Create the report.
-    with MDReport(output, "CalRatio Training File Info") as report:
+    assert config.output_report is not None
+    with MDReport(config.output_report, "CalRatio Training File Info") as report:
         # Create a dictionary for each of the files
         # which contain:
         # - The number of jets (rows) in the file

@@ -1,4 +1,5 @@
 import argparse
+from pathlib import Path
 from typing import Generator, Tuple, Union
 
 
@@ -23,7 +24,7 @@ def as_bare_type(t: type) -> Union[type, None]:
         if len(t.__args__) != 2 and type(None) not in t.__args__:  # type: ignore
             return None
         for t2 in t.__args__:  # type: ignore
-            if t2 == str or t2 == float or t2 == int or t2 == bool:
+            if t2 == str or t2 == float or t2 == int or t2 == bool or t2 == Path:
                 return t2
         return None
     else:

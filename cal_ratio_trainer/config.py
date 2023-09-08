@@ -107,6 +107,11 @@ class ReportingConfig(BaseModel):
         "very slow!"
     )
 
+    output_report: Optional[Path] = Field(
+        description="The path to the output report file. All plots will be "
+        "written to the directory this file is in (so put it in a clean sub-dir!)."
+    )
+
 
 def _load_reporting_config_from_file(p: Path) -> ReportingConfig:
     """Load a TrainingConfig from a file, without taking into account defaults."""
