@@ -80,7 +80,11 @@ def make_comparison_plots(
 
     for data, name in ds_generator:
         ax.hist(
-            data[find_column(col_names, data)], bins=100, histtype="step", label=name
+            data[find_column(col_names, data)],
+            bins=100,
+            histtype="step",
+            label=name,
+            density=True,
         )
 
     ax.legend()
@@ -313,12 +317,7 @@ def make_report_plots(
             ax = fig.add_subplot(1, 1, 1)
 
             for name, data in files:
-                ax.hist(
-                    data,
-                    bins=100,
-                    histtype="step",
-                    label=name,
-                )
+                ax.hist(data, bins=100, histtype="step", label=name, density=True)
 
             ax.legend()
             ax.set_xlabel(col_name)
