@@ -14,10 +14,14 @@ class MDReport:
     >>>     report.write("More text")
     """
 
+    # Make sure we never overwrite a plot if
+    # even if the name is the same!
+
     def __init__(self, path: Path, title: str):
         self.path = path
         self.file: Optional[TextIOWrapper] = None
         self.title = title
+        self.plot_index: int = 0
 
     def __enter__(self):
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -80,7 +84,8 @@ class MDReport:
             fig (matplotlib Figure): The figure to be added.
         """
         # Save the figure to a file
-        fig_name = fig.get_axes()[0].get_title()
+        fig_name = f"{self.plot_index:04d}-{fig.get_axes()[0].get_title()}"
+        self.plot_index += 1
         fig.savefig(self.path.parent / f"{fig_name}.png")
 
         # Add the markdown

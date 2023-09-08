@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Union
+from typing import Dict, List, Union
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -63,7 +63,36 @@ def make_file_comparison_plot(files: List[file_info], col_names: Union[str, List
     ax.legend()
     ax.set_xlabel(col_names[0])
     ax.set_ylabel("Number of Jets")
-    ax.set_title(col_names[0])
+    ax.set_title(f"{col_names[0]} by file")
+
+    return fig
+
+
+def make_label_comparison_plot(
+    file: file_info, col_names: Union[str, List[str]], label_names: Dict[int, str]
+):
+    # If the column names is a string, then make it a list.
+    if isinstance(col_names, str):
+        col_names = [col_names]
+
+    # Add a histogram for each label type:
+    col_name = find_column(col_names, file)
+
+    fig = plt.figure(figsize=(8, 6))
+    ax = fig.add_subplot(1, 1, 1)
+
+    for label in label_names.keys():
+        ax.hist(
+            file.data[file.data["label"] == label][col_name],
+            bins=100,
+            histtype="step",
+            label=f"{label_names[label]}",
+        )
+
+    ax.legend()
+    ax.set_xlabel(col_name)
+    ax.set_ylabel("Number of Jets")
+    ax.set_title(f"{col_name} By Data Type")
 
     return fig
 
@@ -114,12 +143,28 @@ def make_report_plots(
             for col_names in config.common_plots:
                 p = make_file_comparison_plot(files, col_names)
                 report.add_figure(p)
+                plt.close(p)
 
         # Next a list of all the columns:
         report.header("Some file specific information:")
         for f in files:
             file_type = "control" if not f.is_signal else "signal"
             report.header(f"### {f.legend_name} ({file_type} file)")
+
+            # Repeat the common plots for the different data labels
+            if config.common_plots is not None:
+                labels = (
+                    config.data_labels_control
+                    if not f.is_signal
+                    else config.data_labels_signal
+                )
+                assert labels is not None
+
+                for col_names in config.common_plots:
+                    p = make_label_comparison_plot(f, col_names, labels)
+                    report.add_figure(p)
+                    plt.close(p)
+                report.write("")
 
             # Total up the number of events for each mass category (llp_mH, llp_mS)
             # that is found in the file.

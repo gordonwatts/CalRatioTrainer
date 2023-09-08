@@ -8,3 +8,12 @@ common_plots:
   - clus_pt_0
   - clus_phi_0
   - clus_phi_1
+
+data_labels_control:
+  0: Multijet MC
+  2: Multijet Data
+
+data_labels_signal:
+  0: Signal MC
+  1: Multijet MC
+  2: BIB Data

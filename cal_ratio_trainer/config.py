@@ -1,6 +1,6 @@
 import io
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 from pydantic import AnyUrl, BaseModel, Field
 import yaml
 
@@ -92,6 +92,9 @@ class ReportingConfig(BaseModel):
     # can have different names, then this is a list. Otherwise it is
     # just a single item.
     common_plots: Optional[List[Union[str, List[str]]]] = None
+
+    data_labels_control: Optional[Dict[int, str]] = None
+    data_labels_signal: Optional[Dict[int, str]] = None
 
 
 def _load_reporting_config_from_file(p: Path) -> ReportingConfig:
