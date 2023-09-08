@@ -93,8 +93,19 @@ class ReportingConfig(BaseModel):
     # just a single item.
     common_plots: Optional[List[Union[str, List[str]]]] = None
 
+    # The data labels and what they mean in the
+    # adversary training data file.
     data_labels_control: Optional[Dict[int, str]] = None
+
+    # The data labels and what they mean in the
+    # main training data file.
     data_labels_signal: Optional[Dict[int, str]] = None
+
+    plot_every_column: Optional[bool] = Field(
+        description="If this is true, it "
+        "will generate a plot for every row in the column list table. This is "
+        "very slow!"
+    )
 
 
 def _load_reporting_config_from_file(p: Path) -> ReportingConfig:

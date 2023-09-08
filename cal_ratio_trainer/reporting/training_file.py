@@ -334,11 +334,14 @@ def make_report_plots(
                 "Plot": make_file_plots(
                     c,
                     [(f.legend_name, f.data[c]) for f in files if c in f.data.columns],
-                ),
+                )
+                if config.plot_every_column
+                else "",
                 **{f.legend_name: "X" if c in f.data.columns else "" for f in files},
             }
             for c in sorted(column_names, key=lambda x: x.lower())
         ]
-        report.add_table(
-            col_table_dict, ["Column", *[f.legend_name for f in files], "Plot"]
-        )
+        heading_list = ["Column", *[f.legend_name for f in files]]
+        if config.plot_every_column:
+            heading_list.append("Plot")
+        report.add_table(col_table_dict, heading_list)

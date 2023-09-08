@@ -2,7 +2,12 @@ import argparse
 import logging
 from pathlib import Path
 
-from cal_ratio_trainer.config import load_config, load_report_config
+from cal_ratio_trainer.config import (
+    ReportingConfig,
+    TrainingConfig,
+    load_config,
+    load_report_config,
+)
 from cal_ratio_trainer.utils import add_config_args, apply_config_args
 
 cache = Path("./calratio_training")
@@ -13,7 +18,7 @@ def do_train(args):
     c_config = load_config(args.config)
 
     # Next, look at the arguments and see if anything should be changed.
-    c = apply_config_args(c_config, args)
+    c = apply_config_args(TrainingConfig, c_config, args)
 
     # Figure out what to do next
     if args.print_settings:
@@ -30,6 +35,9 @@ def do_train(args):
 def do_plot(args):
     from cal_ratio_trainer.reporting.training_file import plot_file, make_report_plots
 
+    r_config = load_report_config(args.config)
+    r = apply_config_args(ReportingConfig, r_config, args)
+
     make_report_plots(
         [
             plot_file(input_file=pf, legend_name=f"file_{i}")
@@ -37,7 +45,7 @@ def do_plot(args):
         ],
         cache,
         Path("./reports/report.md"),
-        load_report_config(),
+        r,
     )
 
 
@@ -76,6 +84,9 @@ def main():
         "is the training number to start from. Use -1 for the most recently completed.",
     )
 
+    add_config_args(TrainingConfig, parser_train)
+    parser_train.set_defaults(func=do_train)
+
     # Add the plot command which will plot the training input variables. The command
     # will accept multiple input files, and needs an output directory where everything
     # can be dumped.
@@ -83,10 +94,10 @@ def main():
         "plot", help="Plot the training input variables"
     )
     parser_plot.add_argument(
-        "--output-dir",
-        "-o",
+        "--config",
+        "-c",
         type=Path,
-        help="Path to the directory where the plots will be saved",
+        help="Path to the config file to use for training",
     )
     parser_plot.add_argument(
         "input_files",
@@ -94,11 +105,8 @@ def main():
         nargs="+",
         help="Path to the input files to plot. Can be multiple files.",
     )
+    add_config_args(ReportingConfig, parser_plot)
     parser_plot.set_defaults(func=do_plot)
-
-    # Add all the training configuration options
-    add_config_args(parser_train)
-    parser_train.set_defaults(func=do_train)
 
     # Parse the command line arguments
     args = parser.parse_args()
