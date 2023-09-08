@@ -23,3 +23,9 @@ plot_every_column: False
 
 # Default place to generate report file.
 output_report: ./reports/report.md
+
+input_files:
+  - input_file: https://cernbox.cern.ch/remote.php/dav/public-files/r0GQeSVMuu0mDKX/processed_output_controlRegion_corrected.pkl
+    legend_name: Adversary Data
+  - input_file: https://cernbox.cern.ch/remote.php/dav/public-files/32dqr9gSbmQdj3W/processed_output_Lxy1500_Lz3000_3_slim05.pkl
+    legend_name: Test Training Data

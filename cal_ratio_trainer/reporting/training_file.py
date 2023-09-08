@@ -14,22 +14,11 @@ from typing import (
 
 import matplotlib.pyplot as plt
 import pandas as pd
-from pydantic import BaseModel
 
 from cal_ratio_trainer.common.fileio import load_dataset
 from cal_ratio_trainer.config import ReportingConfig
 
 from .md_report import MDReport
-
-
-class plot_file(BaseModel):
-    "Information about a plot file"
-
-    # The url that we can use to read this file
-    input_file: str
-
-    # The name to use on the legend of the plot for data from this file.
-    legend_name: str
 
 
 @dataclass
@@ -124,17 +113,16 @@ def plot_comparison_for_plot_list(
             )
 
 
-def make_report_plots(
-    input_files: List[plot_file], cache: Path, config: ReportingConfig
-):
+def make_report_plots(cache: Path, config: ReportingConfig):
     # Open the data for plotting.
+    assert config.input_files is not None
     files = [
         file_info(
             data=load_dataset(f.input_file, cache),
             legend_name=f.legend_name,
             source_name=f.input_file,
         )
-        for f in input_files
+        for f in config.input_files
     ]
 
     # Create the report.
@@ -238,6 +226,7 @@ def make_report_plots(
         if len(control_samples) > 1:
             report.header("## Adversary File Comparisons")
             plot_common_files(control_samples, config.data_labels_control)
+        report.write("")
 
         # Plot some info per file:
         report.header("Some file specific information:")

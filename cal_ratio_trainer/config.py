@@ -85,6 +85,16 @@ def load_config(p: Optional[Path] = None) -> TrainingConfig:
     return r
 
 
+class plot_file(BaseModel):
+    "Information about a plot file"
+
+    # The url that we can use to read this file
+    input_file: str
+
+    # The name to use on the legend of the plot for data from this file.
+    legend_name: str
+
+
 class ReportingConfig(BaseModel):
     "Configuration to run a plotting/reporting job for a training input file"
 
@@ -111,6 +121,8 @@ class ReportingConfig(BaseModel):
         description="The path to the output report file. All plots will be "
         "written to the directory this file is in (so put it in a clean sub-dir!)."
     )
+
+    input_files: Optional[List[plot_file]] = None
 
 
 def _load_reporting_config_from_file(p: Path) -> ReportingConfig:
