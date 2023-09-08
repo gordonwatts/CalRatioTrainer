@@ -105,11 +105,11 @@ class ReportingConfig(BaseModel):
 
     # The data labels and what they mean in the
     # adversary training data file.
-    data_labels_control: Optional[Dict[int, str]] = None
+    data_labels_adversary: Optional[Dict[int, str]] = None
 
     # The data labels and what they mean in the
     # main training data file.
-    data_labels_signal: Optional[Dict[int, str]] = None
+    data_labels_main: Optional[Dict[int, str]] = None
 
     plot_every_column: Optional[bool] = Field(
         description="If this is true, it "

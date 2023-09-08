@@ -28,7 +28,7 @@ class file_info:
     source_name: str
 
     @property
-    def is_signal(self):
+    def is_main_training_data(self):
         return "llp_mH" in self.data.columns
 
 
@@ -165,8 +165,8 @@ def make_report_plots(cache: Path, config: ReportingConfig):
             report.add_figure(p)
             plt.close(p)
 
-        # See if we have any files that are "in common" for the signal or the
-        # control. If so, do the same common plots.
+        # See if we have any files that are "in common" for the main training data or
+        # the adversary training data. If so, do the same common plots.
         def plot_common_files(
             common_files: Iterable[file_info], common_labels: Optional[Dict[int, str]]
         ):
@@ -184,12 +184,13 @@ def make_report_plots(cache: Path, config: ReportingConfig):
                         report.add_figure(p)
                         plt.close(p)
 
-        data_samples = [f for f in files if f.is_signal]
+        data_samples = [f for f in files if f.is_main_training_data]
         if len(data_samples) > 1:
             report.header("## Training File Comparisons")
-            plot_common_files(data_samples, config.data_labels_signal)
+            plot_common_files(data_samples, config.data_labels_main)
 
-            # Next, lets do the same thing, but for the different signal samples.
+            # Next, lets do the same thing, but for the different main training data
+            # samples.
             def to_tuples(
                 mass_list: List[Dict[Hashable, int]]
             ) -> List[Tuple[int, int]]:
@@ -225,23 +226,27 @@ def make_report_plots(cache: Path, config: ReportingConfig):
                     report.add_figure(p)
                     plt.close(p)
 
-        control_samples = [f for f in files if not f.is_signal]
-        if len(control_samples) > 1:
+        adversary_samples = [f for f in files if not f.is_main_training_data]
+        if len(adversary_samples) > 1:
             report.header("## Adversary File Comparisons")
-            plot_common_files(control_samples, config.data_labels_control)
+            plot_common_files(adversary_samples, config.data_labels_adversary)
         report.write("")
 
         # Plot some info per file:
         report.header("Some file specific information:")
         for f in files:
-            file_type = "control" if not f.is_signal else "signal"
+            file_type = (
+                "adversary training data"
+                if not f.is_main_training_data
+                else "main training data"
+            )
             report.header(f"### {f.legend_name} ({file_type} file)")
 
             # Repeat the common plots for the different data labels
             labels = (
-                config.data_labels_control
-                if not f.is_signal
-                else config.data_labels_signal
+                config.data_labels_adversary
+                if not f.is_main_training_data
+                else config.data_labels_main
             )
             assert labels is not None
 
@@ -258,7 +263,7 @@ def make_report_plots(cache: Path, config: ReportingConfig):
 
             # Total up the number of events for each mass category (llp_mH, llp_mS)
             # that is found in the file.
-            if f.is_signal:
+            if f.is_main_training_data:
                 mass_counts = (
                     f.data[f.data.label == 0]
                     .groupby(["llp_mH", "llp_mS"])
