@@ -1,6 +1,6 @@
 import argparse
+from pathlib import Path
 from typing import Generator, Tuple, Union
-from .config import TrainingConfig
 
 
 def as_bare_type(t: type) -> Union[type, None]:
@@ -24,14 +24,14 @@ def as_bare_type(t: type) -> Union[type, None]:
         if len(t.__args__) != 2 and type(None) not in t.__args__:  # type: ignore
             return None
         for t2 in t.__args__:  # type: ignore
-            if t2 == str or t2 == float or t2 == int:
+            if t2 == str or t2 == float or t2 == int or t2 == bool or t2 == Path:
                 return t2
         return None
     else:
         return None
 
 
-def _good_config_args() -> Generator[Tuple[str, type], None, None]:
+def _good_config_args(config_class: type) -> Generator[Tuple[str, type], None, None]:
     """Return the list of training params that are good for being set
     on the command line (e.g. their types are something we can easily deal
     with).
@@ -39,15 +39,15 @@ def _good_config_args() -> Generator[Tuple[str, type], None, None]:
     Yields:
         Generator[str, None, None]: Generates all the names of the good arguments
     """
-    dummy = TrainingConfig(**{}).dict()
+    dummy = config_class(**{}).dict()
 
     for prop in dummy.keys():
-        p_type = as_bare_type(TrainingConfig.__annotations__[prop])
+        p_type = as_bare_type(config_class.__annotations__[prop])
         if p_type is not None:
             yield prop, p_type
 
 
-def add_config_args(args: argparse.ArgumentParser) -> None:
+def add_config_args(config_class, args: argparse.ArgumentParser) -> None:
     """Add all the configuration arguments to the argument parser.
 
     This includes adding any help strings that python knows about
@@ -59,22 +59,31 @@ def add_config_args(args: argparse.ArgumentParser) -> None:
         The argument parser to add the arguments to.
     """
     # Look at the properties of the TrainingConfig object.
-    for prop, p_type in _good_config_args():
+    for prop, p_type in _good_config_args(config_class):
         help_str = (
-            TrainingConfig.__fields__[prop].field_info.description
-            if prop in TrainingConfig.__fields__
+            config_class.__fields__[prop].field_info.description
+            if prop in config_class.__fields__
             else None
         )
-        args.add_argument(
-            f"--{prop}",
-            type=p_type,
-            help=help_str,
-        )
+        if p_type != bool:
+            args.add_argument(
+                f"--{prop}",
+                type=p_type,
+                help=help_str,
+            )
+        else:
+            args.add_argument(
+                f"--{prop}",
+                action="store_true",
+                default=None,
+                help=help_str,
+            )
 
 
-def apply_config_args(config: TrainingConfig, args) -> TrainingConfig:
+def apply_config_args(config_class: type, config, args):
     """Using args, anything that isn't set to None that matches as config
-    option in TrainingConfig, update TrainingConfig and return a new one.
+    option in `config_class` (e.g. TrainingConfig), update the config and return a
+    new one.
 
     Note: The `config` will not be updated - a new one will be returned.
 
@@ -86,10 +95,10 @@ def apply_config_args(config: TrainingConfig, args) -> TrainingConfig:
         (TrainingConfig): New training config with updated arguments
     """
     # Start by making a copy of config for updating.
-    r = TrainingConfig(**config.dict())
+    r = config_class(**config.dict())
 
     # Next, loop through all possible arguments from the training config.
-    for prop, p_type in _good_config_args():
+    for prop, p_type in _good_config_args(config_class):
         # If the argument is set, then update the config.
         if getattr(args, prop) is not None:
             setattr(r, prop, getattr(args, prop))

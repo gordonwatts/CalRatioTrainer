@@ -19,6 +19,20 @@
             ],
             "console": "integratedTerminal",
             "justMyCode": true
+        },
+        {
+            "name": "Python: cr_trainer report",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/cal_ratio_trainer/trainer.py",
+            "args": [
+                "plot",
+                "https://cernbox.cern.ch/remote.php/dav/public-files/r0GQeSVMuu0mDKX/processed_output_controlRegion_corrected.pkl",
+                "https://cernbox.cern.ch/remote.php/dav/public-files/r0GQeSVMuu0mDKX/processed_output_controlRegion_corrected.pkl",
+                // "https://cernbox.cern.ch/remote.php/dav/public-files/32dqr9gSbmQdj3W/processed_output_Lxy1500_Lz3000_3_slim05.pkl"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": true
         }
     ]
 }

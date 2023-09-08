@@ -1,9 +1,18 @@
 import argparse
 import logging
 from pathlib import Path
+from typing import List
 
-from cal_ratio_trainer.config import load_config
+from cal_ratio_trainer.config import (
+    ReportingConfig,
+    TrainingConfig,
+    load_config,
+    load_report_config,
+    plot_file,
+)
 from cal_ratio_trainer.utils import add_config_args, apply_config_args
+
+cache = Path("./calratio_training")
 
 
 def do_train(args):
@@ -11,7 +20,7 @@ def do_train(args):
     c_config = load_config(args.config)
 
     # Next, look at the arguments and see if anything should be changed.
-    c = apply_config_args(c_config, args)
+    c = apply_config_args(TrainingConfig, c_config, args)
 
     # Figure out what to do next
     if args.print_settings:
@@ -22,7 +31,30 @@ def do_train(args):
         # Now, run the training.
         from cal_ratio_trainer.training.runner_utils import training_runner_util
 
-        training_runner_util(c, continue_from=args.continue_from)
+        training_runner_util(c, cache=cache, continue_from=args.continue_from)
+
+
+def do_plot(args):
+    from cal_ratio_trainer.reporting.training_file import make_report_plots
+
+    r_config = load_report_config(args.config)
+    r = apply_config_args(ReportingConfig, r_config, args)
+    # Special handling of the input files argument:
+    if len(args.input_files) > 0:
+        input_files: List[plot_file] = []
+        for i, f_name in enumerate(args.input_files):
+            assert isinstance(f_name, str)
+            if "=" in f_name:
+                name, f = f_name.split("=", 2)
+            else:
+                name, f = f"file_{i}", f_name
+            input_files.append(plot_file(input_file=f, legend_name=name))
+        r.input_files = input_files
+
+    make_report_plots(
+        cache,
+        r,
+    )
 
 
 def main():
@@ -60,9 +92,42 @@ def main():
         "is the training number to start from. Use -1 for the most recently completed.",
     )
 
-    # Add all the training configuration options
-    add_config_args(parser_train)
+    add_config_args(TrainingConfig, parser_train)
     parser_train.set_defaults(func=do_train)
+
+    # Add the plot command which will plot the training input variables. The command
+    # will accept multiple input files, and needs an output directory where everything
+    # can be dumped.
+    parser_plot = subparsers.add_parser(
+        "plot",
+        help="Plot the training input variables",
+        epilog="Note: There are several forms the input_files argument can take:\n"
+        "1. If you specify nothing, the 2019 adversary and (small) main training data "
+        "files will be used.\n"
+        "2. If you specify 'file://path/to/file', then that file will be used.\n"
+        "3. If you specify 'http://path/to/dir', then that fill will be copied locally "
+        "and used.\n"
+        "4. If you specify multiple files, a single report with comparison plots is "
+        "made.\n"
+        "5. If you use the format <name>=<file> then the name will be used in the "
+        "legend. Otherwise 'file_0' will be used.",
+    )
+    parser_plot.add_argument(
+        "--config",
+        "-c",
+        type=Path,
+        help="Path to the config file to use for training",
+    )
+    parser_plot.add_argument(
+        "input_files",
+        type=str,
+        nargs="*",
+        default=[],
+        help="Path to the input files to plot. Can be multiple files. If not files are "
+        "used 2019 files are used by default.",
+    )
+    add_config_args(ReportingConfig, parser_plot)
+    parser_plot.set_defaults(func=do_plot)
 
     # Parse the command line arguments
     args = parser.parse_args()

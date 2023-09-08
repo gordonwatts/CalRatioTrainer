@@ -1,8 +1,6 @@
 import io
-import logging
 from pathlib import Path
-from typing import List, Optional
-import fsspec
+from typing import Dict, List, Optional, Union
 from pydantic import AnyUrl, BaseModel, Field
 import yaml
 
@@ -59,22 +57,6 @@ class TrainingConfig(BaseModel):
     main_training_file: Optional[AnyUrl] = None
     cr_training_file: Optional[AnyUrl] = None
 
-    data_cache: Optional[Path] = None
-
-    @property
-    def main_file(self) -> Path:
-        assert (
-            self.data_cache is not None
-        ), "Must have a valid data_cache in configuration parameters"
-        return make_local(str(self.main_training_file), self.data_cache)
-
-    @property
-    def cr_file(self) -> Path:
-        assert (
-            self.data_cache is not None
-        ), "Must have a valid data_cache in configuration parameters"
-        return make_local(str(self.cr_training_file), self.data_cache)
-
     def __str__(self) -> str:
         string_out = io.StringIO()
         for k, v in self.dict().items():
@@ -103,36 +85,64 @@ def load_config(p: Optional[Path] = None) -> TrainingConfig:
     return r
 
 
-def make_local(file_path: str, cache: Path) -> Path:
-    """Uses the `fsspec` library to copy a non-local file locally in the `cache`.
-    If the `file_path` is already a local file, then it isn't copied locally.
+class plot_file(BaseModel):
+    "Information about a plot file"
 
-    Args:
-        file_path (str): The URI of the file we want to be local.
+    # The url that we can use to read this file
+    input_file: str
 
-    Returns:
-        Path: Path on the local system to the data.
-    """
-    if file_path.startswith("file://"):
-        return Path(file_path[7:])
-    else:
-        local_path = cache / Path(file_path).name
-        if local_path.exists():
-            return local_path
+    # The name to use on the legend of the plot for data from this file.
+    legend_name: str
 
-        # Ok - copy block by block.
-        logging.warning(f"Copying file {file_path} locally to {cache}")
-        local_path.parent.mkdir(parents=True, exist_ok=True)
 
-        tmp_file_path = local_path.with_suffix(".tmp")
-        with open(tmp_file_path, "wb") as f_out:
-            with fsspec.open(file_path, "rb") as f_in:
-                # Read `f_in` in chunks of 1 MB and write them to `f_out`
-                while True:
-                    data = f_in.read(50 * 1024**2)  # type: ignore
-                    if not data:
-                        break
-                    f_out.write(data)
-        tmp_file_path.rename(local_path)
-        logging.warning(f"Done copying file {file_path}")
-        return local_path
+class ReportingConfig(BaseModel):
+    "Configuration to run a plotting/reporting job for a training input file"
+
+    # List of the plots to make with all files. If the sources
+    # can have different names, then this is a list. Otherwise it is
+    # just a single item.
+    common_plots: Optional[List[Union[str, List[str]]]] = None
+
+    # The data labels and what they mean in the
+    # adversary training data file.
+    data_labels_adversary: Optional[Dict[int, str]] = None
+
+    # The data labels and what they mean in the
+    # main training data file.
+    data_labels_main: Optional[Dict[int, str]] = None
+
+    plot_every_column: Optional[bool] = Field(
+        description="If this is true, it "
+        "will generate a plot for every row in the column list table. This is "
+        "very slow!"
+    )
+
+    output_report: Optional[Path] = Field(
+        description="The path to the output report file. All plots will be "
+        "written to the directory this file is in (so put it in a clean sub-dir!)."
+    )
+
+    input_files: Optional[List[plot_file]] = None
+
+
+def _load_reporting_config_from_file(p: Path) -> ReportingConfig:
+    """Load a TrainingConfig from a file, without taking into account defaults."""
+    with open(p, "r") as f:
+        config_dict = yaml.safe_load(f)
+    return ReportingConfig(**config_dict)
+
+
+def load_report_config(p: Optional[Path] = None) -> ReportingConfig:
+    """Load a ReportingConfig from a file, taking into account defaults."""
+    r = _load_reporting_config_from_file(
+        Path(__file__).parent / "default_reporting_config.yaml"
+    )
+
+    if p is not None:
+        specified = _load_reporting_config_from_file(p)
+        d = specified.dict()
+        for k, v in d.items():
+            if v is not None:
+                setattr(r, k, v)
+
+    return r

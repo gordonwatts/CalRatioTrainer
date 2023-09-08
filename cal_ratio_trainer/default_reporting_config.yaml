@@ -1,0 +1,31 @@
+common_plots:
+  - [jet_pT, jet_pt]
+  - jet_eta
+  - jet_phi
+  - mcEventWeight
+  - [MSeg_t0_1, nn_MSeg_t0_1]
+  - clus_time_0
+  - clus_pt_0
+  - clus_phi_0
+  - clus_phi_1
+
+data_labels_control:
+  0: Multijet MC
+  2: Multijet Data
+
+data_labels_signal:
+  0: Signal MC
+  1: Multijet MC
+  2: BIB Data
+
+# This is pretty expensive, so turn this off by default.
+plot_every_column: False
+
+# Default place to generate report file.
+output_report: ./reports/report.md
+
+input_files:
+  - input_file: https://cernbox.cern.ch/remote.php/dav/public-files/r0GQeSVMuu0mDKX/processed_output_controlRegion_corrected.pkl
+    legend_name: Adversary Data
+  - input_file: https://cernbox.cern.ch/remote.php/dav/public-files/32dqr9gSbmQdj3W/processed_output_Lxy1500_Lz3000_3_slim05.pkl
+    legend_name: Test Training Data

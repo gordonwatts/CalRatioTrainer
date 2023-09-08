@@ -1,6 +1,5 @@
 from collections import defaultdict
 import json
-import logging
 from pathlib import Path
 from typing import Any, Optional, Tuple, TypeVar
 
@@ -79,39 +78,6 @@ def create_directories(
     (run_dir / "keras").mkdir(parents=True, exist_ok=True)
 
     return run_dir
-
-
-def load_dataset(filename: Path) -> pd.DataFrame:
-    """Loads .pkl file, does some pre-processing and returns Pandas DataFrame"""
-    # Load dataset
-    df = pd.read_pickle(filename)
-    # Replace infs with nan's
-    df = df.replace([np.inf, -np.inf], np.nan)
-    # Replace nan's with 0
-    # TODO: this should be moved to writing the file out so we don't have to do this
-    # here.
-    df = df.fillna(0)
-
-    # Delete some 'virtual' variables only needed for pre-processing
-    # TODO: Remove these guys before writing them out too
-    del df["track_sign"]
-    del df["clus_sign"]
-
-    # Delete track_vertex vars in tracks
-    # TODO: this should be removed ahead of time.
-    vertex_delete = [col for col in df if col.startswith("nn_track_vertex_x")]
-    vertex_delete += [col for col in df if col.startswith("nn_track_vertex_y")]
-    vertex_delete += [col for col in df if col.startswith("nn_track_vertex_z")]
-    for item in vertex_delete:
-        del df[item]
-
-    # Print sizes of inputs for signal, qcd, and bib
-    logging.debug(df.head())
-    logging.info("  Length of Signal is: " + str(df[df.label == 1].shape[0]))
-    logging.info("  Length of QCD is: " + str(df[df.label == 0].shape[0]))
-    logging.info("  Length of BIB is: " + str(df[df.label == 2].shape[0]))
-
-    return df
 
 
 def match_adversary_weights(df):

@@ -8,6 +8,7 @@ import tensorflow as tf
 from keras import metrics
 from keras.optimizers import Nadam
 from sklearn.model_selection import train_test_split
+from cal_ratio_trainer.common.fileio import load_dataset
 
 from cal_ratio_trainer.config import TrainingConfig
 from cal_ratio_trainer.training.evaluate_training import (
@@ -28,7 +29,6 @@ from cal_ratio_trainer.training.training_utils import (
 from cal_ratio_trainer.training.utils import (
     HistoryTracker,
     create_directories,
-    load_dataset,
     low_or_high_pt_selection_train,
     match_adversary_weights,
 )
@@ -36,6 +36,7 @@ from cal_ratio_trainer.training.utils import (
 
 def train_llp(
     training_params: TrainingConfig,
+    cache: Path,
     continue_from: Optional[int],
     constit_input: ModelInput,
     track_input: ModelInput,
@@ -71,10 +72,7 @@ def train_llp(
             logging.debug(e)
 
     # Fail early if we aren't going to be able to find what we need.
-    assert training_params.main_file is not None
-    assert (
-        training_params.main_file.exists()
-    ), f"Main training file ({training_params.main_file}) does not exist"
+    assert training_params.main_training_file is not None
 
     # Setup directories for output.
     assert training_params.model_name is not None
@@ -94,16 +92,19 @@ def train_llp(
         print(str(training_params), file=f_out)
 
     # Load dataset
-    logging.info(f"Loading control region data file {training_params.cr_file}...")
-    df_adversary = load_dataset(training_params.cr_file)
+    logging.info(
+        f"Loading control region data file {training_params.cr_training_file}..."
+    )
+    assert training_params.cr_training_file is not None
+    df_adversary = load_dataset(training_params.cr_training_file, cache)
     assert training_params.frac_list is not None
     df_adversary = match_adversary_weights(df_adversary)
     # TODO: random seed isn't passed in here to `sample`, so it will
     # be different each run.
     df_adversary = df_adversary.sample(frac=training_params.frac_list)
 
-    logging.info(f"Loading up dataset {training_params.main_file}...")
-    df = load_dataset(training_params.main_file)
+    logging.info(f"Loading up dataset {training_params.main_training_file}...")
+    df = load_dataset(training_params.main_training_file, cache)
     df = df.sample(frac=training_params.frac_list)
 
     # Extract labels
