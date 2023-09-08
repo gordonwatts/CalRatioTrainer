@@ -22,3 +22,8 @@ def test_str():
     c = load_config()
     assert "epochs" in str(c)
     assert "\n" in str(c)
+
+
+def test_url():
+    c = load_config(Path("tests/test_with_file_url.yaml"))
+    assert c.main_training_file == "file:///home/gwatts/junk.pkl"

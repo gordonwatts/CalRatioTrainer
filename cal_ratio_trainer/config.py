@@ -1,7 +1,7 @@
 import io
 from pathlib import Path
 from typing import Dict, List, Optional, Union
-from pydantic import AnyUrl, BaseModel, Field
+from pydantic import BaseModel, Field
 import yaml
 
 # WARNING:
@@ -53,9 +53,9 @@ class TrainingConfig(BaseModel):
     include_high_mass: Optional[bool] = False
 
     # The path to the main training data file (signal, qcd, and bib)
-    # Use "file://xxx" to specify a local file.
-    main_training_file: Optional[AnyUrl] = None
-    cr_training_file: Optional[AnyUrl] = None
+    # Use "file:///xxx" to specify a local file with absolute path on linux.
+    main_training_file: Optional[str] = None
+    cr_training_file: Optional[str] = None
 
     def __str__(self) -> str:
         string_out = io.StringIO()
