@@ -1,7 +1,7 @@
 import argparse
-from ast import List
 import logging
 from pathlib import Path
+from typing import List
 
 from cal_ratio_trainer.config import (
     ReportingConfig,
