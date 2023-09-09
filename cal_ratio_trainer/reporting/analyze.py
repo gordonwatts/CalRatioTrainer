@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
 from attr import dataclass
 from cal_ratio_trainer.config import AnalyzeConfig, training_spec
@@ -10,9 +10,17 @@ from cal_ratio_trainer.utils import HistoryTracker, find_training_result
 class TrainingEpoch:
     """A single training epoch"""
 
+    # Name of the run
+    run_name: str
+
+    # Path to the running directory
+    run_dir: Path
+
+    # Epoch number
     epoch: int
-    loss: float
-    accuracy: float
+
+    # All history numbers
+    history: Dict[str, float]
 
 
 def get_best_results(config: training_spec) -> List[TrainingEpoch]:
@@ -23,8 +31,37 @@ def get_best_results(config: training_spec) -> List[TrainingEpoch]:
 
     # Now load the history tracker
     epoch_h = HistoryTracker(run_dir / "keras" / "history_checkpoint")
-    print(epoch_h)
-    return []
+
+    # Find the best epochs for a few things. First, validation loss for main training.
+    num = 2
+    best_epochs_nn_loss = epoch_h.find_smallest("val_original_lossf", num)
+
+    # Best loss for the adversary
+    best_epochs_adv_loss = epoch_h.find_smallest("val_original_adv_lossf", num)
+
+    # Best loss for the discriminator
+    best_epochs_disc_loss = epoch_h.find_smallest("val_adv_loss", num)
+
+    # And for the sum of the ks_test results.
+    epoch_h.make_sum("ks", ["ks_qcd_hist", "ks_bib_hist", "ks_sig_hist"])
+    best_epochs_ks = epoch_h.find_smallest("ks", num)
+
+    # Finally, we can create the resulting listing.
+    return [
+        TrainingEpoch(
+            run_name=run_dir.name,
+            run_dir=run_dir,
+            epoch=e,
+            history=epoch_h.values_for(e),
+        )
+        for e_list in [
+            best_epochs_nn_loss,
+            best_epochs_adv_loss,
+            best_epochs_disc_loss,
+            best_epochs_ks,
+        ]
+        for e in e_list
+    ]
 
 
 def analyze_training_runs(cache: Path, config: AnalyzeConfig):

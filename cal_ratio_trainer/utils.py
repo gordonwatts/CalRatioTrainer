@@ -2,7 +2,7 @@ import argparse
 from collections import defaultdict
 import json
 from pathlib import Path
-from typing import Generator, Optional, Tuple, Union
+from typing import Dict, Generator, List, Optional, Tuple, Union
 
 
 def as_bare_type(t: type) -> Union[type, None]:
@@ -198,3 +198,49 @@ class HistoryTracker:
 
         with filename.open("r") as f:
             self._cache = json.load(f)
+
+    def find_smallest(self, item: str, num: int) -> List[int]:
+        """Returns the epoch of the smallest `num` values in the
+        item history.
+
+        Args:
+            item (str): The item to look for smallest values
+            num (int): How many of them to return
+
+        Returns:
+            List[int]: List of the indices of the smallest values
+        """
+        assert num > 0
+        s_item = sorted(enumerate(self._cache[item]), key=lambda x: x[1])
+        return [x[0] for x in s_item[:num]]
+
+    def make_sum(self, result_item: str, items: List[str]):
+        """Sum the items together and place them in `result_item`
+
+        Args:
+            result_item (str): The result should be stored as this item
+            items (List[str]): The items to sum
+        """
+        assert len(items) > 0
+        assert result_item not in self._cache
+
+        # Make sure all the items are the same length
+        for item in items:
+            assert len(self._cache[item]) == len(self._cache[items[0]])
+
+        # Now sum them
+        self._cache[result_item] = [
+            sum([self._cache[item][i] for item in items])
+            for i in range(len(self._cache[items[0]]))
+        ]
+
+    def values_for(self, epoch: int) -> Dict[str, float]:
+        """Get all the values for a given epoch as a dictionary.
+
+        Args:
+            epoch (int): The epoch to get the values for
+
+        Returns:
+            Dict[str, float]: The values for that epoch
+        """
+        return {k: v[epoch] for k, v in self._cache.items()}

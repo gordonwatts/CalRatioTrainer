@@ -679,7 +679,7 @@ def build_train_evaluate_model(
         logging.debug(f"Val Adversary Loss: {val_last_disc_loss:.4f}")
         logging.debug(f"Val Adversary binary Accuracy: {val_last_disc_bin_acc:.4f}")
 
-        # Check to see if things have gotten better
+        # Calcualte the K-S between our MC and Data multijet samples
         ks_qcd, ks_sig, ks_bib = do_checkpoint_prediction_histogram(
             final_model,
             dir_name,

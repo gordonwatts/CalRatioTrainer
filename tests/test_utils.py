@@ -1,5 +1,7 @@
 import argparse
 from typing import Any, Dict
+
+import pytest
 from cal_ratio_trainer.config import TrainingConfig
 
 from cal_ratio_trainer.utils import HistoryTracker, add_config_args, apply_config_args
@@ -73,3 +75,45 @@ def test_history_file_io(tmp_path):
     h1 = HistoryTracker(file=tmp_path / "test")
     assert len(h1) == 1
     assert h1.adv_loss == [20]
+
+
+def test_history_find_smallest():
+    h = HistoryTracker()
+
+    h.loss.append(20)
+    h.loss.append(30)
+    h.loss.append(10)
+
+    assert h.find_smallest("loss", 2) == [2, 0]
+
+
+def test_history_find_smallest_none():
+    h = HistoryTracker()
+
+    h.loss.append(20)
+
+    assert h.find_smallest("loss", 2) == [0]
+
+
+@pytest.mark.parametrize("n", [1, 2, 3, 4, 5])
+def test_history_sum_n(n: int):
+    h = HistoryTracker()
+
+    for i in range(n):
+        h.one.append(1)
+        h.two.append(2)
+        h.three.append(3)
+
+    h.make_sum("sum", ["one", "two", "three"])
+    assert h.sum == [6] * n
+
+
+def test_history_get_values_for_epoch():
+    h = HistoryTracker()
+
+    h.loss.append(20)
+    h.loss.append(30)
+    h.loss.append(10)
+
+    assert h.values_for(1) == {"loss": 30}
+    assert h.values_for(2) == {"loss": 10}
