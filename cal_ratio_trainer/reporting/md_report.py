@@ -85,7 +85,29 @@ class MDReport:
         """
         self.write(self.figure_md(fig, display_size=display_size))
 
-    def _save_figure(self, fig, display_size: int = 300) -> Path:
+    def _copy_figure(self, path) -> Path:
+        """Copy a figure from one location to the reporting directory.
+
+        Args:
+            path (_type_): Path of the original png file
+
+        Returns:
+            Path: Where it ends up.
+        """
+        # Copy the file
+        fig_name = f"{self.plot_index:04d}-{path.name}".replace(" ", "_")
+        self.plot_index += 1
+
+        r_path = self.path.parent / f"{fig_name}.png"
+
+        # Copy the file from path to r_path
+        if r_path.exists():
+            r_path.unlink()
+        r_path.write_bytes(path.read_bytes())
+
+        return r_path
+
+    def _save_figure(self, fig) -> Path:
         """Save the figure as a mat plot lib and return the path to it
 
         * Save the figure to a file in the reporting directory (png file)
@@ -112,10 +134,12 @@ class MDReport:
         will reference it.
 
         * Save the figure to a file in the reporting directory (png file)
-        * Make the markdown clickable to display the figure full size.
+        * Make the markdown clickable to display the figure full size.\
+
+        If the figure is a Path, then we will copy the file to the reporting
 
         Args:
-            fig (matplotlib.figure.Figure): The figure to save to a local png file.
+            fig (matplotlib.figure.Figure|Path): The figure to save to a local png file.
             display_size (int, optional): Width in pixels for the image. Defaults to
                 300.
 
@@ -124,7 +148,9 @@ class MDReport:
                 this.
         """
         # Save the figure to a file
-        path = self._save_figure(fig)
+        path = (
+            self._copy_figure(fig) if isinstance(fig, Path) else self._save_figure(fig)
+        )
 
         # Add the markdown
         return f'<a href="{path.name}"><img src="{path.name}" width={display_size}></a>'
@@ -133,7 +159,7 @@ class MDReport:
         """Returns the markdown link to the figure with the given text.
 
         Args:
-            fig (_type_): Figure to be saved to a png
+            fig (matplotlib.figure.Figure | Path): Figure to be saved to a png
             text (str): Text for the link
 
         Returns:
