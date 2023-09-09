@@ -64,19 +64,21 @@ class TrainingConfig(BaseModel):
         return string_out.getvalue()
 
 
-def _load_config_from_file(p: Path) -> TrainingConfig:
-    """Load a TrainingConfig from a file, without taking into account defaults."""
+def _load_config_from_file(config_type, p: Path):
+    """Load a config from a file, without taking into account defaults."""
     with open(p, "r") as f:
         config_dict = yaml.safe_load(f)
-    return TrainingConfig(**config_dict)
+    return config_type(**config_dict)
 
 
-def load_config(p: Optional[Path] = None) -> TrainingConfig:
-    """Load a TrainingConfig from a file, taking into account defaults."""
-    r = _load_config_from_file(Path(__file__).parent / "default_training_config.yaml")
+def load_config(config_type: type, p: Optional[Path] = None):
+    """Load a Config from a file, taking into account defaults."""
+    r = _load_config_from_file(
+        config_type, Path(__file__).parent / f"{config_default_file[config_type]}.yaml"
+    )
 
     if p is not None:
-        specified = _load_config_from_file(p)
+        specified = _load_config_from_file(config_type, p)
         d = specified.dict()
         for k, v in d.items():
             if v is not None:
@@ -125,29 +127,6 @@ class ReportingConfig(BaseModel):
     input_files: Optional[List[plot_file]] = None
 
 
-def _load_reporting_config_from_file(p: Path) -> ReportingConfig:
-    """Load a TrainingConfig from a file, without taking into account defaults."""
-    with open(p, "r") as f:
-        config_dict = yaml.safe_load(f)
-    return ReportingConfig(**config_dict)
-
-
-def load_report_config(p: Optional[Path] = None) -> ReportingConfig:
-    """Load a ReportingConfig from a file, taking into account defaults."""
-    r = _load_reporting_config_from_file(
-        Path(__file__).parent / "default_reporting_config.yaml"
-    )
-
-    if p is not None:
-        specified = _load_reporting_config_from_file(p)
-        d = specified.dict()
-        for k, v in d.items():
-            if v is not None:
-                setattr(r, k, v)
-
-    return r
-
-
 class training_spec(BaseModel):
     "A specification for a training run"
 
@@ -162,3 +141,15 @@ class AnalyzeConfig(BaseModel):
     "Configuration for analysis"
 
     runs_to_analyze: Optional[List[training_spec]] = None
+
+    output_report: Optional[Path] = Field(
+        description="The path to the output report file. All plots will be "
+        "written to the directory this file is in (so put it in a clean sub-dir!)."
+    )
+
+
+config_default_file = {
+    TrainingConfig: "default_training_config",
+    ReportingConfig: "default_reporting_config",
+    AnalyzeConfig: "default_analyze_config",
+}

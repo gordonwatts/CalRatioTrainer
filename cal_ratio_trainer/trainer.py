@@ -8,7 +8,6 @@ from cal_ratio_trainer.config import (
     ReportingConfig,
     TrainingConfig,
     load_config,
-    load_report_config,
     plot_file,
     training_spec,
 )
@@ -19,7 +18,7 @@ cache = Path("./calratio_training")
 
 def do_train(args):
     # Get the config loaded.
-    c_config = load_config(args.config)
+    c_config = load_config(TrainingConfig, args.config)
 
     # Next, look at the arguments and see if anything should be changed.
     c = apply_config_args(TrainingConfig, c_config, args)
@@ -39,7 +38,7 @@ def do_train(args):
 def do_plot(args):
     from cal_ratio_trainer.reporting.training_file import make_report_plots
 
-    r_config = load_report_config(args.config)
+    r_config = load_config(ReportingConfig, args.config)
     r = apply_config_args(ReportingConfig, r_config, args)
     # Special handling of the input files argument:
     if len(args.input_files) > 0:
@@ -62,7 +61,7 @@ def do_plot(args):
 def do_analyze(args):
     from cal_ratio_trainer.reporting.analyze import analyze_training_runs
 
-    a_config = load_config(args.config)
+    a_config = load_config(AnalyzeConfig, args.config)
     a = apply_config_args(AnalyzeConfig, a_config, args)
 
     # The training runs to analyze are in args.training, if specified.
