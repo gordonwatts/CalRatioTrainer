@@ -27,11 +27,11 @@ from cal_ratio_trainer.training.training_utils import (
     setup_model_architecture,
 )
 from cal_ratio_trainer.training.utils import (
-    HistoryTracker,
     create_directories,
     low_or_high_pt_selection_train,
     match_adversary_weights,
 )
+from cal_ratio_trainer.utils import HistoryTracker
 
 
 def train_llp(

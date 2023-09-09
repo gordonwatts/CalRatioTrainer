@@ -146,3 +146,19 @@ def load_report_config(p: Optional[Path] = None) -> ReportingConfig:
                 setattr(r, k, v)
 
     return r
+
+
+class training_spec(BaseModel):
+    "A specification for a training run"
+
+    # The name of the training run
+    name: str
+
+    # The run
+    run: int
+
+
+class AnalyzeConfig(BaseModel):
+    "Configuration for analysis"
+
+    runs_to_analyze: Optional[List[training_spec]] = None

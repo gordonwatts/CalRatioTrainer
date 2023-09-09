@@ -1,11 +1,11 @@
-from collections import defaultdict
-import json
 from pathlib import Path
 from typing import Any, Optional, Tuple, TypeVar
 
 import numpy as np
 import pandas as pd
 from sklearn.utils import shuffle
+
+from cal_ratio_trainer.utils import find_training_result
 
 
 def create_directories(
@@ -34,44 +34,7 @@ def create_directories(
     Returns:
         Path: The ./training_results/<model_name>/<run_number> directory.
     """
-    # Create the model directory if it doesn't exist.
-    model_dir = base_dir / "training_results" / model_to_do
-    model_dir.mkdir(parents=True, exist_ok=True)
-
-    # If we have been given a continue_from directory, make sure it exists
-    # and then use that.
-    if continue_from is not None:
-        if continue_from < 0:
-            # get a sorted list of all sub-directories, and then take the one
-            # one back from the end.
-            try:
-                run_number = sorted(
-                    int(md.name) for md in model_dir.iterdir() if md.name.isdigit()
-                )[continue_from]
-                run_dir = model_dir / f"{run_number:05d}"
-            except IndexError:
-                raise ValueError(f"No runs in {model_dir} to continue from.")
-        else:
-            run_dir = model_dir / f"{continue_from:05d}"
-            if not run_dir.exists():
-                raise ValueError(
-                    f"Directory {run_dir} does not exist. Cannot continue from it."
-                )
-        return run_dir
-
-    # Ok - we will do a new run, but we will continue from where we are.
-    try:
-        biggest_run_number = max(
-            int(item.name)
-            for item in model_dir.iterdir()
-            if (item.is_dir() and item.name.isdigit())
-        )
-        biggest_run_number += 1
-    except ValueError:
-        biggest_run_number = 0
-
-    # Create the run directory.
-    run_dir = model_dir / f"{biggest_run_number:05d}"
+    run_dir = find_training_result(model_to_do, continue_from, base_dir)
     run_dir.mkdir(parents=True, exist_ok=True)
 
     # Create the keras outputs
@@ -405,43 +368,3 @@ def low_or_high_pt_selection_train(
     )  # type: ignore
 
     return X, Y, Z, weights, mc_weights
-
-
-class HistoryTracker:
-    "Keep together all the arrays we want to track per-epoch"
-
-    def __init__(self, file: Optional[Path] = None):
-        self._cache = defaultdict(list)
-
-        if file is not None:
-            self.load(file)
-
-    def __getattr__(self, name):
-        "Return the list for the requested tracking name"
-        return self._cache[name]
-
-    def __len__(self):
-        if len(self._cache) == 0:
-            return 0
-
-        else:
-            # Return the max length of all the lists
-            return max(len(item) for item in self._cache.values())
-
-    def save(self, filename: Path):
-        "Save the history to a file"
-
-        if filename.suffix != ".json":
-            filename = filename.with_suffix(".json")
-
-        with filename.open("w") as f:
-            json.dump(self._cache, f)
-
-    def load(self, filename: Path):
-        "Load history from a file"
-
-        if filename.suffix != ".json":
-            filename = filename.with_suffix(".json")
-
-        with filename.open("r") as f:
-            self._cache = json.load(f)

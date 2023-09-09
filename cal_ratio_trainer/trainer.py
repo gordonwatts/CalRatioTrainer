@@ -4,11 +4,13 @@ from pathlib import Path
 from typing import List
 
 from cal_ratio_trainer.config import (
+    AnalyzeConfig,
     ReportingConfig,
     TrainingConfig,
     load_config,
     load_report_config,
     plot_file,
+    training_spec,
 )
 from cal_ratio_trainer.utils import add_config_args, apply_config_args
 
@@ -55,6 +57,22 @@ def do_plot(args):
         cache,
         r,
     )
+
+
+def do_analyze(args):
+    from cal_ratio_trainer.reporting.analyze import analyze_training_runs
+
+    a_config = load_config(args.config)
+    a = apply_config_args(AnalyzeConfig, a_config, args)
+
+    # The training runs to analyze are in args.training, if specified.
+    if len(args.training) > 0:
+        a.runs_to_analyze = []
+        for t in args.training:
+            name, run = t.split("/")
+            a.runs_to_analyze.append(training_spec(name=name, run=int(run)))
+
+    analyze_training_runs(cache, a)
 
 
 def main():
@@ -128,6 +146,29 @@ def main():
     )
     add_config_args(ReportingConfig, parser_plot)
     parser_plot.set_defaults(func=do_plot)
+
+    # The `analyze` command will analyze a series of runs ("name/number") and find
+    # the most likely "best" epochs that could be used for eventual inference in the
+    # analysis.
+    parser_analyze = subparsers.add_parser(
+        "analyze",
+        help="Analyze a series of training runs to find the best epochs",
+    )
+    parser_analyze.add_argument(
+        "--config",
+        "-c",
+        type=Path,
+        help="Path to the config file to use for analysis",
+    )
+    parser_analyze.add_argument(
+        "training",
+        nargs="*",
+        default=[],
+        help="The training runs to analyze. Can be repeated multiple times. "
+        "Form is <name>/<number>.",
+    )
+    add_config_args(AnalyzeConfig, parser_analyze)
+    parser_analyze.set_defaults(func=do_analyze)
 
     # Parse the command line arguments
     args = parser.parse_args()
