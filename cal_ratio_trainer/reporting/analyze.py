@@ -22,6 +22,9 @@ class TrainingEpoch:
     # Epoch number
     epoch: int
 
+    # Reason we picked this guy
+    reason: str
+
     # All history numbers
     history: Dict[str, float]
 
@@ -56,14 +59,15 @@ def get_best_results(config: training_spec) -> List[TrainingEpoch]:
             run_dir=run_dir,
             epoch=e,
             history=epoch_h.values_for(e),
+            reason=e_list[1],
         )
         for e_list in [
-            best_epochs_nn_loss,
-            best_epochs_adv_loss,
-            best_epochs_disc_loss,
-            best_epochs_ks,
+            (best_epochs_nn_loss, "Best NN Loss"),
+            (best_epochs_adv_loss, "Best Adversary Loss"),
+            (best_epochs_disc_loss, "Best Discriminator Loss"),
+            (best_epochs_ks, "Best K-S Sum"),
         ]
-        for e in e_list
+        for e in e_list[0]
     ]
 
 
@@ -85,6 +89,7 @@ def analyze_training_runs(cache: Path, config: AnalyzeConfig):
         t_list = [
             {
                 "Name": f"{r.run_name}, epoch {r.epoch}",
+                "Reason": r.reason,
                 "main loss": f"{r.history['val_original_lossf']:.4f}",
                 "K-S Sum": f"{r.history['ks']:.4f}",
                 "Adversary Loss": f"{r.history['val_original_adv_lossf']:.4f}",
@@ -95,6 +100,7 @@ def analyze_training_runs(cache: Path, config: AnalyzeConfig):
         ]
         col_headings = list(t_list[0].keys())
         col_headings.remove("Name")
-        col_headings = ["Name", *col_headings]
+        col_headings.remove("Reason")
+        col_headings = ["Name", "Reason", *col_headings]
 
         report.add_table(t_list, col_order=col_headings)
