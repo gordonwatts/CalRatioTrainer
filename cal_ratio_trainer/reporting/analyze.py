@@ -2,8 +2,11 @@ from pathlib import Path
 from typing import Dict, List
 
 from attr import dataclass
+
 from cal_ratio_trainer.config import AnalyzeConfig, training_spec
 from cal_ratio_trainer.utils import HistoryTracker, find_training_result
+
+from .md_report import MDReport
 
 
 @dataclass
@@ -49,7 +52,7 @@ def get_best_results(config: training_spec) -> List[TrainingEpoch]:
     # Finally, we can create the resulting listing.
     return [
         TrainingEpoch(
-            run_name=run_dir.name,
+            run_name=f"{run_dir.parent.name}/{run_dir.name}",
             run_dir=run_dir,
             epoch=e,
             history=epoch_h.values_for(e),
@@ -74,4 +77,24 @@ def analyze_training_runs(cache: Path, config: AnalyzeConfig):
     assert config.runs_to_analyze is not None
     best_results = [get_best_results(c) for c in config.runs_to_analyze]
 
-    print(best_results)
+    # Create the report file
+    assert config.output_report is not None
+    with MDReport(config.output_report, "Training Analysis") as report:
+        report.write("Summary of the better epochs (validation sample)")
+        # Want to print out the best_results
+        t_list = [
+            {
+                "Name": f"{r.run_name}, epoch {r.epoch}",
+                "main loss": f"{r.history['val_original_lossf']:.4f}",
+                "K-S Sum": f"{r.history['ks']:.4f}",
+                "Adversary Loss": f"{r.history['val_original_adv_lossf']:.4f}",
+                "Discriminator Loss": f"{r.history['val_adv_loss']:.4f}",
+            }
+            for r_list in best_results
+            for r in r_list
+        ]
+        col_headings = list(t_list[0].keys())
+        col_headings.remove("Name")
+        col_headings = ["Name", *col_headings]
+
+        report.add_table(t_list, col_order=col_headings)
