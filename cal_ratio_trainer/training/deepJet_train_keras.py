@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Tuple
+import numpy as np
 
 import pandas as pd
 import tensorflow as tf
@@ -311,6 +312,11 @@ def build_train_evaluate_model(
         test_size=0.5,
     )
 
+    # Save to a file
+    logging.debug(f"Writing out test data to {dir_name.parent/'y_test.npz'}")
+    y_test.to_pickle(dir_name.parent / "y_test.pkl")
+    Z_test.to_pickle(dir_name.parent / "Z_test.pkl")
+
     low_mass = training_params.include_low_mass
     high_mass = training_params.include_high_mass
     # TODO: these checks on not none are a mess - kill them
@@ -432,6 +438,7 @@ def build_train_evaluate_model(
     ]
 
     # Setup testing input, outputs, and weights
+    # Cache them to disk for later re-use.
     x_to_test = [X_test_constit, X_test_track, X_test_MSeg, X_test_jet.values]
     x_to_test_adversary = [
         X_test_constit_adversary,
@@ -447,6 +454,8 @@ def build_train_evaluate_model(
         weights_test.values,
         weights_test.values,
     ]
+    logging.debug(f"Writing out test data to {dir_name.parent/'x_to_test.npz'}")
+    np.savez_compressed(dir_name.parent / "x_to_test.npz", *x_to_test)
 
     # Now to setup ML architecture
     logging.debug("Setting up model architecture...")
@@ -679,7 +688,7 @@ def build_train_evaluate_model(
         logging.debug(f"Val Adversary Loss: {val_last_disc_loss:.4f}")
         logging.debug(f"Val Adversary binary Accuracy: {val_last_disc_bin_acc:.4f}")
 
-        # Calcualte the K-S between our MC and Data multijet samples
+        # Calculate the K-S between our MC and Data multijet samples
         ks_qcd, ks_sig, ks_bib = do_checkpoint_prediction_histogram(
             final_model,
             dir_name,
@@ -692,8 +701,8 @@ def build_train_evaluate_model(
         )
 
         # Every epoch save weights if KS test below some threshold (0.3 seems good)
-        if ks_bib < 0.3:
-            final_model.save_weights(keras_dir / f"final_model_weights_{i_epoch}.keras")
+        #        if ks_bib < 0.3:
+        final_model.save_weights(keras_dir / f"final_model_weights_{i_epoch}.keras")
 
         # Save the checkpoints. If user hits ^C just right, we could get ourselves into
         # an inconsistent state. But probably not likely enough to spend time

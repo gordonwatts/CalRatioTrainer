@@ -4,6 +4,11 @@ from typing import Dict, List
 from attr import dataclass
 
 from cal_ratio_trainer.config import AnalyzeConfig, training_spec
+from cal_ratio_trainer.reporting.evaluation_utils import (
+    TrainedModelData,
+    load_test_data,
+    load_trained_model,
+)
 from cal_ratio_trainer.utils import HistoryTracker, find_training_result
 
 from .md_report import MDReport
@@ -173,3 +178,15 @@ def analyze_training_runs(cache: Path, config: AnalyzeConfig):
             ]
         ]
         report.add_table(summary_plots_table)
+
+        # Lets go through and evaluate each model against the test data.
+        held_data: Dict[str, TrainedModelData] = {}
+        for r in best_results:
+            # Load up the test data for this epoch
+            if r.run_dir not in held_data:
+                held_data[str(r.run_dir)] = load_test_data(r.run_dir)
+            data = held_data[str(r.run_dir)]
+
+            # Generate predictions for this run
+            model = load_trained_model(r.run_dir, r.epoch)
+            predictions = model.predict(data)
