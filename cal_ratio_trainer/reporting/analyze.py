@@ -71,6 +71,24 @@ def get_best_results(config: training_spec) -> List[TrainingEpoch]:
     ]
 
 
+def _get_epoch_plot(e_info: TrainingEpoch, plot_name_stub: str) -> Path:
+    """Get the path for a specific plot from the training
+
+    Args:
+        e_info (TrainingEpoch): The training epoch to fetch
+        plot_name_stub (str): The plot name stub to use
+
+    Returns:
+        Path: Location of the plot
+    """
+    # Get the path to the plot
+    plot_path = e_info.run_dir / f"{e_info.epoch:03d}_{plot_name_stub}.png"
+    if not plot_path.exists():
+        raise ValueError(f"Plot path {plot_path} does not exist.")
+
+    return plot_path
+
+
 def analyze_training_runs(cache: Path, config: AnalyzeConfig):
     """Get and dump the most interesting runs from the list of runs we've done.
 
@@ -120,5 +138,38 @@ def analyze_training_runs(cache: Path, config: AnalyzeConfig):
         )
 
         # Now some plots from each of the best runs.
-        for r in best_results:
-            report.header(f"## Run {r.run_name}, epoch {r.epoch} ({r.reason})")
+        report.header("## Loss and Accuracy Values For All Epochs")
+        summary_values_table = [
+            {
+                "Name": k,
+                **{
+                    f"{r.run_name}/{r.epoch}": f"{r.history[k]:.03f}"
+                    for r in best_results
+                },
+            }
+            for k in sorted(best_results[0].history.keys())
+        ]
+        report.add_table(summary_values_table)
+
+        # Now some plots from each of the best runs.
+        report.header("## Plots From Each Run")
+        summary_plots_table = [
+            {
+                "Name": k[1],
+                **{
+                    f"{r.run_name}/{r.epoch}": report.figure_md(
+                        _get_epoch_plot(r, k[0])
+                    )
+                    for r in best_results
+                },
+            }
+            for k in [
+                ("main_sig_predictions_linear", "Main Signal Prediction"),
+                ("main_qcd_predictions_linear", "Main QCD Prediction"),
+                ("main_bib_predictions_linear", "Main BIB Prediction"),
+                ("val_adversary_sig_predictions", "Adversary Sig Prediction"),
+                ("val_adversary_qcd_predictions", "Adversary QCD Prediction"),
+                ("val_adversary_bib_predictions", "Adversary BIB Prediction"),
+            ]
+        ]
+        report.add_table(summary_plots_table)
