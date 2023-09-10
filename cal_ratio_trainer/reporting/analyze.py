@@ -197,7 +197,7 @@ def analyze_training_runs(cache: Path, config: AnalyzeConfig):
                 **{k: eff_plots[k] for k in sorted(eff.keys())},
             }
         )
-        report.add_table(eff_table)
+        report.add_table(eff_table, bold_max_col_value=True)
 
         # Now some plots from each of the best runs.
         report.header("## Plots From Each Run")

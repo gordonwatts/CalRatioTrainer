@@ -43,7 +43,11 @@ class MDReport:
         self.write(f"{text}\n")
 
     def add_table(
-        self, data: List[Dict[str, str]], col_order: Optional[List[str]] = None
+        self,
+        data: List[Dict[str, str]],
+        col_order: Optional[List[str]] = None,
+        bold_min_col_value: bool = False,
+        bold_max_col_value: bool = False,
     ):
         """Add a table to the markdown.
 
@@ -56,6 +60,7 @@ class MDReport:
                                          keyed by column name.
             col_order (Optional[List[str]], optional): The list of columns, or all
                                             sorted alphabetically. Defaults to None.
+            bold_min_col_value(bool): Make the minimum value in each row bold.
         """
         # Build the list of columns
         if col_order is None:
@@ -66,8 +71,36 @@ class MDReport:
         self.write("|" + "|".join(["---"] * len(col_order)) + "|")
 
         # Write the data
+        def is_valid_float(s):
+            try:
+                float(s)
+                return True
+            except ValueError:
+                return False
+
         for row in data:
-            self.write("|" + "|".join([str(row[c]) for c in col_order]) + "|")
+            bold_value = -99999.00
+            if bold_min_col_value or bold_max_col_value:
+                valid_list = [
+                    float(row[c]) for c in col_order if is_valid_float(row[c])
+                ]
+                if len(valid_list) > 0:
+                    if bold_min_col_value:
+                        bold_value = min(valid_list)
+                    else:
+                        bold_value = max(valid_list)
+
+            # Write out the markdown table.
+            self.write(
+                "|"
+                + "|".join(
+                    [
+                        f"**{row[c]}**" if row[c] == str(bold_value) else row[c]
+                        for c in col_order
+                    ]
+                )
+                + "|"
+            )
 
         self.write("")
 
