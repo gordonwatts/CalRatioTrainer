@@ -860,7 +860,7 @@ def signal_llp_efficiencies(
     :param y_test: actual labels
     :param Z_test: mH, mS
     :param destination: where to save file
-    :param f:
+    :param f: output file for text
     """
     sig_rows = np.where(y_test == 1)
     prediction = prediction[sig_rows]
