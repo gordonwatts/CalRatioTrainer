@@ -1,6 +1,7 @@
 import logging
 from io import TextIOWrapper
-from pathlib import Path
+from typing import Dict, Optional, Tuple
+from matplotlib.figure import Figure
 
 import numpy as np
 import pandas as pd
@@ -11,9 +12,8 @@ def signal_llp_efficiencies(
     prediction: np.ndarray,
     y_test: pd.Series,
     Z_test: pd.DataFrame,
-    destination: Path,
-    f: TextIOWrapper,
-):
+    f: Optional[TextIOWrapper] = None,
+) -> Tuple[Figure, Dict[Tuple[int, int], float]]:
     """Plot signal efficiency as function of mH, mS
 
     :param prediction: Outputs of NN
@@ -48,10 +48,12 @@ def signal_llp_efficiencies(
         plot_y.append(temp_eff)
         plot_z.append(mS)
         logging.info("mH: " + str(mH) + ", mS: " + str(mS) + ", Eff: " + str(temp_eff))
-        f.write("%s,%s,%s\n" % (str(mH), str(mS), str(temp_eff)))
+        if f is not None:
+            f.write("%s,%s,%s\n" % (str(mH), str(mS), str(temp_eff)))
 
+    # Make a nice 2D plot of all of this
     plt.clf()
-    plt.figure()
+    fig = plt.figure()
     plt.scatter(
         plot_x,
         plot_y,
@@ -61,12 +63,13 @@ def signal_llp_efficiencies(
         c=plot_z,
         cmap=plt.cm.coolwarm,  # type: ignore
     )
+    plt.ylim(0.0, 1.0)
     cbar = plt.colorbar()
     cbar.ax.set_ylabel(r"mS")
     plt.xlabel("mH")
     plt.ylabel("Signal Efficiency")
 
-    plt.savefig(
-        destination / "signal_llp_efficiencies.png", format="png", transparent=True
-    )
-    plt.clf()
+    # Build a dictionary that can be easily used outside.
+    data = {(mH, mS): eff for mH, mS, eff in zip(plot_x, plot_z, plot_y)}
+
+    return fig, data

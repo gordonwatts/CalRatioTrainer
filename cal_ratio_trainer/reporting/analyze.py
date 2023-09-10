@@ -1,7 +1,9 @@
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from attr import dataclass
+from matplotlib import pyplot as plt
+from cal_ratio_trainer.common.evaulation import signal_llp_efficiencies
 
 from cal_ratio_trainer.config import AnalyzeConfig, training_spec
 from cal_ratio_trainer.reporting.evaluation_utils import (
@@ -32,6 +34,11 @@ class TrainingEpoch:
 
     # All history numbers
     history: Dict[str, float]
+
+    @property
+    def nickname(self) -> str:
+        """Get a nickname for this epoch"""
+        return f"{self.run_name}/{self.epoch}"
 
 
 def get_best_results(config: training_spec) -> List[TrainingEpoch]:
@@ -112,7 +119,7 @@ def analyze_training_runs(cache: Path, config: AnalyzeConfig):
         # Want to print out the best_results
         t_list = [
             {
-                "Name": f"{r.run_name}, epoch {r.epoch}",
+                "Name": r.nickname,
                 "Reason": r.reason,
                 "main loss": f"{r.history['val_original_lossf']:.4f}",
                 "K-S Sum": f"{r.history['ks']:.4f}",
@@ -147,14 +154,50 @@ def analyze_training_runs(cache: Path, config: AnalyzeConfig):
         summary_values_table = [
             {
                 "Name": k,
-                **{
-                    f"{r.run_name}/{r.epoch}": f"{r.history[k]:.03f}"
-                    for r in best_results
-                },
+                **{r.nickname: f"{r.history[k]:.03f}" for r in best_results},
             }
             for k in sorted(best_results[0].history.keys())
         ]
         report.add_table(summary_values_table)
+
+        # Lets go through and evaluate each model against the test data.
+        held_data: Dict[str, TrainedModelData] = {}
+        eff: Dict[str, Dict[Tuple[int, int], float]] = {}
+        eff_plots: Dict[str, str] = {}
+        for r in best_results:
+            # Load up the test data for this epoch
+            if r.run_dir not in held_data:
+                held_data[str(r.run_dir)] = load_test_data(r.run_dir)
+            data = held_data[str(r.run_dir)]
+
+            # Generate predictions for this run
+            model = load_trained_model(r.run_dir, r.epoch)
+            predictions = model.predict(data)
+
+            # Get the info back (along with a figure):
+            fig, pass_frac = signal_llp_efficiencies(predictions, data.y, data.z)
+            eff_plots[r.nickname] = report.figure_link(fig, "Signal Efficiency")
+            plt.close(fig)
+            eff[r.nickname] = pass_frac
+
+        # Now, lets make a table of the efficiencies. There is a column for each item
+        # in eff, and a row for each mH, mS combination.
+        report.header("## Signal Efficiencies")
+        list_of_mass_combos = list(eff.values())[0].keys()
+        eff_table = [
+            {
+                "Mass": f"{int(mH)}, {int(mS)}",
+                **{k: f"{eff[k][(mH, mS)]:.03f}" for k in sorted(eff.keys())},
+            }
+            for mH, mS in list_of_mass_combos
+        ]
+        eff_table.append(
+            {
+                "Mass": "",
+                **{k: eff_plots[k] for k in sorted(eff.keys())},
+            }
+        )
+        report.add_table(eff_table)
 
         # Now some plots from each of the best runs.
         report.header("## Plots From Each Run")
@@ -162,9 +205,7 @@ def analyze_training_runs(cache: Path, config: AnalyzeConfig):
             {
                 "Name": k[1],
                 **{
-                    f"{r.run_name}/{r.epoch}": report.figure_md(
-                        _get_epoch_plot(r, k[0])
-                    )
+                    r.nickname: report.figure_md(_get_epoch_plot(r, k[0]))
                     for r in best_results
                 },
             }
@@ -178,15 +219,3 @@ def analyze_training_runs(cache: Path, config: AnalyzeConfig):
             ]
         ]
         report.add_table(summary_plots_table)
-
-        # Lets go through and evaluate each model against the test data.
-        held_data: Dict[str, TrainedModelData] = {}
-        for r in best_results:
-            # Load up the test data for this epoch
-            if r.run_dir not in held_data:
-                held_data[str(r.run_dir)] = load_test_data(r.run_dir)
-            data = held_data[str(r.run_dir)]
-
-            # Generate predictions for this run
-            model = load_trained_model(r.run_dir, r.epoch)
-            predictions = model.predict(data)

@@ -1323,7 +1323,14 @@ def evaluate_model(
         # Find threshold, or at what label we will have the required
         # percentage of 'test_label' correctly predicted
         # Make plots of signal efficiency vs mH, mS
-        signal_llp_efficiencies(prediction, y_test, Z_test, dir_name, f)
+        fig = signal_llp_efficiencies(prediction, y_test, Z_test, f)[0]
+        fig.savefig(
+            str(dir_name / "signal_llp_efficiencies.png"),
+            format="png",
+            transparent=True,
+        )
+        plt.close(fig)
+
         bkg_falsePositives(prediction, y_test, Z_test, dir_name, f)
 
         max_SoverB, roc_auc = setup_separate_evaluations(
