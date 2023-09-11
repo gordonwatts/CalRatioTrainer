@@ -108,9 +108,14 @@ def analyze_training_runs(cache: Path, config: AnalyzeConfig):
         cache (Path): Where cache data files are located
         config (AnalyzeConfig): Config to steer our work
     """
+    # Grab a list of "interesting" epochs and training and then sort them
+    # by the main loss so the eye can read them easily.
     assert config.runs_to_analyze is not None
     best_results_lists = [get_best_results(c) for c in config.runs_to_analyze]
-    best_results = [r for r_list in best_results_lists for r in r_list]
+    best_results_collection = [r for r_list in best_results_lists for r in r_list]
+    best_results = sorted(
+        best_results_collection, key=lambda r: r.history["val_original_lossf"]
+    )
 
     # Create the report file
     assert config.output_report is not None
