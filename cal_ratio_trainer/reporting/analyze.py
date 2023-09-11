@@ -120,7 +120,10 @@ def analyze_training_runs(cache: Path, config: AnalyzeConfig):
     # Create the report file
     assert config.output_report is not None
     with MDReport(config.output_report, "Training Analysis") as report:
-        report.write("Summary of the better epochs (validation sample)")
+        report.write(
+            "Summary of the better epochs (validation sample), sorted by main "
+            "network loss on validation sample."
+        )
         # Want to print out the best_results
         t_list = [
             {
