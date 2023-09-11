@@ -1,8 +1,9 @@
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 from attr import dataclass
 from matplotlib import pyplot as plt
+import yaml
 from cal_ratio_trainer.common.evaulation import signal_llp_efficiencies
 
 from cal_ratio_trainer.config import AnalyzeConfig, training_spec
@@ -227,3 +228,45 @@ def analyze_training_runs(cache: Path, config: AnalyzeConfig):
             ]
         ]
         report.add_table(summary_plots_table)
+
+        # Next, list the parameters for each run in two tables. First table are all the
+        # parameters that are different. And the second is just a listing of the
+        # remaining parameters that are the same.
+        report.header("## Training Parameters")
+
+        # First, get a list of all the parameters that are different.
+        def load_params(run_dir: Path) -> Dict[str, Any]:
+            with (run_dir / "training_params.yaml").open("r") as f:
+                return yaml.safe_load(f)
+
+        training_params = [(rd, load_params(rd)) for rd in all_runs]
+
+        # Which ones are not the same across it all and which ones are different?
+        param_is_same = {
+            k: len(set([str(p[k]) for _, p in training_params])) == 1
+            for k in training_params[0][1].keys()
+        }
+
+        # Now, dump those that are different in a table.
+        if not all(param_is_same.values()):
+            report.write("Parameters That Vary across runs")
+            different_params = [
+                {
+                    **{"Run": str(rd)},
+                    **{k: str(p[k]) for k in p.keys() if not param_is_same[str(k)]},
+                }
+                for rd, p in training_params
+            ]
+            report.add_table(different_params)
+
+        # And single column dump of those parameters that are the same.
+        report.write("Parameters common for all runs:")
+        same_params = [
+            {
+                "Name:": k,
+                "Value": str(training_params[0][1][k]),
+            }
+            for k in training_params[0][1].keys()
+            if param_is_same[k]
+        ]
+        report.add_table(same_params)

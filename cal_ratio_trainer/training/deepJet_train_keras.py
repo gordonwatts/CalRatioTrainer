@@ -9,6 +9,7 @@ import tensorflow as tf
 from keras import metrics
 from keras.optimizers import Nadam
 from sklearn.model_selection import train_test_split
+import yaml
 from cal_ratio_trainer.common.fileio import load_dataset
 
 from cal_ratio_trainer.config import TrainingConfig
@@ -271,6 +272,10 @@ def build_train_evaluate_model(
           identical arguments. Feels like we should be able to organize
           this a bit better than a long list of arguments like this!
     """
+    # Save the training parameters as a yaml file.
+    with (dir_name / "training_params.yaml").open("w") as o:
+        yaml.dump(training_params.dict(), o)
+
     # Divide testing set into epoch-by-epoch validation and final evaluation sets
     # for the main data and the adversary.
     (
@@ -476,7 +481,7 @@ def build_train_evaluate_model(
         training_params,
     )
 
-    # Show summary of model architecture
+    # Save model architecture
     original_model.save(dir_name / "keras" / "model.keras")
     final_model.save(dir_name / "keras" / "final_model.keras")  # creates a HDF5 file
     discriminator_model.save(
