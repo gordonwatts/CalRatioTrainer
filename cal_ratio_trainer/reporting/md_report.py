@@ -95,7 +95,7 @@ class MDReport:
                 "|"
                 + "|".join(
                     [
-                        f"**{row[c]}**" if row[c] == str(bold_value) else row[c]
+                        f"**{row[c]}**" if row[c] == str(bold_value) else str(row[c])
                         for c in col_order
                     ]
                 )
