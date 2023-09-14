@@ -259,7 +259,7 @@ def build_train_evaluate_model(
     dir_name: Path,
     eval_object: evaluationObject,
     training_params: TrainingConfig,
-):
+) -> float:
     """
     This method has the following steps:
         - Prepares train, test, and validate data
@@ -801,7 +801,7 @@ def build_train_evaluate_model(
         high_mass,
         low_mass,
     )
-    logging.info("ROC area under curve: %.3f" % roc_auc)
+    logging.info(f"ROC area under curve: {roc_auc:.3f}")
     logging.info("Max S over Root B: %.3f" % SoverB)
 
     return roc_auc
