@@ -1384,7 +1384,6 @@ def setup_separate_evaluations(
         threshold,
         y_test.values,  # type: ignore
         "",
-        n_folds,
     )
     eval_object.fillObject_auc("", roc_auc)
     plot_name_stub = (
@@ -1482,7 +1481,6 @@ def setup_separate_evaluations(
             threshold,
             temp_y_test,
             label_string,
-            n_folds,
         )
         eval_object.fillObject_auc(label_string, roc_auc)
         plot_name_stub = (

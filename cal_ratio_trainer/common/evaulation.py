@@ -85,23 +85,26 @@ def plot_roc_curve(
     threshold: int,
     y_test: np.ndarray,
     label_string: str,
-    n_folds: Optional[int],
 ) -> Tuple[float, Figure]:
-    """Plots a roc curve
+    """
+    Plots the ROC curve for a given set of predictions and true labels,
+    at a `threshold` % BIB efficiency.
 
-    :param destination: where to save plots
-    :param f:
-    :param mcWeights_test: weights of jets
-    :param prediction: NN outputs
-    :param third_label: deprecated
-    :param threshold: deprecated
-    :param y_test: actual jet labels
-    :param label_string: what to put on plots
-    :param n_folds: which kfold
-    :return:
+    Args:
+        f (TextIOWrapper): File object to write the ROC AUC and label to.
+        mcWeights_test (np.ndarray): Array of weights for the test dataset.
+        prediction (np.ndarray): Array of predicted probabilities.
+        third_label (int): Label indicating which class is the third class.
+        threshold (int): % of data that passes the cut (QCD or BIB
+            depending on label)
+        y_test (np.ndarray): Array of true labels.
+        label_string (str): Label string for the plot.
+
+    Returns:
+        Tuple[float, Figure]: A tuple containing the ROC AUC and the figure object.
     """
     test_threshold, leftovers = find_threshold(
-        prediction, y_test, mcWeights_test, threshold * 100, third_label
+        prediction, y_test, threshold * 100, third_label
     )
     # Make ROC curve of leftovers, those not tagged by above function
     if threshold == 0:
@@ -110,10 +113,8 @@ def plot_roc_curve(
         prediction,
         y_test,
         mcWeights_test,
-        test_threshold,
         third_label,
         leftovers,
-        n_folds,
     )
     # TODO: uncomment rest
     # Write AUC to training_details.txt
@@ -142,15 +143,20 @@ def plot_roc_curve(
     return roc_auc, fig
 
 
-def find_threshold(prediction, y, weight, perc, label):
-    """Function to find threshold weight at which you get percentage (perc) right
+def find_threshold(prediction, y, perc, label) -> Tuple[float, np.ndarray]:
+    """
+    Finds the threshold value for a given label based on the predicted values and true
+    labels.
 
-    :param prediction: Inputs for NN jet output
-    :param y: the truth
-    :param weight: weight of input, not currently needed
-    :param perc: Percent aimed for
-    :param label: Label we are using in ROC curve
-    :return:
+    Args:
+        prediction (numpy.ndarray): A 2D array of predicted values for each label.
+        y (numpy.ndarray): A 1D array of true labels.
+        perc (float): The percentage of events to include in the threshold calculation.
+        label (int): The label for which to calculate the threshold.
+
+    Returns:
+        tuple: A tuple containing the threshold value and a boolean array indicating
+               which events are below the threshold.
     """
     # Instead of lame loops let's order our data, then find percentage from there
     # prediction is 3xN, want to sort by BIB weight
@@ -167,26 +173,29 @@ def find_threshold(prediction, y, weight, perc, label):
 
     leftovers = np.where(np.greater(threshold, prediction[:, label]))
 
-    return threshold, leftovers
+    return threshold, leftovers  # type: ignore
 
 
 def make_multi_roc_curve(
-    prediction, y, weight, threshold, label, leftovers, n_folds
+    prediction, y, weight, label, leftovers
 ) -> Tuple[np.ndarray, np.ndarray, float]:
-    """Make family of ROC Curves
-       Since this is a 3-class problem, first make cut on BIB weight for given
-       percentage of correctly tagged BIB
-       Take all leftover, and make ROC curve with those
-       Make sure to take into account signal and QCD lost in BIB tagged jets
+    """
+    Computes the Receiver Operating Characteristic (ROC) curve for this
+    model. Since we have three classes we need to generate a family of these
+    curves.
 
-    :param prediction: jet NN output
-    :param y: jet label
-    :param weight: jet weight
-    :param threshold: deprecated
-    :param label: deprecated
-    :param leftovers: jets not in ROC curve
-    :param n_folds: which kfold
-    :return:
+    Args:
+        prediction (np.ndarray): The predicted probabilities of the positive class.
+        y (np.ndarray): The true binary labels (0 or 1).
+        weight (np.ndarray): The sample weights.
+        threshold (float): The probability threshold for the positive class.
+        label (int): The label to use for the positive class (0 or 2).
+        leftovers (np.ndarray): The indices of the jets left after taking out jets
+            below BIB cut.
+
+    Returns:
+        Tuple[np.ndarray, np.ndarray, float]: A tuple containing the false positive
+            rate, true positive rate, and area under the ROC curve.
     """
     # Leftover are the indices of jets left after taking out jets below BIB cut
     # So take all those left
@@ -234,6 +243,7 @@ def make_multi_roc_curve(
     # If we are looking at QCD cut, then signal vs BIB roc curve
     # Use roc_curve function from scikit-learn
     if label == 0:
+        # TODO: Understand why this is called here, but not above
         y_roc = label_binarize(y_left, classes=[0, 1, 2])
         (fpr, tpr, _) = roc_curve(
             y_roc[:, 1],  # type: ignore
