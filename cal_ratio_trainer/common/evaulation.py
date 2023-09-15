@@ -98,7 +98,8 @@ def normalize_to_one(weights: TArray, labels: np.ndarray) -> TArray:
         total_weight = np.sum(result[labels == label])
         total_len = len(result[labels == label])
 
-        result[labels == label] *= total_len / total_weight  # type: ignore
+        if total_weight != 0 or total_len != 0:
+            result[labels == label] *= total_len / total_weight  # type: ignore
 
     return result
 
