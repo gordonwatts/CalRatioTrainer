@@ -154,7 +154,7 @@ class MDReport:
         # Save the figure to a file
         fig_name = f"{self.plot_index:04d}-{fig.get_axes()[0].get_title()}"
         self.plot_index += 1
-        name = fig_name.replace(" ", "_")
+        name = fig_name.replace(" ", "_").replace("/", "_")
         path = self.path.parent / f"{name}.png"
         if path.exists():
             path.unlink()
