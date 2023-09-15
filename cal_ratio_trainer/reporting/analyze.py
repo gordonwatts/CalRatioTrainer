@@ -127,6 +127,8 @@ def _analyze_auc(
         label_string="my foot",
     )
 
+    plt.title(f"AUC Curve for {path.parent.name}/{path.name}/{epoch} (test data)")
+
     r = report.figure_link(fig, f"{auc:.3f}")
     plt.close(fig)
     return r
