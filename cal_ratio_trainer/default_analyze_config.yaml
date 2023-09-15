@@ -1,0 +1,4 @@
+runs_to_analyze:
+  - name: default
+    run: 0
+output_report: ./reports/analyze.md

@@ -11,8 +11,11 @@ import pandas as pd
 from keras import Model
 from keras.src.utils import np_utils
 from matplotlib import pyplot as plt
-from sklearn.metrics import auc, roc_curve
-from sklearn.preprocessing import label_binarize
+from cal_ratio_trainer.common.evaulation import (
+    normalize_to_one,
+    plot_roc_curve,
+    signal_llp_efficiencies,
+)
 
 from cal_ratio_trainer.training.training_utils import evaluationObject
 
@@ -847,71 +850,6 @@ def plot_prediction_histograms_halfLinear(
         return
 
 
-def signal_llp_efficiencies(
-    prediction: np.ndarray,
-    y_test: pd.Series,
-    Z_test: pd.DataFrame,
-    destination: Path,
-    f: TextIOWrapper,
-):
-    """Plot signal efficiency as function of mH, mS
-
-    :param prediction: Outputs of NN
-    :param y_test: actual labels
-    :param Z_test: mH, mS
-    :param destination: where to save file
-    :param f:
-    """
-    sig_rows = np.where(y_test == 1)
-    prediction = prediction[sig_rows]
-    Z_test = Z_test.iloc[sig_rows]
-    mass_array = (
-        Z_test.groupby(["llp_mH", "llp_mS"])
-        .size()
-        .reset_index()
-        .rename(columns={0: "count"})
-    )
-
-    plot_x = []
-    plot_y = []
-    plot_z = []
-
-    # Loop over all mH, mS combinations
-    for item, mH, mS in zip(
-        mass_array["count"], mass_array["llp_mH"], mass_array["llp_mS"]
-    ):
-        temp_array = prediction[(Z_test["llp_mH"] == mH) & (Z_test["llp_mS"] == mS)]
-        temp_max = np.argmax(temp_array, axis=1)
-        temp_num_signal_best = len(temp_max[temp_max == 1])
-        temp_eff = temp_num_signal_best / temp_array.shape[0]
-        plot_x.append(mH)
-        plot_y.append(temp_eff)
-        plot_z.append(mS)
-        logging.info("mH: " + str(mH) + ", mS: " + str(mS) + ", Eff: " + str(temp_eff))
-        f.write("%s,%s,%s\n" % (str(mH), str(mS), str(temp_eff)))
-
-    plt.clf()
-    plt.figure()
-    plt.scatter(
-        plot_x,
-        plot_y,
-        marker="+",  # type: ignore
-        s=150,
-        linewidths=4,
-        c=plot_z,
-        cmap=plt.cm.coolwarm,  # type: ignore
-    )
-    cbar = plt.colorbar()
-    cbar.ax.set_ylabel(r"mS")
-    plt.xlabel("mH")
-    plt.ylabel("Signal Efficiency")
-
-    plt.savefig(
-        destination / "signal_llp_efficiencies.png", format="png", transparent=True
-    )
-    plt.clf()
-
-
 def bkg_falsePositives(
     prediction: np.ndarray,
     y_test: pd.Series,
@@ -1281,7 +1219,7 @@ def evaluate_model(
     Z_test_adversary: pd.DataFrame,
     high_mass: bool,
     low_mass: bool,
-):
+) -> Tuple[float, float]:
     """Where we start making plots, AUC calcs when training is done
 
     :param model: the main NN model
@@ -1358,19 +1296,7 @@ def evaluate_model(
     )
 
     # Sum of MC weights
-    bib_weight = np.sum(mcWeights_test[y_test == 2])
-    sig_weight = np.sum(mcWeights_test[y_test == 1])
-    qcd_weight = np.sum(mcWeights_test[y_test == 0])
-
-    bib_weight_length = len(mcWeights_test[y_test == 2])
-    sig_weight_length = len(mcWeights_test[y_test == 1])
-    qcd_weight_length = len(mcWeights_test[y_test == 0])
-
-    mcWeights_test[y_test == 0] *= qcd_weight_length / qcd_weight  # type: ignore
-    # TODO: this does nothing??
-    mcWeights_test[y_test == 2] *= bib_weight_length / bib_weight  # type: ignore
-    # TODO: to add other plots when n_fold?
-    mcWeights_test[y_test == 1] *= sig_weight_length / sig_weight  # type: ignore
+    mcWeights_test = normalize_to_one(mcWeights_test, y_test)  # type: ignore
 
     # This will be the BIB efficiency to aim for when making ROC curve
     # threshold = 1 - 0.0316
@@ -1387,7 +1313,14 @@ def evaluate_model(
         # Find threshold, or at what label we will have the required
         # percentage of 'test_label' correctly predicted
         # Make plots of signal efficiency vs mH, mS
-        signal_llp_efficiencies(prediction, y_test, Z_test, dir_name, f)
+        fig = signal_llp_efficiencies(prediction, y_test, Z_test, f)[0]
+        fig.savefig(
+            str(dir_name / "signal_llp_efficiencies.png"),
+            format="png",
+            transparent=True,
+        )
+        plt.close(fig)
+
         bkg_falsePositives(prediction, y_test, Z_test, dir_name, f)
 
         max_SoverB, roc_auc = setup_separate_evaluations(
@@ -1417,7 +1350,7 @@ def setup_separate_evaluations(
     f: TextIOWrapper,
     eval_object: evaluationObject,
     n_folds: Optional[int],
-):
+) -> Tuple[float, float]:
     """Does all the output plot + calculations separately for different mH
 
     :param prediction: output of jet NN
@@ -1435,18 +1368,26 @@ def setup_separate_evaluations(
     max_SoverB = significance_scan(
         prediction, y_test, mcWeights_test, destination, f, "", eval_object, n_folds
     )
-    roc_auc = plot_roc_curve(
-        destination,
+    roc_auc, fig = plot_roc_curve(
         f,
-        mcWeights_test.values,  # type: ignore
+        mcWeights_test,  # type: ignore
         prediction,
         third_label,
         threshold,
         y_test.values,  # type: ignore
         "",
-        eval_object,
-        n_folds,
     )
+    result = (max_SoverB, roc_auc)
+    eval_object.fillObject_auc("", roc_auc)
+    plot_name_stub = (
+        "roc_curve_atlas_rej_bib_" if third_label == 2 else "roc_curve_atlas_rej_qcd_"
+    )
+    fig.savefig(
+        str(destination / f"{plot_name_stub}_{n_folds}.png"),
+        format="png",
+        transparent=True,
+    )
+    plt.close(fig)
 
     sig_rows = np.where(y_test == 1)
     bib_rows = np.where(y_test == 2)
@@ -1514,30 +1455,40 @@ def setup_separate_evaluations(
             (temp_sig_mcWeights_test, qcd_mcWeights_test, bib_mcWeights_test)
         )
 
+        label_string = f"mH{mH}"
         significance_scan(
             temp_pred,
             temp_y_test,
             temp_mcWeights_test,
             destination,
             f,
-            "mH" + str(mH),
+            label_string,
             eval_object,
             n_folds,
         )
-        plot_roc_curve(
-            destination,
+        roc_auc, fig = plot_roc_curve(
             f,
             temp_mcWeights_test,
             temp_pred,
             third_label,
             threshold,
             temp_y_test,
-            "mH" + str(mH),
-            eval_object,
-            n_folds,
+            label_string,
         )
+        eval_object.fillObject_auc(label_string, roc_auc)
+        plot_name_stub = (
+            "roc_curve_atlas_rej_bib_"
+            if third_label == 2
+            else "roc_curve_atlas_rej_qcd_"
+        )
+        fig.savefig(
+            str(destination / f"{plot_name_stub}_{n_folds}.png"),
+            format="png",
+            transparent=True,
+        )
+        plt.close(fig)
 
-    return max_SoverB, roc_auc
+    return result
 
 
 def significance_scan(
@@ -1549,7 +1500,7 @@ def significance_scan(
     label_string: str,
     eval_object: evaluationObject,
     n_folds: Optional[int],
-):
+) -> float:
     """Scans significance in NN output value cuts
 
     :param prediction: NN output
@@ -1622,207 +1573,4 @@ def significance_scan(
     eval_object.fillObject_sOverB(str(label_string), np.amax(SoverB_array))
     eval_object.fillObject_aus(str(label_string), area_under_significance)
 
-    return np.amax(SoverB_array)
-
-
-def plot_roc_curve(
-    destination: Path,
-    f: TextIOWrapper,
-    mcWeights_test: np.ndarray,
-    prediction: np.ndarray,
-    third_label: int,
-    threshold: int,
-    y_test: np.ndarray,
-    label_string: str,
-    eval_object: evaluationObject,
-    n_folds: Optional[int],
-):
-    """Plots a roc curve
-
-    :param destination: where to save plots
-    :param f:
-    :param mcWeights_test: weights of jets
-    :param prediction: NN outputs
-    :param third_label: deprecated
-    :param threshold: deprecated
-    :param y_test: actual jet labels
-    :param label_string: what to put on plots
-    :param eval_object: object saves things for further study
-    :param n_folds: which kfold
-    :return:
-    """
-    test_threshold, leftovers = find_threshold(
-        prediction, y_test, mcWeights_test, threshold * 100, third_label
-    )
-    # Make ROC curve of leftovers, those not tagged by above function
-    if threshold == 0:
-        leftovers = y_test > -1
-    bkg_eff, tag_eff, roc_auc = make_multi_roc_curve(
-        prediction,
-        y_test,
-        mcWeights_test,
-        test_threshold,
-        third_label,
-        leftovers,
-        n_folds,
-    )
-    # TODO: uncomment rest
-    # Write AUC to training_details.txt
-    f.write(
-        "Threshold: %s, ROC AUC: %s, label: %s\n"
-        % (str(-threshold + 1), str(roc_auc), str(label_string))
-    )
-    eval_object.fillObject_auc(str(label_string), roc_auc)
-    # Make ROC curve
-    plt.plot(
-        tag_eff,
-        bkg_eff,
-        label=str(label_string)
-        + f", BIB Eff: {threshold :.3f}"
-        + f", AUC: {roc_auc:.3f}",
-    )
-    plt.xlabel("LLP Tagging Efficiency")
-    axes = plt.gca()
-    axes.set_xlim([0, 1])
-
-    # Finish and plot ROC curve family
-    plt.legend()
-    plt.yscale("log")
-    if third_label == 2:
-        plt.ylabel("QCD Rejection")
-        plt.savefig(
-            destination
-            / (
-                "roc_curve_atlas_rej_bib_"
-                + str(label_string)
-                + "_"
-                + str(n_folds)
-                + ".png"
-            ),
-            format="png",
-            transparent=True,
-        )
-    if third_label == 0:
-        plt.ylabel("BIB Rejection")
-        plt.savefig(
-            destination
-            / (
-                "roc_curve_atlas_rej_qcd_"
-                + str(label_string)
-                + "_"
-                + str(n_folds)
-                + ".png"
-            ),
-            format="png",
-            transparent=True,
-        )
-    plt.clf()
-    return roc_auc
-
-
-def find_threshold(prediction, y, weight, perc, label):
-    """Function to find threshold weight at which you get percentage (perc) right
-
-    :param prediction: Inputs for NN jet output
-    :param y: the truth
-    :param weight: weight of input, not currently needed
-    :param perc: Percent aimed for
-    :param label: Label we are using in ROC curve
-    :return:
-    """
-    # Instead of lame loops let's order our data, then find percentage from there
-    # prediction is 3xN, want to sort by BIB weight
-
-    label_events_y = y[y == label]
-    label_events_prediction = prediction[y == label]
-
-    prediction_sorted = np.array(
-        label_events_prediction[label_events_prediction[:, label].argsort()]
-    )
-
-    cutoffIndex = (round(((100 - perc) / 100) * label_events_y.size)) - 1
-    threshold = prediction_sorted.item((int(cutoffIndex), label))
-
-    leftovers = np.where(np.greater(threshold, prediction[:, label]))
-
-    return threshold, leftovers
-
-
-def make_multi_roc_curve(
-    prediction, y, weight, threshold, label, leftovers, n_folds
-) -> Tuple[np.ndarray, np.ndarray, float]:
-    """Make family of ROC Curves
-       Since this is a 3-class problem, first make cut on BIB weight for given
-       percentage of correctly tagged BIB
-       Take all leftover, and make ROC curve with those
-       Make sure to take into account signal and QCD lost in BIB tagged jets
-
-    :param prediction: jet NN output
-    :param y: jet label
-    :param weight: jet weight
-    :param threshold: deprecated
-    :param label: deprecated
-    :param leftovers: jets not in ROC curve
-    :param n_folds: which kfold
-    :return:
-    """
-    # Leftover are the indices of jets left after taking out jets below BIB cut
-    # So take all those left
-    prediction_left = prediction[leftovers]
-    y_left = y[leftovers]
-    weight_left = weight[leftovers]
-
-    # Find signal_ratio and qcd_ratio and bib_ratio, ratio of how many signal
-    # or qcd or bib left after BIB cut vs how many there were originally
-    num_signal_original = y[y == 1].size
-    num_signal_leftover = y_left[y_left == 1].size
-    signal_ratio = num_signal_leftover / num_signal_original
-
-    num_qcd_original = np.sum(weight[y == 0])
-    num_qcd_leftover = np.sum(weight_left[y_left == 0])
-    qcd_ratio = num_qcd_leftover / num_qcd_original
-
-    num_bib_original = np.sum(weight[y == 2])
-    num_bib_leftover = np.sum(weight_left[y_left == 2])
-    bib_ratio = num_bib_leftover / num_bib_original
-
-    # BIB weight 0.1
-    weight_left[y_left == 2] = weight_left[y_left == 2] * 0.1
-
-    prediction_left_signal = prediction_left[:, 1]
-
-    # If we are looking at BIB cut, then signal vs QCD roc curve
-    # Use roc_curve function from scikit-learn
-    if label == 2:
-        (fpr, tpr, _) = roc_curve(
-            y_left, prediction_left_signal, sample_weight=weight_left, pos_label=1
-        )
-        # Scale results by qcd_ratio, signal_ratio
-        a = auc(fpr * qcd_ratio, tpr * signal_ratio)
-
-        # return results of roc curve
-        with np.errstate(divide="ignore"):
-            goodIndices = np.where(np.isfinite(1 / fpr))
-        return (
-            (1 / fpr[goodIndices]) * qcd_ratio,
-            tpr[goodIndices] * signal_ratio,
-            float(a),
-        )
-
-    # If we are looking at QCD cut, then signal vs BIB roc curve
-    # Use roc_curve function from scikit-learn
-    if label == 0:
-        y_roc = label_binarize(y_left, classes=[0, 1, 2])
-        (fpr, tpr, _) = roc_curve(
-            y_roc[:, 1],  # type: ignore
-            prediction_left_signal,
-            sample_weight=weight_left,
-            pos_label=1,
-        )
-        # Scale results by bib_ratio, signal_ratio
-        a = auc((1 - fpr) * bib_ratio, tpr * signal_ratio)
-
-        # return results of roc curve
-        return (1 / fpr) * bib_ratio, tpr * signal_ratio, float(a)
-
-    raise ValueError("label must be 0 or 2")
+    return cast(float, np.amax(SoverB_array))

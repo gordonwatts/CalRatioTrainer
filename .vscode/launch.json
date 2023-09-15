@@ -33,6 +33,18 @@
             ],
             "console": "integratedTerminal",
             "justMyCode": true
+        },
+        {
+            "name": "Python: cr_trainer analyze default/-1",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/cal_ratio_trainer/trainer.py",
+            "args": [
+                "analyze",
+                "default/-1",
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": true
         }
     ]
 }

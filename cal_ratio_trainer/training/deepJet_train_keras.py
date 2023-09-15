@@ -2,12 +2,14 @@ import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Tuple
+import numpy as np
 
 import pandas as pd
 import tensorflow as tf
 from keras import metrics
 from keras.optimizers import Nadam
 from sklearn.model_selection import train_test_split
+import yaml
 from cal_ratio_trainer.common.fileio import load_dataset
 
 from cal_ratio_trainer.config import TrainingConfig
@@ -27,11 +29,11 @@ from cal_ratio_trainer.training.training_utils import (
     setup_model_architecture,
 )
 from cal_ratio_trainer.training.utils import (
-    HistoryTracker,
     create_directories,
     low_or_high_pt_selection_train,
     match_adversary_weights,
 )
+from cal_ratio_trainer.utils import HistoryTracker
 
 
 def train_llp(
@@ -257,7 +259,7 @@ def build_train_evaluate_model(
     dir_name: Path,
     eval_object: evaluationObject,
     training_params: TrainingConfig,
-):
+) -> float:
     """
     This method has the following steps:
         - Prepares train, test, and validate data
@@ -270,6 +272,10 @@ def build_train_evaluate_model(
           identical arguments. Feels like we should be able to organize
           this a bit better than a long list of arguments like this!
     """
+    # Save the training parameters as a yaml file.
+    with (dir_name / "training_params.yaml").open("w") as o:
+        yaml.dump(training_params.dict(), o)
+
     # Divide testing set into epoch-by-epoch validation and final evaluation sets
     # for the main data and the adversary.
     (
@@ -310,6 +316,11 @@ def build_train_evaluate_model(
         Z_test_adversary,
         test_size=0.5,
     )
+
+    # Save to a file
+    logging.debug(f"Writing out test data to {dir_name.parent/'y_test.npz'}")
+    y_test.to_pickle(dir_name.parent / "y_test.pkl")
+    Z_test.to_pickle(dir_name.parent / "Z_test.pkl")
 
     low_mass = training_params.include_low_mass
     high_mass = training_params.include_high_mass
@@ -432,6 +443,7 @@ def build_train_evaluate_model(
     ]
 
     # Setup testing input, outputs, and weights
+    # Cache them to disk for later re-use.
     x_to_test = [X_test_constit, X_test_track, X_test_MSeg, X_test_jet.values]
     x_to_test_adversary = [
         X_test_constit_adversary,
@@ -447,6 +459,11 @@ def build_train_evaluate_model(
         weights_test.values,
         weights_test.values,
     ]
+    logging.debug(f"Writing out test data to {dir_name.parent/'x_to_test.npz'}")
+    np.savez_compressed(dir_name.parent / "x_to_test.npz", *x_to_test)
+    np.savez_compressed(
+        dir_name.parent / "weights_to_test.npz", *weights_to_test  # type: ignore
+    )
 
     # Now to setup ML architecture
     logging.debug("Setting up model architecture...")
@@ -467,7 +484,7 @@ def build_train_evaluate_model(
         training_params,
     )
 
-    # Show summary of model architecture
+    # Save model architecture
     original_model.save(dir_name / "keras" / "model.keras")
     final_model.save(dir_name / "keras" / "final_model.keras")  # creates a HDF5 file
     discriminator_model.save(
@@ -679,7 +696,7 @@ def build_train_evaluate_model(
         logging.debug(f"Val Adversary Loss: {val_last_disc_loss:.4f}")
         logging.debug(f"Val Adversary binary Accuracy: {val_last_disc_bin_acc:.4f}")
 
-        # Check to see if things have gotten better
+        # Calculate the K-S between our MC and Data multijet samples
         ks_qcd, ks_sig, ks_bib = do_checkpoint_prediction_histogram(
             final_model,
             dir_name,
@@ -692,8 +709,8 @@ def build_train_evaluate_model(
         )
 
         # Every epoch save weights if KS test below some threshold (0.3 seems good)
-        if ks_bib < 0.3:
-            final_model.save_weights(keras_dir / f"final_model_weights_{i_epoch}.keras")
+        #        if ks_bib < 0.3:
+        final_model.save_weights(keras_dir / f"final_model_weights_{i_epoch}.keras")
 
         # Save the checkpoints. If user hits ^C just right, we could get ourselves into
         # an inconsistent state. But probably not likely enough to spend time
@@ -787,7 +804,7 @@ def build_train_evaluate_model(
         high_mass,
         low_mass,
     )
-    logging.info("ROC area under curve: %.3f" % roc_auc)
+    logging.info(f"ROC area under curve: {roc_auc:.3f}")
     logging.info("Max S over Root B: %.3f" % SoverB)
 
     return roc_auc
