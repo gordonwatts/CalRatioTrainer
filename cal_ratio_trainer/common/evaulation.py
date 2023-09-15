@@ -1,6 +1,6 @@
 import logging
 from io import TextIOWrapper
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, TypeVar
 
 import numpy as np
 import pandas as pd
@@ -77,8 +77,34 @@ def signal_llp_efficiencies(
     return fig, data
 
 
+TArray = TypeVar("TArray", np.ndarray, pd.Series)
+
+
+def normalize_to_one(weights: TArray, labels: np.ndarray) -> TArray:
+    """
+    Normalize the weights array such that the sum of weights for each label is
+    equal to 1.
+
+    Args:
+        weights (np.ndarray): Array of weights to be normalized.
+        labels (np.ndarray): Array of labels corresponding to the weights.
+
+    Returns:
+        np.ndarray: Normalized array of weights.
+    """
+    result = weights.copy()
+
+    for label in range(0, 3):
+        total_weight = np.sum(result[labels == label])
+        total_len = len(result[labels == label])
+
+        result[labels == label] *= total_len / total_weight  # type: ignore
+
+    return result
+
+
 def plot_roc_curve(
-    f: TextIOWrapper,
+    f: Optional[TextIOWrapper],
     mcWeights_test: np.ndarray,
     prediction: np.ndarray,
     third_label: int,
@@ -103,9 +129,7 @@ def plot_roc_curve(
     Returns:
         Tuple[float, Figure]: A tuple containing the ROC AUC and the figure object.
     """
-    test_threshold, leftovers = find_threshold(
-        prediction, y_test, threshold * 100, third_label
-    )
+    thresh, leftovers = find_threshold(prediction, y_test, threshold * 100, third_label)
     # Make ROC curve of leftovers, those not tagged by above function
     if threshold == 0:
         leftovers = y_test > -1
@@ -116,12 +140,15 @@ def plot_roc_curve(
         third_label,
         leftovers,
     )
+
     # TODO: uncomment rest
     # Write AUC to training_details.txt
-    f.write(
-        "Threshold: %s, ROC AUC: %s, label: %s\n"
-        % (str(-threshold + 1), str(roc_auc), str(label_string))
-    )
+    if f is not None:
+        f.write(
+            "Threshold: %s, ROC AUC: %s, label: %s\n"
+            % (str(-threshold + 1), str(roc_auc), str(label_string))
+        )
+
     # Make ROC curve
     fig = plt.figure()
     plt.plot(
