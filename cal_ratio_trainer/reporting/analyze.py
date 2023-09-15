@@ -4,7 +4,11 @@ from typing import Any, Dict, List, Tuple
 from attr import dataclass
 from matplotlib import pyplot as plt
 import yaml
-from cal_ratio_trainer.common.evaulation import signal_llp_efficiencies
+from cal_ratio_trainer.common.evaulation import (
+    normalize_to_one,
+    plot_roc_curve,
+    signal_llp_efficiencies,
+)
 
 from cal_ratio_trainer.config import AnalyzeConfig, training_spec
 from cal_ratio_trainer.reporting.evaluation_utils import (
@@ -102,6 +106,47 @@ def _get_epoch_plot(e_info: TrainingEpoch, plot_name_stub: str) -> Path:
     return plot_path
 
 
+def _analyze_auc(
+    data: TrainedModelData, path: Path, epoch: int, report: MDReport
+) -> str:
+    "Return the calculated AUC for this epoch and a link to the plot"
+
+    model = load_trained_model(path, epoch)
+    predictions = model.predict(data)
+
+    # Balance the weights
+    normalized_weights = normalize_to_one(data.weights[0], data.y.values[0])
+
+    auc, fig = plot_roc_curve(
+        None,
+        normalized_weights,
+        predictions,
+        third_label=2,
+        threshold=0,
+        y_test=data.y.values,  # type: ignore
+        label_string="my foot",
+    )
+
+    r = report.figure_link(fig, f"{auc:.3f}")
+    plt.close(fig)
+    return r
+
+
+class HeldData:
+    """Holds the data for various runs"""
+
+    def __init__(self):
+        self._data: Dict[str, TrainedModelData] = {}
+
+    def __str__(self) -> str:
+        return f"HeldData(len={len(self._data)})"
+
+    def __getitem__(self, key: Path) -> TrainedModelData:
+        if str(key) not in self._data:
+            self._data[str(key)] = load_test_data(key)
+        return self._data[str(key)]
+
+
 def analyze_training_runs(cache: Path, config: AnalyzeConfig):
     """Get and dump the most interesting runs from the list of runs we've done.
 
@@ -126,6 +171,7 @@ def analyze_training_runs(cache: Path, config: AnalyzeConfig):
             "network loss on validation sample."
         )
         # Want to print out the best_results
+        held_data = HeldData()
         t_list = [
             {
                 "Name": r.nickname,
@@ -134,6 +180,7 @@ def analyze_training_runs(cache: Path, config: AnalyzeConfig):
                 "K-S Sum": f"{r.history['ks']:.4f}",
                 "Adversary Loss": f"{r.history['val_original_adv_lossf']:.4f}",
                 "Discriminator Loss": f"{r.history['val_adv_loss']:.4f}",
+                "AUC": _analyze_auc(held_data[r.run_dir], r.run_dir, r.epoch, report),
             }
             for r in best_results
         ]
@@ -170,14 +217,11 @@ def analyze_training_runs(cache: Path, config: AnalyzeConfig):
         report.add_table(summary_values_table)
 
         # Lets go through and evaluate each model against the test data.
-        held_data: Dict[str, TrainedModelData] = {}
         eff: Dict[str, Dict[Tuple[int, int], float]] = {}
         eff_plots: Dict[str, str] = {}
         for r in best_results:
             # Load up the test data for this epoch
-            if r.run_dir not in held_data:
-                held_data[str(r.run_dir)] = load_test_data(r.run_dir)
-            data = held_data[str(r.run_dir)]
+            data = held_data[r.run_dir]
 
             # Generate predictions for this run
             model = load_trained_model(r.run_dir, r.epoch)

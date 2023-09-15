@@ -11,7 +11,11 @@ import pandas as pd
 from keras import Model
 from keras.src.utils import np_utils
 from matplotlib import pyplot as plt
-from cal_ratio_trainer.common.evaulation import plot_roc_curve, signal_llp_efficiencies
+from cal_ratio_trainer.common.evaulation import (
+    normalize_to_one,
+    plot_roc_curve,
+    signal_llp_efficiencies,
+)
 
 from cal_ratio_trainer.training.training_utils import evaluationObject
 
@@ -1292,19 +1296,7 @@ def evaluate_model(
     )
 
     # Sum of MC weights
-    bib_weight = np.sum(mcWeights_test[y_test == 2])
-    sig_weight = np.sum(mcWeights_test[y_test == 1])
-    qcd_weight = np.sum(mcWeights_test[y_test == 0])
-
-    bib_weight_length = len(mcWeights_test[y_test == 2])
-    sig_weight_length = len(mcWeights_test[y_test == 1])
-    qcd_weight_length = len(mcWeights_test[y_test == 0])
-
-    mcWeights_test[y_test == 0] *= qcd_weight_length / qcd_weight  # type: ignore
-    # TODO: this does nothing??
-    mcWeights_test[y_test == 2] *= bib_weight_length / bib_weight  # type: ignore
-    # TODO: to add other plots when n_fold?
-    mcWeights_test[y_test == 1] *= sig_weight_length / sig_weight  # type: ignore
+    mcWeights_test = normalize_to_one(mcWeights_test, y_test)  # type: ignore
 
     # This will be the BIB efficiency to aim for when making ROC curve
     # threshold = 1 - 0.0316
@@ -1378,13 +1370,14 @@ def setup_separate_evaluations(
     )
     roc_auc, fig = plot_roc_curve(
         f,
-        mcWeights_test.values,  # type: ignore
+        mcWeights_test,  # type: ignore
         prediction,
         third_label,
         threshold,
         y_test.values,  # type: ignore
         "",
     )
+    result = (max_SoverB, roc_auc)
     eval_object.fillObject_auc("", roc_auc)
     plot_name_stub = (
         "roc_curve_atlas_rej_bib_" if third_label == 2 else "roc_curve_atlas_rej_qcd_"
@@ -1495,7 +1488,7 @@ def setup_separate_evaluations(
         )
         plt.close(fig)
 
-    return max_SoverB, roc_auc
+    return result
 
 
 def significance_scan(
