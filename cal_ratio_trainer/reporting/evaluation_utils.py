@@ -22,6 +22,9 @@ class TrainedModelData:
     # The LLP information (mH, mS, etc.) for the training data
     z: pd.DataFrame
 
+    # Weights associated with the x, y, and z.
+    weights: List[np.ndarray]
+
 
 @dataclass
 class TrainedModel:
@@ -48,11 +51,13 @@ def load_test_data(run_dir: Path) -> TrainedModelData:
     x_data = np.load(run_dir.parent / "x_to_test.npz")
     y_data = pd.read_pickle(run_dir.parent / "y_test.pkl")
     z_data = pd.read_pickle(run_dir.parent / "Z_test.pkl")
+    weights = np.load(run_dir.parent / "weights_to_test.npz")
 
     return TrainedModelData(
-        x=x_data.values(),
+        x=list(x_data.values()),
         y=y_data,
         z=z_data,
+        weights=list(weights.values()),
     )
 
 
