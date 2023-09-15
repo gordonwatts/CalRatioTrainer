@@ -461,6 +461,9 @@ def build_train_evaluate_model(
     ]
     logging.debug(f"Writing out test data to {dir_name.parent/'x_to_test.npz'}")
     np.savez_compressed(dir_name.parent / "x_to_test.npz", *x_to_test)
+    np.savez_compressed(
+        dir_name.parent / "weights_to_test.npz", *weights_to_test  # type: ignore
+    )
 
     # Now to setup ML architecture
     logging.debug("Setting up model architecture...")
