@@ -5,7 +5,7 @@ from typing import List, Optional
 import numpy as np
 import pandas as pd
 from keras import Model
-from keras.models import load_model
+from keras.models import load_model, model_from_json
 
 
 @dataclass
@@ -34,13 +34,35 @@ class TrainedModel:
         return self.model.predict(x.x, verbose="0")
 
 
-def load_trained_model(run_dir: Path, epoch: int) -> TrainedModel:
+def load_trained_model_from_training(run_dir: Path, epoch: int) -> TrainedModel:
+    """
+    Load a trained model from a given training run directory and epoch.
+
+    Args:
+        run_dir (Path): The directory containing the training run.
+        epoch (int): The epoch number of the trained model to load.
+
+    Returns:
+        TrainedModel: An instance of the TrainedModel class containing the
+                loaded model.
+    """
     # Make sure the epoch is there.
-    assert run_dir / "keras" / f"final_model_weights_{epoch}.h5"
+    epoch_path = run_dir / "keras" / f"final_model_weights_{epoch}.keras"
+    assert epoch_path.exists(), f"Trained Model Keras file Not Found: {epoch_path}"
 
     # Load the model that was written out
     model = load_model(run_dir / "keras" / "final_model.keras")  # type: Optional[Model]
     assert model is not None, "Failed to load model"
-    model.load_weights(run_dir / "keras" / f"final_model_weights_{epoch}.keras")
+    model.load_weights(epoch_path)
+
+    return TrainedModel(model=model)
+
+
+def load_trained_model_from_json(json_path: Path) -> TrainedModel:
+    # Load the model that was written out
+    assert json_path.exists(), f"Trained Model JSON file Not Found: {json_path}"
+
+    model = model_from_json(json_path.read_text())
+    assert model is not None, f"Failed to load model {json_path}"
 
     return TrainedModel(model=model)

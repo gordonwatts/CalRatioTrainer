@@ -9,7 +9,7 @@ from cal_ratio_trainer.common.evaluation import (
     plot_roc_curve,
     signal_llp_efficiencies,
 )
-from cal_ratio_trainer.common.trained_model import load_trained_model
+from cal_ratio_trainer.common.trained_model import load_trained_model_from_training
 
 from cal_ratio_trainer.config import AnalyzeConfig, training_spec
 from cal_ratio_trainer.reporting.evaluation_utils import (
@@ -111,7 +111,7 @@ def _analyze_auc(
 ) -> str:
     "Return the calculated AUC for this epoch and a link to the plot"
 
-    model = load_trained_model(path, epoch)
+    model = load_trained_model_from_training(path, epoch)
     predictions = model.predict(data)
 
     # Balance the weights
@@ -226,7 +226,7 @@ def analyze_training_runs(cache: Path, config: AnalyzeConfig):
             data = held_data[r.run_dir]
 
             # Generate predictions for this run
-            model = load_trained_model(r.run_dir, r.epoch)
+            model = load_trained_model_from_training(r.run_dir, r.epoch)
             predictions = model.predict(data)
 
             # Get the info back (along with a figure):
