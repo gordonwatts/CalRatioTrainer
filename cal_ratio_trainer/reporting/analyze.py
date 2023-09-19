@@ -9,12 +9,12 @@ from cal_ratio_trainer.common.evaluation import (
     plot_roc_curve,
     signal_llp_efficiencies,
 )
+from cal_ratio_trainer.common.trained_model import load_trained_model
 
 from cal_ratio_trainer.config import AnalyzeConfig, training_spec
 from cal_ratio_trainer.reporting.evaluation_utils import (
     TrainedModelData,
     load_test_data,
-    load_trained_model,
 )
 from cal_ratio_trainer.utils import HistoryTracker, find_training_result
 
