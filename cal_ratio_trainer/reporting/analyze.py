@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Tuple
 from attr import dataclass
 from matplotlib import pyplot as plt
 import yaml
-from cal_ratio_trainer.common.evaulation import (
+from cal_ratio_trainer.common.evaluation import (
     normalize_to_one,
     plot_roc_curve,
     signal_llp_efficiencies,
