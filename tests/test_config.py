@@ -1,15 +1,15 @@
-from cal_ratio_trainer.config import load_config
+from cal_ratio_trainer.config import TrainingConfig, load_config
 from pathlib import Path
 
 
 def test_config_default():
-    c = load_config()
+    c = load_config(TrainingConfig)
     assert c.epochs is not None
     assert c.epochs > 0
 
 
 def test_config_default_with_new():
-    c = load_config(Path("tests/test_config.yaml"))
+    c = load_config(TrainingConfig, Path("tests/test_config.yaml"))
 
     # should be set by default
     assert c.epochs != 0
@@ -19,11 +19,11 @@ def test_config_default_with_new():
 
 
 def test_str():
-    c = load_config()
+    c = load_config(TrainingConfig)
     assert "epochs" in str(c)
     assert "\n" in str(c)
 
 
 def test_url():
-    c = load_config(Path("tests/test_with_file_url.yaml"))
+    c = load_config(TrainingConfig, Path("tests/test_with_file_url.yaml"))
     assert c.main_training_file == "file:///home/gwatts/junk.pkl"
