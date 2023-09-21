@@ -6,7 +6,8 @@ from typing import List, Optional
 import numpy as np
 import pandas as pd
 from keras import Model
-from keras.models import load_model, model_from_json
+from keras.models import load_model as load_keras_model
+from keras.models import model_from_json as load_keras_model_from_json
 
 
 @dataclass
@@ -52,7 +53,9 @@ def load_trained_model_from_training(run_dir: Path, epoch: int) -> TrainedModel:
     assert epoch_path.exists(), f"Trained Model Keras file Not Found: {epoch_path}"
 
     # Load the model that was written out
-    model = load_model(run_dir / "keras" / "final_model.keras")  # type: Optional[Model]
+    model = load_keras_model(
+        run_dir / "keras" / "final_model.keras"
+    )  # type: Optional[Model]
     assert model is not None, "Failed to load model"
     model.load_weights(epoch_path)
 
@@ -66,7 +69,23 @@ def load_trained_model_from_json(json_path: Path) -> TrainedModel:
     with json_path.open() as f:
         fdeep_model_info = json.load(f)
 
-    model = model_from_json(json.dumps(fdeep_model_info["architecture"]))
+    model = load_keras_model_from_json(json.dumps(fdeep_model_info["architecture"]))
     assert model is not None, f"Failed to load model {json_path}"
 
     return TrainedModel(model=model)
+
+
+def load_model(info: str, base_path: Path = Path("./training_results")) -> TrainedModel:
+    # determine if this is a path or a training string.
+    try:
+        p = Path(info)
+        if p.exists():
+            # This should be a JSON file!
+            return load_trained_model_from_json(p)
+    except Exception:
+        pass
+
+    # Ok - if here, then we have an actual training.
+    name, run = info.split("/")
+
+    return load_trained_model_from_training(base_path / name, int(run))

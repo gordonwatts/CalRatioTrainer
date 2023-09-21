@@ -21,6 +21,7 @@
         "dtype",
         "errorbar",
         "errstate",
+        "fdeep",
         "figsize",
         "fillna",
         "fontsize",
