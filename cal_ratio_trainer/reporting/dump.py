@@ -12,4 +12,4 @@ def dump_model(model_name: str):
         None
     """
     model = load_model(model_name)
-    print(model.model.summary())
+    print(model.summary())

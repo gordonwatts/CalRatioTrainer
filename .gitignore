@@ -83,7 +83,7 @@ calratio_training/
 coverage.xml
 timings.txt
 /*.yaml
-training_results/
+/training_results/
 reports/
 model.json
 model.keras
