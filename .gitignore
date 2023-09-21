@@ -85,3 +85,5 @@ timings.txt
 /*.yaml
 training_results/
 reports/
+model.json
+model.keras

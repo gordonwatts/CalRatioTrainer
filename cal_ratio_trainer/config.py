@@ -137,6 +137,19 @@ class training_spec(BaseModel):
     run: int
 
 
+class epoch_spec(BaseModel):
+    "Specification for an epoch of a training run"
+
+    # The name of the training run
+    name: str
+
+    # The run number
+    run: int
+
+    # The epoch of the run.
+    epoch: int
+
+
 class AnalyzeConfig(BaseModel):
     "Configuration for analysis"
 
@@ -148,8 +161,19 @@ class AnalyzeConfig(BaseModel):
     )
 
 
+class ConvertConfig(BaseModel):
+    "Configuration for CPP Conversion"
+
+    run_to_convert: Optional[epoch_spec] = None
+
+    output_json: Optional[Path] = Field(
+        description="The path to the output model and weight json file."
+    )
+
+
 config_default_file = {
     TrainingConfig: "default_training_config",
     ReportingConfig: "default_reporting_config",
     AnalyzeConfig: "default_analyze_config",
+    ConvertConfig: "default_convert_config",
 }

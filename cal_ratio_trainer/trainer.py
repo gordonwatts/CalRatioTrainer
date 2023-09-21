@@ -5,8 +5,10 @@ from typing import List
 
 from cal_ratio_trainer.config import (
     AnalyzeConfig,
+    ConvertConfig,
     ReportingConfig,
     TrainingConfig,
+    epoch_spec,
     load_config,
     plot_file,
     training_spec,
@@ -72,6 +74,20 @@ def do_analyze(args):
             a.runs_to_analyze.append(training_spec(name=name, run=int(run)))
 
     analyze_training_runs(cache, a)
+
+
+def do_cpp_convert(args):
+    a_config = load_config(ConvertConfig, args.config)
+    a = apply_config_args(ConvertConfig, a_config, args)
+
+    # The training epochs are special. Analyze is specified.
+    if len(args.training) > 0:
+        name, run, epoch = args.training.split("/")
+        a.run_to_convert = epoch_spec(name=name, run=int(run), epoch=int(epoch))
+
+    from cal_ratio_trainer.convert.convert_json import convert_file
+
+    convert_file(a)
 
 
 def main():
@@ -168,6 +184,25 @@ def main():
     )
     add_config_args(AnalyzeConfig, parser_analyze)
     parser_analyze.set_defaults(func=do_analyze)
+
+    # The `convert` command will take a training ("name/number/epoch") and convert it
+    # to an output JSON file that can be used in our C++ DiVertAnalysis code.
+    parser_convert = subparsers.add_parser(
+        "convert",
+        help="Convert a training run to a JSON file for C++",
+    )
+    parser_convert.add_argument(
+        "--config",
+        "-c",
+        type=Path,
+        help="Path to the config file to use for analysis",
+    )
+    parser_convert.add_argument(
+        "training",
+        help="The training runs to analyze. Form is <training-name>/<number>/<epoch>.",
+    )
+    add_config_args(ConvertConfig, parser_convert)
+    parser_convert.set_defaults(func=do_cpp_convert)
 
     # Parse the command line arguments
     args = parser.parse_args()
