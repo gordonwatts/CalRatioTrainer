@@ -13,8 +13,6 @@ def test_load_old_json():
     assert model is not None
     assert model.model is not None
 
-    assert False
-
 
 def test_load_model_epoch():
     """Test loading a model from a run/epoch number"""
