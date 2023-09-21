@@ -77,6 +77,15 @@ def do_analyze(args):
 
 
 def do_cpp_convert(args):
+    """
+    Converts a training file to a frugally-deep JSON file.
+
+    Args:
+        args: An object containing the command-line arguments.
+
+    Returns:
+        None
+    """
     a_config = load_config(ConvertConfig, args.config)
     a = apply_config_args(ConvertConfig, a_config, args)
 
@@ -88,6 +97,21 @@ def do_cpp_convert(args):
     from cal_ratio_trainer.convert.convert_json import convert_file
 
     convert_file(a)
+
+
+def do_model_dump(args):
+    """
+    Dumps the model from a training file to a text file.
+
+    Args:
+        args: An object containing the command-line arguments.
+
+    Returns:
+        None
+    """
+    from cal_ratio_trainer.reporting.dump import dump_model
+
+    dump_model(args.training)
 
 
 def main():
@@ -203,6 +227,19 @@ def main():
     )
     add_config_args(ConvertConfig, parser_convert)
     parser_convert.set_defaults(func=do_cpp_convert)
+
+    # The `model-dump` command will take a training ("name/number/epoch") and dump the
+    # model to stdout.
+    parser_model_dump = subparsers.add_parser(
+        "model-dump",
+        help="Dump the model from a training run to stdout",
+    )
+    parser_model_dump.add_argument(
+        "training",
+        help="The training runs to analyze. Form is <training-name>/<number>/<epoch> "
+        "or a path to a JSON file.",
+    )
+    parser_model_dump.set_defaults(func=do_model_dump)
 
     # Parse the command line arguments
     args = parser.parse_args()
