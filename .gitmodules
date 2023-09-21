@@ -1,0 +1,3 @@
+[submodule "cal_ratio_trainer/convert/fdeep"]
+	path = cal_ratio_trainer/convert/fdeep
+	url = https://github.com/Dobiasd/frugally-deep.git

@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from cal_ratio_trainer.config import ConvertConfig
 from cal_ratio_trainer.reporting.evaluation_utils import load_trained_model
@@ -20,4 +21,10 @@ def convert_file(c: ConvertConfig):
     # Write out as keras output
     model.model.save(output_path.with_suffix(".keras"))
 
-    # Next, convert it to fdeep format.
+    # Next, convert it to f-deep format.
+    convert_file = Path(__file__).parent / "fdeep" / "keras_export" / "convert_model.py"
+    assert convert_file.exists(), f"Could not find convert_model.py at {convert_file}"
+    os.system(
+        f"python {convert_file} {output_path.with_suffix('.keras')} "
+        f"{output_path.with_suffix('.json')}"
+    )
