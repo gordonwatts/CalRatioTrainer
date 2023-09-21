@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
@@ -62,7 +63,10 @@ def load_trained_model_from_json(json_path: Path) -> TrainedModel:
     # Load the model that was written out
     assert json_path.exists(), f"Trained Model JSON file Not Found: {json_path}"
 
-    model = model_from_json(json_path.read_text())
+    with json_path.open() as f:
+        fdeep_model_info = json.load(f)
+
+    model = model_from_json(json.dumps(fdeep_model_info["architecture"]))
     assert model is not None, f"Failed to load model {json_path}"
 
     return TrainedModel(model=model)
