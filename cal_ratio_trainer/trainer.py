@@ -77,6 +77,15 @@ def do_analyze(args):
 
 
 def do_cpp_convert(args):
+    """
+    Converts a training file to a frugally-deep JSON file.
+
+    Args:
+        args: An object containing the command-line arguments.
+
+    Returns:
+        None
+    """
     a_config = load_config(ConvertConfig, args.config)
     a = apply_config_args(ConvertConfig, a_config, args)
 
