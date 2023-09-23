@@ -25,6 +25,6 @@ def convert_file(c: ConvertConfig):
     convert_file = Path(__file__).parent / "fdeep" / "keras_export" / "convert_model.py"
     assert convert_file.exists(), f"Could not find convert_model.py at {convert_file}"
     os.system(
-        f"python {convert_file} {output_path.with_suffix('.keras')} "
+        f"python3 {convert_file} {output_path.with_suffix('.keras')} "
         f"{output_path.with_suffix('.json')}"
     )
