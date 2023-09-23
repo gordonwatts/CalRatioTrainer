@@ -1,11 +1,11 @@
 import os
 from pathlib import Path
 from cal_ratio_trainer.common.trained_model import load_trained_model_from_training
-from cal_ratio_trainer.config import ConvertConfig
+from cal_ratio_trainer.config import ConvertTrainingConfig
 from cal_ratio_trainer.utils import find_training_result
 
 
-def convert_file(c: ConvertConfig):
+def convert_file(c: ConvertTrainingConfig):
     # Load up the model and weights for the run.
     assert c.run_to_convert is not None
     model_path = find_training_result(c.run_to_convert.name, c.run_to_convert.run)

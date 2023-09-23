@@ -161,8 +161,8 @@ class AnalyzeConfig(BaseModel):
     )
 
 
-class ConvertConfig(BaseModel):
-    "Configuration for CPP Conversion"
+class ConvertTrainingConfig(BaseModel):
+    "Configuration for training to JSON-CPP Conversion"
 
     run_to_convert: Optional[epoch_spec] = None
 
@@ -171,9 +171,21 @@ class ConvertConfig(BaseModel):
     )
 
 
+class ConvertDiVertAnalysisConfig(BaseModel):
+    "Configuration for converting a divertanalysis output file"
+
+    input_file: Optional[List[Path]] = None
+
+    output_path: Optional[Path] = Field(
+        description="The path to the directory where the converted pd.DataFrame pickle"
+        "files will be written."
+    )
+
+
 config_default_file = {
     TrainingConfig: "default_training_config",
     ReportingConfig: "default_reporting_config",
     AnalyzeConfig: "default_analyze_config",
-    ConvertConfig: "default_convert_config",
+    ConvertTrainingConfig: "default_convert_config",
+    ConvertDiVertAnalysisConfig: "default_divert_config",
 }
