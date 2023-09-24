@@ -7,6 +7,8 @@ from cal_ratio_trainer.config import (
     AnalyzeConfig,
     ConvertDiVertAnalysisConfig,
     ConvertTrainingConfig,
+    DiVertAnalysisInputFile,
+    DiVertFileType,
     ReportingConfig,
     TrainingConfig,
     epoch_spec,
@@ -14,10 +16,14 @@ from cal_ratio_trainer.config import (
     plot_file,
     training_spec,
 )
-from cal_ratio_trainer.convert.convert_divert import convert_divert
 from cal_ratio_trainer.utils import add_config_args, apply_config_args
 
 cache = Path("./calratio_training")
+
+
+# NOTE: Many imports are inside the methods. This is because these imports
+# pull in TensorFlow and that is a fairly costly operation, and slows down the
+# overall usage of the tool.
 
 
 def do_train(args):
@@ -106,7 +112,10 @@ def do_divert_convert(args):
     a = apply_config_args(ConvertDiVertAnalysisConfig, a_config, args)
 
     if len(args.input_files) > 0:
-        a.input_file = args.input_files
+        a.input_files = [
+            DiVertAnalysisInputFile(input_file=f, data_type=args.data_type)
+            for f in args.input_files
+        ]
 
     # Check the output path is a directory or does not exist.
     if a.output_path.exists() and not a.output_path.is_dir():
@@ -114,6 +123,9 @@ def do_divert_convert(args):
             f"Output path {a.output_path} exists and is not a directory."
         )
     a.output_path.mkdir(parents=True, exist_ok=True)
+
+    # And run the conversion.
+    from cal_ratio_trainer.convert.convert_divert import convert_divert
 
     convert_divert(a)
 
@@ -280,6 +292,13 @@ def main():
         help="The input files to convert. Can be repeated multiple times. Written to "
         "the output directory",
         type=Path,
+    )
+    parser_divertanalysis_convert.add_argument(
+        "--data_type",
+        type=DiVertFileType,
+        default="sig",
+        help="The Datatype of the file to be converted (sig, qcd, bib). 'sig' "
+        "is default.",
     )
     add_config_args(ConvertDiVertAnalysisConfig, parser_divertanalysis_convert)
     parser_divertanalysis_convert.set_defaults(func=do_divert_convert)

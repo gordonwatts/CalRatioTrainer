@@ -1,3 +1,5 @@
+from pathlib import Path
+from typing import List
 import awkward as ak
 import numpy as np
 import pandas as pd
@@ -293,7 +295,9 @@ def column_guillotine(arr, branches):
     return pd.concat(df_combine, axis=1)
 
 
-def signal_processing(signal_file, llp_mH, llp_mS, branches):
+def signal_processing(
+    signal_file, llp_mH, llp_mS, branches: List[str], output_file: Path
+):
     # getting the specific branches as defined by branches
     # should be 'trees_DV_' for every file
     signal_file_branch = signal_file["trees_DV_"].arrays(branches)
@@ -341,7 +345,7 @@ def signal_processing(signal_file, llp_mH, llp_mS, branches):
     # writes it out to pickle file
     # this should be removed when the infrastructure for reading in multiple root files
     # is added as the pickle file should be written out after reading in all of them
-    big_df.to_pickle("./raw_df_signal.pkl")
+    big_df.to_pickle(output_file)
 
     # min_pt = 40000
     # max_pt = 300000
@@ -352,7 +356,7 @@ def signal_processing(signal_file, llp_mH, llp_mS, branches):
     return big_df
 
 
-def bib_processing(file, branches):
+def bib_processing(file, branches: List[str], output_file: Path):
     # need to add in dR calculation
     bib_data = file["trees_DV_"].arrays(branches)
     bib_data = bib_data[bib_data.HLT_jet_isBIB == 1]
@@ -395,12 +399,12 @@ def bib_processing(file, branches):
     big_df.insert(0, "label", 2)
     big_df["mcEventWeight"] = 1
 
-    big_df.to_pickle("./raw_df_bib.pkl")
+    big_df.to_pickle(output_file)
 
     return big_df
 
 
-def qcd_processing(file, branches):
+def qcd_processing(file, branches: List[str], output_file: Path):
     qcd_data = file["trees_DV_"].arrays(branches)
     jet_masked = jets_masking(qcd_data, branches)
 
@@ -431,13 +435,40 @@ def qcd_processing(file, branches):
     big_df.insert(0, "mS", 0)
     big_df.insert(0, "label", 1)
 
-    big_df.to_pickle("./raw_df_qcd.pkl")
+    big_df.to_pickle(output_file)
 
     return big_df
 
 
 def convert_divert(config: ConvertDiVertAnalysisConfig):
-    assert config.input_file is not None
+    assert config.input_files is not None
+
+    for f_info in config.input_files:
+        assert f_info.input_file.exists()
+
+        # The output file is with pkl on it, and in the output directory.
+        assert config.output_path is not None
+        output_file = config.output_path / f_info.input_file.with_suffix(".pkl").name
+
+        # Now run the requested processing
+        with uproot.open(f_info.input_file) as in_file:
+            if f_info.data_type == "sig":
+                assert config.signal_branches is not None
+                signal_processing(
+                    in_file,
+                    config.llp_mH,
+                    config.llp_mS,
+                    config.signal_branches,
+                    output_file,
+                )
+            elif f_info.data_type == "qcd":
+                assert config.qcd_branches is not None
+                qcd_processing(in_file, config.qcd_branches, output_file)
+            elif f_info.data_type == "bib":
+                assert config.bib_branches is not None
+                bib_processing(in_file, config.bib_branches, output_file)
+            else:
+                raise ValueError(f"Unknown data type {f_info.data_type}")
 
     # for f in config.input_file:
     #     assert f.exists()
@@ -451,7 +482,7 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
     #     with uproot.open(f) as in_file:  # type: ignore
     #         qcd_processing(in_file, config.qcd_branches)
 
-    for f in config.input_file:
-        assert f.exists()
-        with uproot.open(f) as in_file:  # type: ignore
-            bib_processing(in_file, config.qcd_branches)
+    # for f in config.input_file:
+    #     assert f.exists()
+    #     with uproot.open(f) as in_file:  # type: ignore
+    #         bib_processing(in_file, config.qcd_branches)
