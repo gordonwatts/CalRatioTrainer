@@ -8,14 +8,15 @@ This is far from production!
 
 ## Usage
 
-This isn't meant to be an exploratory thing as much as "easy-to-run".
+This isn't meant to be an exploratory thing as much as "easy-to-run". Use `--help` to get a full description of other options.
 
 * `cr_trainer train --help` to see all the command line options.
 * `cr_trainer train` will run the default (test) training. The test training has a reduced size signal file. However, everything is large enough to stress out the system. Good for running tests locally on your CPU. Results are stored under `training_results`, which is created in your current directory.
 * `cr_trainer plot --help` will tell you how to make comparison plots between different training data files.
 * `cr_trainer plot` will generate a report comparing the test main training data and adversary training data file. The results are stored under `reports`, which is created in your current directory. Look at the `report.md` file for quick info.
 * `cr _trainer analyze` will compare several runs looking for a _best_ epoch, make a few plots, and run a few comparisons on the `test` dataset.
-* `cr_trainer convert name/run/epoch` will convert that run's model with weights from that epoch to a `json` file that DiVertAnalysis's `fdeep` pacakge can import and run.
+* `cr_trainer convert training name/run/epoch` will convert that run's model with weights from that epoch to a `json` file that DiVertAnalysis's `fdeep` pacakge can import and run.
+* `cr_trainer convert divertanalysis file_path -data_type qcd` will convert the `DiVertAnalysisR21` output at `file_path` to a pre-training file. This can then be used to build a full training sample. Wildcards are allowed. Use `yaml` config to build a complete set.
 
 Some quick notes:
 
