@@ -5,7 +5,10 @@ from typing import List
 
 from cal_ratio_trainer.config import (
     AnalyzeConfig,
-    ConvertConfig,
+    ConvertDiVertAnalysisConfig,
+    ConvertTrainingConfig,
+    DiVertAnalysisInputFile,
+    DiVertFileType,
     ReportingConfig,
     TrainingConfig,
     epoch_spec,
@@ -16,6 +19,11 @@ from cal_ratio_trainer.config import (
 from cal_ratio_trainer.utils import add_config_args, apply_config_args
 
 cache = Path("./calratio_training")
+
+
+# NOTE: Many imports are inside the methods. This is because these imports
+# pull in TensorFlow and that is a fairly costly operation, and slows down the
+# overall usage of the tool.
 
 
 def do_train(args):
@@ -86,8 +94,8 @@ def do_cpp_convert(args):
     Returns:
         None
     """
-    a_config = load_config(ConvertConfig, args.config)
-    a = apply_config_args(ConvertConfig, a_config, args)
+    a_config = load_config(ConvertTrainingConfig, args.config)
+    a = apply_config_args(ConvertTrainingConfig, a_config, args)
 
     # The training epochs are special. Analyze is specified.
     if len(args.training) > 0:
@@ -97,6 +105,29 @@ def do_cpp_convert(args):
     from cal_ratio_trainer.convert.convert_json import convert_file
 
     convert_file(a)
+
+
+def do_divert_convert(args):
+    a_config = load_config(ConvertDiVertAnalysisConfig, args.config)
+    a = apply_config_args(ConvertDiVertAnalysisConfig, a_config, args)
+
+    if len(args.input_files) > 0:
+        a.input_files = [
+            DiVertAnalysisInputFile(input_file=f, data_type=args.data_type)
+            for f in args.input_files
+        ]
+
+    # Check the output path is a directory or does not exist.
+    if a.output_path.exists() and not a.output_path.is_dir():
+        raise RuntimeError(
+            f"Output path {a.output_path} exists and is not a directory."
+        )
+    a.output_path.mkdir(parents=True, exist_ok=True)
+
+    # And run the conversion.
+    from cal_ratio_trainer.convert.convert_divert import convert_divert
+
+    convert_divert(a)
 
 
 def do_model_dump(args):
@@ -209,11 +240,26 @@ def main():
     add_config_args(AnalyzeConfig, parser_analyze)
     parser_analyze.set_defaults(func=do_analyze)
 
-    # The `convert` command will take a training ("name/number/epoch") and convert it
-    # to an output JSON file that can be used in our C++ DiVertAnalysis code.
+    # The `convert` command facilitates converting files from one form to another.
+    # It currently does two things, depending on a "noun" that it gets:
+    #  1. will take a training ("name/number/epoch") and convert it
+    #     to an output JSON file that can be used in our C++ DiVertAnalysis code.
+    #  2. Take a DiVertAnalysis file and convert it to a raw training file (which
+    #     must still be built into a complete training data file).
     parser_convert = subparsers.add_parser(
         "convert",
-        help="Convert a training run to a JSON file for C++",
+        help="Convert file formats",
+    )
+    # Create a sub-parser that will process two commands, "training" and
+    # "divertanalysis".
+    subparsers_convert = parser_convert.add_subparsers(help="sub-command help")
+    parser_convert.set_defaults(func=lambda _: parser_convert.print_help())
+
+    # First, the training conversion command.
+    parser_convert = subparsers_convert.add_parser(
+        "training",
+        help="Convert a training/run/epoch to a JSON file to be used by fdeep "
+        "in DiVertAnalysisR21",
     )
     parser_convert.add_argument(
         "--config",
@@ -225,8 +271,37 @@ def main():
         "training",
         help="The training runs to analyze. Form is <training-name>/<number>/<epoch>.",
     )
-    add_config_args(ConvertConfig, parser_convert)
+    add_config_args(ConvertTrainingConfig, parser_convert)
     parser_convert.set_defaults(func=do_cpp_convert)
+
+    # Next, the divertanalysis sub-command
+    parser_divertanalysis_convert = subparsers_convert.add_parser(
+        "divertanalysis",
+        help="Convert a DiVertAnalysis file to a training file",
+    )
+    parser_divertanalysis_convert.add_argument(
+        "--config",
+        "-c",
+        type=Path,
+        help="Path to the config file to use for analysis",
+    )
+    parser_divertanalysis_convert.add_argument(
+        "input_files",
+        nargs="*",
+        default=[],
+        help="The input files to convert. Can be repeated multiple times. Written to "
+        "the output directory",
+        type=Path,
+    )
+    parser_divertanalysis_convert.add_argument(
+        "--data_type",
+        type=DiVertFileType,
+        default="sig",
+        help="The Datatype of the file to be converted (sig, qcd, bib). 'sig' "
+        "is default.",
+    )
+    add_config_args(ConvertDiVertAnalysisConfig, parser_divertanalysis_convert)
+    parser_divertanalysis_convert.set_defaults(func=do_divert_convert)
 
     # The `model-dump` command will take a training ("name/number/epoch") and dump the
     # model to stdout.

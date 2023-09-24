@@ -1,8 +1,10 @@
 import io
+from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Union
-from pydantic import BaseModel, Field
+
 import yaml
+from pydantic import BaseModel, Field
 
 # WARNING:
 # This should include no other modules that eventually import TensorFlow
@@ -161,8 +163,8 @@ class AnalyzeConfig(BaseModel):
     )
 
 
-class ConvertConfig(BaseModel):
-    "Configuration for CPP Conversion"
+class ConvertTrainingConfig(BaseModel):
+    "Configuration for training to JSON-CPP Conversion"
 
     run_to_convert: Optional[epoch_spec] = None
 
@@ -171,9 +173,61 @@ class ConvertConfig(BaseModel):
     )
 
 
+class DiVertFileType(str, Enum):
+    "The type of file in a divertanalysis output file"
+    sig = "sig"
+    qcd = "qcd"
+    bib = "bib"
+
+
+class DiVertAnalysisInputFile(BaseModel):
+    "Information about a divertanalysis input file"
+
+    # The location of the input file
+    input_file: Path = Field(description="The location of the input file.")
+
+    # The name to use on the legend of the plot for data from this file.
+    data_type: DiVertFileType = Field(
+        description="The type of data in this file. One of 'sig', 'qcd', 'bib'."
+    )
+
+
+class ConvertDiVertAnalysisConfig(BaseModel):
+    "Configuration for converting a divertanalysis output file"
+
+    input_files: Optional[List[DiVertAnalysisInputFile]] = Field(
+        description="The list of input files to convert."
+    )
+
+    output_path: Optional[Path] = Field(
+        description="The path to the directory where the converted pd.DataFrame pickle"
+        "files will be written.",
+    )
+
+    signal_branches: Optional[List[str]] = Field(
+        description="The list of branches to store in the output training file "
+        "for signal."
+    )
+    bib_branches: Optional[List[str]] = Field(
+        description="The list of branches to store in the output training file for bib."
+    )
+    qcd_branches: Optional[List[str]] = Field(
+        description="The list of branches to store in the output training file for qcd."
+    )
+
+    llp_mH: Optional[float] = Field(
+        description="The mass of the heavy higgs like particle."
+    )
+
+    llp_mS: Optional[float] = Field(
+        description="The mass of the dark sector light LLP like particle."
+    )
+
+
 config_default_file = {
     TrainingConfig: "default_training_config",
     ReportingConfig: "default_reporting_config",
     AnalyzeConfig: "default_analyze_config",
-    ConvertConfig: "default_convert_config",
+    ConvertTrainingConfig: "default_convert_config",
+    ConvertDiVertAnalysisConfig: "default_divert_config",
 }
