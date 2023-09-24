@@ -481,20 +481,3 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
 
         if not found_file:
             raise ValueError(f"Could not find file matching {f_info.input_file}")
-
-    # for f in config.input_file:
-    #     assert f.exists()
-    #     with uproot.open(f) as in_file:
-    #         signal_processing(
-    #             in_file, config.llp_mH, config.llp_mS, config.signal_branches
-    #         )
-
-    # for f in config.input_file:
-    #     assert f.exists()
-    #     with uproot.open(f) as in_file:  # type: ignore
-    #         qcd_processing(in_file, config.qcd_branches)
-
-    # for f in config.input_file:
-    #     assert f.exists()
-    #     with uproot.open(f) as in_file:  # type: ignore
-    #         bib_processing(in_file, config.qcd_branches)
