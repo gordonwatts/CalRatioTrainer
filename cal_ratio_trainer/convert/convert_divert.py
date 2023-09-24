@@ -1,5 +1,8 @@
+import glob
+import logging
 from pathlib import Path
 from typing import List
+
 import awkward as ak
 import numpy as np
 import pandas as pd
@@ -444,31 +447,40 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
     assert config.input_files is not None
 
     for f_info in config.input_files:
-        assert f_info.input_file.exists()
+        found_file = False
+        for file_path in (Path(f) for f in glob.glob(str(f_info.input_file))):
+            assert file_path.exists()
+            found_file = True
+            logging.info(
+                f"Converting files {file_path.name} as a {f_info.data_type} file."
+            )
 
-        # The output file is with pkl on it, and in the output directory.
-        assert config.output_path is not None
-        output_file = config.output_path / f_info.input_file.with_suffix(".pkl").name
+            # The output file is with pkl on it, and in the output directory.
+            assert config.output_path is not None
+            output_file = config.output_path / file_path.with_suffix(".pkl").name
 
-        # Now run the requested processing
-        with uproot.open(f_info.input_file) as in_file:
-            if f_info.data_type == "sig":
-                assert config.signal_branches is not None
-                signal_processing(
-                    in_file,
-                    config.llp_mH,
-                    config.llp_mS,
-                    config.signal_branches,
-                    output_file,
-                )
-            elif f_info.data_type == "qcd":
-                assert config.qcd_branches is not None
-                qcd_processing(in_file, config.qcd_branches, output_file)
-            elif f_info.data_type == "bib":
-                assert config.bib_branches is not None
-                bib_processing(in_file, config.bib_branches, output_file)
-            else:
-                raise ValueError(f"Unknown data type {f_info.data_type}")
+            # Now run the requested processing
+            with uproot.open(file_path) as in_file:  # type: ignore
+                if f_info.data_type == "sig":
+                    assert config.signal_branches is not None
+                    signal_processing(
+                        in_file,
+                        config.llp_mH,
+                        config.llp_mS,
+                        config.signal_branches,
+                        output_file,
+                    )
+                elif f_info.data_type == "qcd":
+                    assert config.qcd_branches is not None
+                    qcd_processing(in_file, config.qcd_branches, output_file)
+                elif f_info.data_type == "bib":
+                    assert config.bib_branches is not None
+                    bib_processing(in_file, config.bib_branches, output_file)
+                else:
+                    raise ValueError(f"Unknown data type {f_info.data_type}")
+
+        if not found_file:
+            raise ValueError(f"Could not find file matching {f_info.input_file}")
 
     # for f in config.input_file:
     #     assert f.exists()
