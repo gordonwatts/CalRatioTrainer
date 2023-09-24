@@ -352,6 +352,54 @@ def signal_processing(signal_file, llp_mH, llp_mS, branches):
     return big_df
 
 
+def bib_processing(file, branches):
+    # need to add in dR calculation
+    bib_data = file["trees_DV_"].arrays(branches)
+    bib_data = bib_data[bib_data.HLT_jet_isBIB == 1]
+    jet_masked = jets_masking(bib_data, branches)
+
+    jet_masked_0 = ak.Array(
+        {
+            col: jet_masked[col][:, 0] if col.startswith("llp") else jet_masked[col]
+            for col in branches
+        }
+    )
+    jet_masked_1 = ak.Array(
+        {
+            col: jet_masked[col][:, 1] if col.startswith("llp") else jet_masked[col]
+            for col in branches
+        }
+    )
+    dR_masked_0 = apply_dR_mask(jet_masked_0, branches, "BIB")
+    dR_masked_1 = apply_dR_mask(jet_masked_1, branches, "BIB")
+
+    sorted_tcm_0 = sorting_by_pT(dR_masked_0, branches)
+    sorted_tcm_1 = sorting_by_pT(dR_masked_1, branches)
+
+    big_df = pd.concat(
+        [
+            column_guillotine(sorted_tcm_0, branches),
+            column_guillotine(sorted_tcm_1, branches),
+        ],
+        axis=0,
+    )
+
+    big_df.insert(0, "llp_Lz", 0)
+    big_df.insert(0, "llp_Lxy", 0)
+    big_df.insert(0, "llp_phi", 0)
+    big_df.insert(0, "llp_eta", 0)
+    big_df.insert(0, "llp_pT", 0)
+
+    big_df.insert(0, "mH", 0.0)
+    big_df.insert(0, "mS", 0.0)
+    big_df.insert(0, "label", 2)
+    big_df["mcEventWeight"] = 1
+
+    big_df.to_pickle("./raw_df_bib.pkl")
+
+    return big_df
+
+
 def qcd_processing(file, branches):
     qcd_data = file["trees_DV_"].arrays(branches)
     jet_masked = jets_masking(qcd_data, branches)
@@ -398,7 +446,12 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
     #             in_file, config.llp_mH, config.llp_mS, config.signal_branches
     #         )
 
+    # for f in config.input_file:
+    #     assert f.exists()
+    #     with uproot.open(f) as in_file:  # type: ignore
+    #         qcd_processing(in_file, config.qcd_branches)
+
     for f in config.input_file:
         assert f.exists()
         with uproot.open(f) as in_file:  # type: ignore
-            qcd_processing(in_file, config.qcd_branches)
+            bib_processing(in_file, config.qcd_branches)
