@@ -181,6 +181,18 @@ class ConvertDiVertAnalysisConfig(BaseModel):
         "files will be written."
     )
 
+    signal_branches: Optional[List[str]] = Field(
+        description="The list of branches to store in the output training file."
+    )
+
+    llp_mH: Optional[float] = Field(
+        description="The mass of the heavy higgs like particle."
+    )
+
+    llp_mS: Optional[float] = Field(
+        description="The mass of the dark sector light LLP like particle."
+    )
+
 
 config_default_file = {
     TrainingConfig: "default_training_config",
