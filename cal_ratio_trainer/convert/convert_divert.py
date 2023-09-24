@@ -342,7 +342,6 @@ def signal_processing(signal_file, llp_mH, llp_mS, branches):
     # this should be removed when the infrastructure for reading in multiple root files
     # is added as the pickle file should be written out after reading in all of them
     big_df.to_pickle("./raw_df_signal.pkl")
-    print("pickled it!")
 
     # min_pt = 40000
     # max_pt = 300000
@@ -353,11 +352,53 @@ def signal_processing(signal_file, llp_mH, llp_mS, branches):
     return big_df
 
 
+def qcd_processing(file, branches):
+    qcd_data = file["trees_DV_"].arrays(branches)
+    jet_masked = jets_masking(qcd_data, branches)
+
+    sorted = sorting_by_pT(jet_masked, branches)
+    big_df = column_guillotine(sorted, branches)
+
+    # jet_masked_0 = ak.Array({col: jet_masked[col][:,0] if col.startswith('llp')
+    #                      else jet_masked[col]
+    #                      for col in branches})
+    # jet_masked_1 = ak.Array({col: jet_masked[col][:,1] if col.startswith('llp')
+    #                          else jet_masked[col]
+    #                          for col in branches})
+
+    # sorted_0 = sorting_by_pT(jet_masked_0, branches)
+    # sorted_1 = sorting_by_pT(jet_masked_1, branches)
+
+    # big_df = pd.concat([column_guillotine(sorted_0, branches),
+    # column_guillotine(sorted_1, branches)], axis=0)
+
+    # this order should match order of columns in the signal data
+    big_df.insert(0, "llp_Lz", 0)
+    big_df.insert(0, "llp_Lxy", 0)
+    big_df.insert(0, "llp_phi", 0)
+    big_df.insert(0, "llp_eta", 0)
+    big_df.insert(0, "llp_pT", 0)
+
+    big_df.insert(0, "mH", 0)
+    big_df.insert(0, "mS", 0)
+    big_df.insert(0, "label", 1)
+
+    big_df.to_pickle("./raw_df_qcd.pkl")
+
+    return big_df
+
+
 def convert_divert(config: ConvertDiVertAnalysisConfig):
     assert config.input_file is not None
+
+    # for f in config.input_file:
+    #     assert f.exists()
+    #     with uproot.open(f) as in_file:
+    #         signal_processing(
+    #             in_file, config.llp_mH, config.llp_mS, config.signal_branches
+    #         )
+
     for f in config.input_file:
         assert f.exists()
-        with uproot.open(f) as in_file:
-            signal_processing(
-                in_file, config.llp_mH, config.llp_mS, config.signal_branches
-            )
+        with uproot.open(f) as in_file:  # type: ignore
+            qcd_processing(in_file, config.qcd_branches)
