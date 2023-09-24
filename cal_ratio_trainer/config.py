@@ -182,7 +182,8 @@ class ConvertDiVertAnalysisConfig(BaseModel):
     )
 
     signal_branches: Optional[List[str]] = Field(
-        description="The list of branches to store in the output training file for signal."
+        description="The list of branches to store in the output training file "
+        "for signal."
     )
     bib_branches: Optional[List[str]] = Field(
         description="The list of branches to store in the output training file for bib."
