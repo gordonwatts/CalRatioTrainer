@@ -224,10 +224,38 @@ class ConvertDiVertAnalysisConfig(BaseModel):
     )
 
 
+class training_input_file(BaseModel):
+    "Specs for a single input file for training"
+
+    # The location of the input file, can be a wild card.
+    input_file: Path = Field(
+        description="The location of the input file, wildcard is ok."
+    )
+
+    # The number of events to include in building the training file.
+    # If None, all events will be used.
+    num_events: Optional[int] = Field(
+        description="The number of events to include in building the training file."
+    )
+
+
+class BuildMainTrainingConfig(BaseModel):
+    "Configuration for building a main training file"
+
+    input_files: Optional[List[training_input_file]] = Field(
+        description="The list of input files to convert."
+    )
+
+    output_file: Optional[Path] = Field(
+        description="The path to the output training file. Must not already exist."
+    )
+
+
 config_default_file = {
     TrainingConfig: "default_training_config",
     ReportingConfig: "default_reporting_config",
     AnalyzeConfig: "default_analyze_config",
     ConvertTrainingConfig: "default_convert_config",
     ConvertDiVertAnalysisConfig: "default_divert_config",
+    BuildMainTrainingConfig: "default_build_main_training_config",
 }
