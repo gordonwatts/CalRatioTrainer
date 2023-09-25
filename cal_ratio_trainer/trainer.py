@@ -152,7 +152,7 @@ def do_build_main_training(args):
     a = apply_config_args(BuildMainTrainingConfig, a_config, args)
 
     # Check the output path is a directory or does not exist.
-    if a.output_file.exists() and not a.output_path.is_dir():
+    if a.output_file.exists() and not a.output_file.is_dir():
         raise RuntimeError(
             f"Output path {a.output_file} exists. Please remove before running."
         )
@@ -170,7 +170,9 @@ def do_build_main_training(args):
         if not f.input_file.exists():
             raise RuntimeError(f"Input file {f.input_file} does not exist.")
 
-    print(a)
+    from cal_ratio_trainer.build.build_main import build_main_training
+
+    build_main_training(a)
 
 
 def main():

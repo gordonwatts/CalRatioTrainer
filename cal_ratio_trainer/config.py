@@ -250,6 +250,13 @@ class BuildMainTrainingConfig(BaseModel):
         description="The path to the output training file. Must not already exist."
     )
 
+    min_jet_pT: Optional[float] = Field(
+        description="The minimum jet pT to use for the training [GeV]."
+    )
+    max_jet_pT: Optional[float] = Field(
+        description="The maximum jet pT to use for the training [GeV]."
+    )
+
 
 config_default_file = {
     TrainingConfig: "default_training_config",
