@@ -497,7 +497,7 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                         bib_processing(in_file, config.bib_branches, output_file)
                     else:
                         raise ValueError(f"Unknown data type {f_info.data_type}")
-            except uproot.exceptions.KeyInFileError as e:
+            except uproot.exceptions.KeyInFileError as e:  # type:ignore
                 logging.warning(
                     "File {file_path} does not contain the required branches: "
                     f"{str(e)}. Skipped."
