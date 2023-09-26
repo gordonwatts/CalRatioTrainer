@@ -466,27 +466,43 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
             # The output file is with pkl on it, and in the output directory.
             assert config.output_path is not None
             output_file = output_dir_path / file_path.with_suffix(".pkl").name
-            output_dir_path.mkdir(parents=True, exist_ok=True)
 
             # Now run the requested processing
-            with uproot.open(file_path) as in_file:  # type: ignore
-                if f_info.data_type == "sig":
-                    assert config.signal_branches is not None
-                    signal_processing(
-                        in_file,
-                        config.llp_mH,
-                        config.llp_mS,
-                        config.signal_branches,
-                        output_file,
-                    )
-                elif f_info.data_type == "qcd":
-                    assert config.qcd_branches is not None
-                    qcd_processing(in_file, config.qcd_branches, output_file)
-                elif f_info.data_type == "bib":
-                    assert config.bib_branches is not None
-                    bib_processing(in_file, config.bib_branches, output_file)
-                else:
-                    raise ValueError(f"Unknown data type {f_info.data_type}")
+            try:
+                with uproot.open(file_path) as in_file:  # type: ignore
+                    # Check that we don't have an empty file.
+                    data = in_file["trees_DV_"]
+                    if len(data) == 0:
+                        logging.warning(f"File {file_path} has 0 events. Skipped.")
+                        continue
+
+                    # Create output directory
+                    output_dir_path.mkdir(parents=True, exist_ok=True)
+
+                    # Process according to the data type.
+                    if f_info.data_type == "sig":
+                        assert config.signal_branches is not None
+                        signal_processing(
+                            in_file,
+                            config.llp_mH,
+                            config.llp_mS,
+                            config.signal_branches,
+                            output_file,
+                        )
+                    elif f_info.data_type == "qcd":
+                        assert config.qcd_branches is not None
+                        qcd_processing(in_file, config.qcd_branches, output_file)
+                    elif f_info.data_type == "bib":
+                        assert config.bib_branches is not None
+                        bib_processing(in_file, config.bib_branches, output_file)
+                    else:
+                        raise ValueError(f"Unknown data type {f_info.data_type}")
+            except uproot.exceptions.KeyInFileError as e:  # type:ignore
+                logging.warning(
+                    f"File {file_path} does not contain the required branches: "
+                    f"{str(e)}. Skipped."
+                )
+                continue
 
         if not found_file:
             raise ValueError(f"Could not find file matching {f_info.input_file}")
