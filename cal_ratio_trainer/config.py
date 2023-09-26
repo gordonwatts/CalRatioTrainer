@@ -191,6 +191,12 @@ class DiVertAnalysisInputFile(BaseModel):
         description="The type of data in this file. One of 'sig', 'qcd', 'bib'."
     )
 
+    # Output directory name, which is under the `output_path` of the master config.
+    output_dir: Optional[str] = Field(
+        description="The name of the output directory for this file. Stored under the "
+        "`output_path` of the master config."
+    )
+
 
 class ConvertDiVertAnalysisConfig(BaseModel):
     "Configuration for converting a divertanalysis output file"
