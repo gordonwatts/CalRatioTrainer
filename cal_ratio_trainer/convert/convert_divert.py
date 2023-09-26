@@ -448,6 +448,14 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
 
     for f_info in config.input_files:
         found_file = False
+
+        # Build the output file directory
+        assert config.output_path is not None
+        output_dir_path = config.output_path
+
+        if f_info.output_dir is not None:
+            output_dir_path = output_dir_path / f_info.output_dir
+
         for file_path in (Path(f) for f in glob.glob(str(f_info.input_file))):
             assert file_path.exists()
             found_file = True
@@ -457,7 +465,8 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
 
             # The output file is with pkl on it, and in the output directory.
             assert config.output_path is not None
-            output_file = config.output_path / file_path.with_suffix(".pkl").name
+            output_file = output_dir_path / file_path.with_suffix(".pkl").name
+            output_dir_path.mkdir(parents=True, exist_ok=True)
 
             # Now run the requested processing
             with uproot.open(file_path) as in_file:  # type: ignore
