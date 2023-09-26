@@ -5,6 +5,7 @@ from typing import List
 
 from cal_ratio_trainer.config import (
     AnalyzeConfig,
+    BuildMainTrainingConfig,
     ConvertDiVertAnalysisConfig,
     ConvertTrainingConfig,
     DiVertAnalysisInputFile,
@@ -14,6 +15,7 @@ from cal_ratio_trainer.config import (
     epoch_spec,
     load_config,
     plot_file,
+    training_input_file,
     training_spec,
 )
 from cal_ratio_trainer.utils import add_config_args, apply_config_args
@@ -143,6 +145,34 @@ def do_model_dump(args):
     from cal_ratio_trainer.reporting.dump import dump_model
 
     dump_model(args.training)
+
+
+def do_build_main_training(args):
+    a_config = load_config(BuildMainTrainingConfig, args.config)
+    a = apply_config_args(BuildMainTrainingConfig, a_config, args)
+
+    # Check the output path is a directory or does not exist.
+    if a.output_file.exists() and not a.output_file.is_dir():
+        raise RuntimeError(
+            f"Output path {a.output_file} exists. Please remove before running."
+        )
+
+    # If there are any input files, replace the list from the config.
+    if len(args.input_files) > 0:
+        a.input_files = [
+            training_input_file(input_file=f, num_events=None) for f in args.input_files
+        ]
+
+    # Make sure we have at least one input file, and the input files all exist.
+    if a.input_files is None or len(a.input_files) == 0:
+        raise RuntimeError("No input files specified.")
+    for f in a.input_files:
+        if not f.input_file.exists():
+            raise RuntimeError(f"Input file {f.input_file} does not exist.")
+
+    from cal_ratio_trainer.build.build_main import build_main_training
+
+    build_main_training(a)
 
 
 def main():
@@ -315,6 +345,28 @@ def main():
         "or a path to a JSON file.",
     )
     parser_model_dump.set_defaults(func=do_model_dump)
+
+    # The build command, to build the main training file.
+    parser_build = subparsers.add_parser(
+        "build",
+        help="Build the main training file",
+    )
+    parser_build.add_argument(
+        "input_files",
+        nargs="*",
+        default=[],
+        help="The input files to build. Can be repeated multiple times. "
+        "Completed training is written to the output file.",
+        type=Path,
+    )
+    parser_build.add_argument(
+        "--config",
+        "-c",
+        type=Path,
+        help="Path to the config file to use for analysis",
+    )
+    add_config_args(BuildMainTrainingConfig, parser_build)
+    parser_build.set_defaults(func=do_build_main_training)
 
     # Parse the command line arguments
     args = parser.parse_args()
