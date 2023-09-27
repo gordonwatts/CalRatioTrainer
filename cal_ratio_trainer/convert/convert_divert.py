@@ -467,6 +467,10 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
             assert config.output_path is not None
             output_file = output_dir_path / file_path.with_suffix(".pkl").name
 
+            if output_file.exists():
+                logging.info(f"File {output_file} already exists. Skipping.")
+                continue
+
             # Now run the requested processing
             try:
                 with uproot.open(file_path) as in_file:  # type: ignore
