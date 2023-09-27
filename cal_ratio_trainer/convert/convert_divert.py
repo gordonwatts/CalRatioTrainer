@@ -507,6 +507,9 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                     f"{str(e)}. Skipped."
                 )
                 continue
+            except Exception as e:
+                logging.error(f"Error processing file {file_path}: {str(e)}. Skipped.")
+                continue
 
         if not found_file:
             raise ValueError(f"Could not find file matching {f_info.input_file}")

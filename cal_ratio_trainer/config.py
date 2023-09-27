@@ -222,11 +222,13 @@ class ConvertDiVertAnalysisConfig(BaseModel):
     )
 
     llp_mH: Optional[float] = Field(
-        description="The mass of the heavy higgs like particle."
+        description="The mass of the heavy higgs like particle. Zero if not a signal"
+        " file."
     )
 
     llp_mS: Optional[float] = Field(
-        description="The mass of the dark sector light LLP like particle."
+        description="The mass of the dark sector light LLP like particle. Zero if not a"
+        " signal file."
     )
 
 
