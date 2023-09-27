@@ -15,8 +15,8 @@ This isn't meant to be an exploratory thing as much as "easy-to-run". Use `--hel
 * `cr_trainer plot --help` will tell you how to make comparison plots between different training data files.
 * `cr_trainer plot` will generate a report comparing the test main training data and adversary training data file. The results are stored under `reports`, which is created in your current directory. Look at the `report.md` file for quick info.
 * `cr _trainer analyze` will compare several runs looking for a _best_ epoch, make a few plots, and run a few comparisons on the `test` dataset.
-* `cr_trainer convert training name/run/epoch` will convert that run's model with weights from that epoch to a `json` file that DiVertAnalysis's `fdeep` pacakge can import and run.
-* `cr_trainer convert divertanalysis file_path -data_type qcd` will convert the `DiVertAnalysisR21` output at `file_path` to a pre-training file. This can then be used to build a full training sample. Wildcards are allowed. Use `yaml` config to build a complete set.
+* `cr_trainer convert training name/run/epoch` will convert that run's model with weights from that epoch to a `json` file that DiVertAnalysis's `fdeep` package can import and run.
+* `cr_trainer convert divertanalysis file_path -data_type qcd` will convert the `DiVertAnalysisR21` output at `file_path` to a pre-training file. This can then be used to build a full training sample. Wildcards are allowed. Use `yaml` config to build a complete set. Note that the conversion is designed to skip errors (and files previously converted). It is important to look at the log messages that result from this run to make sure all the files you want processed have been processed.
 
 Some quick notes:
 
@@ -252,14 +252,14 @@ graph LR;
 
 Notes:
 
-* There are cases where an operation is done on a variable and resulting variable has the same name. This is because in the code the label is transfered to the new data, and we are trying to remain faithful to the code.
+* There are cases where an operation is done on a variable and resulting variable has the same name. This is because in the code the label is transferred to the new data, and we are trying to remain faithful to the code.
 * There are three catagories for the main data, `0: Signal`, `1: MC Mulitjet`, and `2: BIB`.
 * There are two catagories for the adversary data, `0:xxx` and `1:xxx`
 * `Y` variables are not mentioned as they contain the "truth".
 * `X` is all columns including jet info and clusterSS, and track, and muon segment.
 * `Z` is the LLP truth information (for parameterize training?)
 * `weights` are the raw weights that come from the file we read in. `mcWeights` is rescaled so QCD and Signal have the same weight.
-* The `small` data variables are basically the unpadded/unextended data. They are often used to evaluate the discriminator.
+* The `small` data variables are basically the un-padded/unextended data. They are often used to evaluate the discriminator.
 
 ### Plots
 
