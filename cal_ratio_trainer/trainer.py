@@ -310,6 +310,10 @@ def main():
     parser_divertanalysis_convert = subparsers_convert.add_parser(
         "divertanalysis",
         help="Convert a DiVertAnalysis file to a training file",
+        description="Convert a DiVertAnalysis file to a training file. This"
+        " will process all the files specified on the command line or in the yaml"
+        " config file. Please watch warning and error messages carefully to make sure"
+        " all the files expected are processed.",
     )
     parser_divertanalysis_convert.add_argument(
         "--config",
