@@ -399,8 +399,6 @@ def bib_processing(file, branches: List[str], output_file: Path):
     big_df.insert(0, "label", 2)
     big_df["mcEventWeight"] = 1
 
-    big_df.to_pickle("./raw_df_bib.pkl")
-
     big_df.to_pickle(output_file)
 
     return big_df
