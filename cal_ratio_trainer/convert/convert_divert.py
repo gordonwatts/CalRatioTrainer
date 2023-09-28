@@ -362,34 +362,31 @@ def signal_processing(
 def bib_processing(file, branches: List[str], output_file: Path):
     # need to add in dR calculation
     bib_data = file["trees_DV_"].arrays(branches)
-    bib_data = bib_data[bib_data.HLT_jet_isBIB == 1]
-    jet_masked = jets_masking(bib_data, branches)
 
-    jet_masked_0 = ak.Array(
+    # tracking if the HLT jet is BIB
+    is_bib_mask = bib_data.HLT_jet_isBIB == 1
+    bib_masked = ak.Array(
         {
-            col: jet_masked[col][:, 0] if col.startswith("llp") else jet_masked[col]
+            col: bib_data[col][is_bib_mask] if col.startswith("HLT") else bib_data[col]
             for col in branches
         }
     )
-    jet_masked_1 = ak.Array(
+    length_mask = ak.num(bib_masked.HLT_jet_isBIB, axis=-1) > 0  # type: ignore
+    bib_masked = ak.Array({col: bib_masked[col][length_mask] for col in branches})
+
+    jet_masked = jets_masking(bib_masked, branches)
+
+    # keeping only the 1st HLT jet - should be fixed later but fine for now
+    jet_masked = ak.Array(
         {
-            col: jet_masked[col][:, 1] if col.startswith("llp") else jet_masked[col]
+            col: jet_masked[col][:, 0] if col.startswith("HLT") else jet_masked[col]
             for col in branches
         }
     )
-    dR_masked_0 = apply_dR_mask(jet_masked_0, branches, "BIB")
-    dR_masked_1 = apply_dR_mask(jet_masked_1, branches, "BIB")
 
-    sorted_tcm_0 = sorting_by_pT(dR_masked_0, branches)
-    sorted_tcm_1 = sorting_by_pT(dR_masked_1, branches)
-
-    big_df = pd.concat(
-        [
-            column_guillotine(sorted_tcm_0, branches),
-            column_guillotine(sorted_tcm_1, branches),
-        ],
-        axis=0,
-    )
+    dR_masked = apply_dR_mask(jet_masked, branches, "BIB")
+    sorted_tcm = sorting_by_pT(dR_masked, branches)
+    big_df = column_guillotine(sorted_tcm, branches)
 
     big_df.insert(0, "llp_Lz", 0)
     big_df.insert(0, "llp_Lxy", 0)
@@ -397,10 +394,12 @@ def bib_processing(file, branches: List[str], output_file: Path):
     big_df.insert(0, "llp_eta", 0)
     big_df.insert(0, "llp_pT", 0)
 
-    big_df.insert(0, "mH", 0.0)
-    big_df.insert(0, "mS", 0.0)
+    big_df.insert(0, "mH", 0)
+    big_df.insert(0, "mS", 0)
     big_df.insert(0, "label", 2)
     big_df["mcEventWeight"] = 1
+
+    big_df.to_pickle("./raw_df_bib.pkl")
 
     big_df.to_pickle(output_file)
 

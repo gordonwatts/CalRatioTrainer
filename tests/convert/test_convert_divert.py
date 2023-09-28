@@ -1,4 +1,6 @@
 from pathlib import Path
+
+import pandas as pd
 from cal_ratio_trainer.config import (
     ConvertDiVertAnalysisConfig,
     DiVertAnalysisInputFile,
@@ -96,3 +98,36 @@ def test_no_redo_existing_file(caplog, tmp_path):
 
     assert output_file.exists()
     assert output_file.stat().st_size == 0
+
+
+def test_bib_file(tmp_path, caplog):
+    "Second run, and nothing should happen"
+
+    default_branches = load_config(ConvertDiVertAnalysisConfig)
+
+    config = ConvertDiVertAnalysisConfig(
+        input_files=[
+            DiVertAnalysisInputFile(
+                input_file=Path("tests/data/bib.root"),
+                data_type=DiVertFileType.bib,
+                output_dir=None,
+            )
+        ],
+        output_path=tmp_path,
+        signal_branches=default_branches.signal_branches,
+        bib_branches=default_branches.bib_branches,
+        qcd_branches=default_branches.qcd_branches,
+        llp_mH=0,
+        llp_mS=0,
+    )
+
+    convert_divert(config)
+
+    assert "ERROR" not in caplog.text
+    assert "WARNING" not in caplog.text
+
+    # Check what was written out.
+    output_file = tmp_path / "bib.pkl"
+    df = pd.read_pickle(output_file)
+
+    assert len(df) == 1
