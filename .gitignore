@@ -89,3 +89,4 @@ model.json
 model.keras
 temp_stateful.keras
 temp_stateless.keras
+prof/

@@ -332,6 +332,25 @@ The installation is expected to take place on a Jupyter instance where the prope
 
 You should be ready to go!
 
+## Development
+
+To install the package once checked out, use the `test` option to make sure to get various development packages:
+
+```bash
+pip install -e .[wsl2,test]
+```
+
+### Profiling
+
+To get a nice dump of what is called during a run, you can use `pytest`'s profile tool:
+
+```bash
+pytest --profile  tests/convert/test_convert_divert.py::test_sig_file
+snakeviz -s prof/test_sig_file.prof
+```
+
+And click on the `url` that `snakeviz` prints out. This will give you a timing trace for the test `test_sig_file` (or whatever you want).
+
 ## Acknowledgements
 
 This is based on the work originally done by Felix in the CalRatio group in ATLAS. This RNN was published in xxx.
