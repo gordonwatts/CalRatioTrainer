@@ -9,7 +9,15 @@ authors = [{ name = "The ATLAS CalRatio Group" }]
 dependencies = ["pydantic<2.0", "PyYAML", "fsspec[ssh,http]", "atlas-mpl-style"]
 
 [project.optional-dependencies]
-test = ["black", "flake8", "pytest", "codecov", "pytest-cov"]
+test = [
+    "black",
+    "flake8",
+    "pytest",
+    "codecov",
+    "pytest-cov",
+    "pytest-profiling",
+    "snakeviz",
+]
 
 # If you are running on windows and need a complete environment,
 # include this. May work in other similar bare environments as well.
