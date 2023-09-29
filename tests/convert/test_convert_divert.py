@@ -131,3 +131,36 @@ def test_bib_file(tmp_path, caplog):
     df = pd.read_pickle(output_file)
 
     assert len(df) == 1
+
+
+def test_sig_file(tmp_path, caplog):
+    "Make sure a signal file runs correctly"
+
+    default_branches = load_config(ConvertDiVertAnalysisConfig)
+
+    config = ConvertDiVertAnalysisConfig(
+        input_files=[
+            DiVertAnalysisInputFile(
+                input_file=Path("tests/data/sig_311424_600_275.root"),
+                data_type=DiVertFileType.sig,
+                output_dir=None,
+            )
+        ],
+        output_path=tmp_path,
+        signal_branches=default_branches.signal_branches,
+        bib_branches=default_branches.bib_branches,
+        qcd_branches=default_branches.qcd_branches,
+        llp_mH=0,
+        llp_mS=0,
+    )
+
+    convert_divert(config)
+
+    assert "ERROR" not in caplog.text
+    assert "WARNING" not in caplog.text
+
+    # Check what was written out.
+    output_file = tmp_path / "sig_311424_600_275.pkl"
+    df = pd.read_pickle(output_file)
+
+    assert len(df) == 76
