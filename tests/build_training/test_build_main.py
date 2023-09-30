@@ -199,3 +199,27 @@ def test_split_by_wild():
         Path("foo/bar"),
         Path("*baz*/*.pkl"),
     )
+
+
+def test_include_only_odd_events(tmp_path):
+    "Test the event filter expression"
+    out_file = tmp_path / "test_output.pkl"
+    c = BuildMainTrainingConfig(
+        input_files=[
+            training_input_file(
+                input_file=Path("tests/data/sig_311424_600_275.pkl"),
+                num_events=None,
+                event_filter="eventNumber % 2 == 1",
+            )
+        ],
+        output_file=out_file,
+        min_jet_pT=30,
+        max_jet_pT=400,
+    )
+
+    build_main_training(c)
+
+    assert out_file.exists()
+    df = pd.read_pickle(out_file)
+    assert len(df[df.eventNumber % 2 == 0]) == 0
+    assert len(df) >= 1

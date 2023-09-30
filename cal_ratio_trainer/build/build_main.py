@@ -238,6 +238,10 @@ def build_main_training(config: BuildMainTrainingConfig):
                 next_df is not None
             ), f"Unable to read input files {f_info.input_file}"
 
+            # Filter it
+            if f_info.event_filter is not None:
+                next_df = next_df.query(f_info.event_filter)  # type: ignore
+
             # Now, concat it.
             if file_df is None:
                 file_df = next_df
