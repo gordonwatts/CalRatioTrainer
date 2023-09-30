@@ -1,3 +1,3 @@
 output_file: "main_training_file.pkl"
 min_jet_pT: 40
-max_jet_pT: 400
+max_jet_pT: 500
