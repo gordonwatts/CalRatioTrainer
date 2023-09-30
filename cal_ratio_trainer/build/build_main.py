@@ -1,5 +1,6 @@
 import logging
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Tuple
 import numpy as np
 import pandas as pd
 from cal_ratio_trainer.config import BuildMainTrainingConfig
@@ -189,6 +190,27 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
     # print("4")
 
 
+def split_path_by_wild(p: Path) -> Tuple[Path, Optional[Path]]:
+    """Split a path by the last wildcard character, respecting directory boundaries"""
+    # Stop the recursion when we get to the bottom.
+    if p == Path(".") or p == Path("/"):
+        return p, None
+
+    # Try to go down a level.
+    good_path, wild_string = split_path_by_wild(p.parent)
+
+    if wild_string is not None:
+        # We found a wildcard string, so we need to just add the name on here.
+        return good_path, wild_string / p.name
+
+    # If we get here, we didn't find a wildcard string, so we need to check if
+    # this path has a wildcard in it. The wildcard can be "*", "?", "[", or "]".
+    if "?" in p.name or "[" in p.name or "]" in p.name or "*" in p.name:
+        return good_path, Path(p.name)
+    else:
+        return good_path / p.name, None
+
+
 def build_main_training(config: BuildMainTrainingConfig):
     """Build main training file."""
     # Load up all the DataFrames and concat them into a single dataframe.
@@ -198,9 +220,17 @@ def build_main_training(config: BuildMainTrainingConfig):
 
     for f_info in config.input_files:
         file_df: Optional[pd.DataFrame] = None
+
         # Use the f_info.input_file as a "glob" expression and loop over all found
-        # files:
-        for f_name in f_info.input_file.parent.glob(f_info.input_file.name):
+        # files. Since parent directories might contain the glob character, we need to
+        # scan back to the longest root that contains no wildcard characters and then
+        # pass the remaining to `glob` based on the preceding valid string created as
+        # a `Path` object. For example, if we have a file path of
+        # `/foo/bar/baz*/*.pkl`, we need to scan back to `/foo/bar` and then pass
+        # `baz*/*.pkl` to `glob`.
+        stable, wild = split_path_by_wild(f_info.input_file)
+        files_found = [stable] if wild is None else stable.glob(str(wild))
+        for f_name in files_found:
             next_df = pd.read_pickle(f_name)
             assert (
                 next_df is not None
