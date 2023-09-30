@@ -168,9 +168,6 @@ def do_build_main_training(args):
     # Make sure we have at least one input file, and the input files all exist.
     if a.input_files is None or len(a.input_files) == 0:
         raise RuntimeError("No input files specified.")
-    for f in a.input_files:
-        if not f.input_file.exists():
-            raise RuntimeError(f"Input file {f.input_file} does not exist.")
 
     from cal_ratio_trainer.build.build_main import build_main_training
 
