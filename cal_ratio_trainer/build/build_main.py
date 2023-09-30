@@ -231,7 +231,8 @@ def build_main_training(config: BuildMainTrainingConfig):
         stable, wild = split_path_by_wild(f_info.input_file)
         logging.debug(f'Found stable path "{stable}" and wildcard "{wild}"')
         files_found = [stable] if wild is None else stable.glob(str(wild))
-        for f_name in files_found:
+        for count, f_name in enumerate(files_found):
+            logging.debug(f'  Processing file #{count+1}: "{f_name}"')
             next_df = pd.read_pickle(f_name)
             assert (
                 next_df is not None
