@@ -350,12 +350,6 @@ def signal_processing(
     # is added as the pickle file should be written out after reading in all of them
     big_df.to_pickle(output_file)
 
-    # min_pt = 40000
-    # max_pt = 300000
-    # processed_df = pre_process(big_df, min_pt, max_pt)
-
-    # processed_df.to_pickle("./processed_df.pkl")
-
     return big_df
 
 
