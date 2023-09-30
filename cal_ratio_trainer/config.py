@@ -262,7 +262,8 @@ class BuildMainTrainingConfig(BaseModel):
     )
 
     min_jet_pT: Optional[float] = Field(
-        description="The minimum jet pT to use for the training [GeV]."
+        description="The minimum pT to use for the training [GeV]. Applied to jets, "
+        "tracks, etc."
     )
     max_jet_pT: Optional[float] = Field(
         description="The maximum jet pT to use for the training [GeV]."
