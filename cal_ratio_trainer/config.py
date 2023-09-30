@@ -246,7 +246,20 @@ class training_input_file(BaseModel):
     # that match any wildcards. Events kept are randomly sampled from the
     # full set of events.
     num_events: Optional[int] = Field(
-        description="The number of events to include in building the training file."
+        description="The number of events to include in building the training file.",
+        default=None,
+    )
+
+    # An expression that can be applied to the dataframe at the event level to
+    # filter filter events. Use the bar column name. This will need to be a valid
+    # pandas `query` call. For example, odd events only would be "eventNumber % 2 == 1"
+    # A `None` here means no events will be filtered.
+    event_filter: Optional[str] = Field(
+        description="An expression that can be applied to the dataframe at the event "
+        "level to filter filter events. Use the bar column name. This will need to be "
+        "a valid pandas `query` expression. For example, odd events only would be "
+        "'eventNumber % 2 == 1'. A `None` here means no events will be filtered.",
+        default=None,
     )
 
 
