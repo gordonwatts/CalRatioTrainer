@@ -57,6 +57,7 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
     df[filter_clus_eta] = df[filter_clus_eta].sub(df["clus_eta_0"], axis="index")
 
     # Subtract the phi of first cluster(largest pT) from all other
+    # TODO: This is a phi wrap-around bug!
     df[filter_clus_phi] = df[filter_clus_phi].sub(df["clus_phi_0"], axis="index")
 
     # Do eta, phi FLIP
@@ -194,20 +195,33 @@ def build_main_training(config: BuildMainTrainingConfig):
 
     df: Optional[pd.DataFrame] = None
     assert config.input_files is not None, "No input files specified"
+
     for f_info in config.input_files:
-        next_df = pd.read_pickle(f_info.input_file)
-        assert next_df is not None, f"Unable to read input files {f_info.input_file}"
+        file_df: Optional[pd.DataFrame] = None
+        # Use the f_info.input_file as a "glob" expression and loop over all found
+        # files:
+        for f_name in f_info.input_file.parent.glob(f_info.input_file.name):
+            next_df = pd.read_pickle(f_name)
+            assert (
+                next_df is not None
+            ), f"Unable to read input files {f_info.input_file}"
 
-        # If the `max_events` is not None, then pick out
-        # a random sample.
+            # Now, concat it.
+            if file_df is None:
+                file_df = next_df
+            else:
+                file_df = pd.concat([file_df, next_df])
+
+        # If we are limited, resample randomly. And append to the
+        # master training file.
+        assert file_df is not None, "No input files found"
         if f_info.num_events is not None:
-            next_df = next_df.sample(f_info.num_events)
+            file_df = file_df.sample(f_info.num_events)
 
-        # Now, concat it.
         if df is None:
-            df = next_df
+            df = file_df
         else:
-            df = pd.concat([df, next_df])
+            df = pd.concat([df, file_df])
 
     assert df is not None
 
