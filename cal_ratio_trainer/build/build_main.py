@@ -216,7 +216,13 @@ def build_main_training(config: BuildMainTrainingConfig):
         # master training file.
         assert file_df is not None, "No input files found"
         if f_info.num_events is not None:
-            file_df = file_df.sample(f_info.num_events)
+            if len(file_df) > f_info.num_events:
+                file_df = file_df.sample(f_info.num_events)
+            else:
+                logging.warning(
+                    f"File {f_info.input_file}: Requested {f_info.num_events} events,"
+                    f" but only {len(file_df)} available. Ignoring limit."
+                )
 
         if df is None:
             df = file_df

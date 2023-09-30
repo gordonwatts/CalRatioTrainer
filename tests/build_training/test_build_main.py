@@ -24,6 +24,24 @@ def test_build_main_one_file(tmp_path):
     assert len(df) == 76
 
 
+def test_build_main_one_file_ask_for_too_much(tmp_path, caplog):
+    out_file = tmp_path / "test_output.pkl"
+    c = BuildMainTrainingConfig(
+        input_files=[
+            training_input_file(
+                input_file=Path("tests/data/sig_311424_600_275.pkl"), num_events=500
+            )
+        ],
+        output_file=out_file,
+        min_jet_pT=30,
+        max_jet_pT=400,
+    )
+
+    build_main_training(c)
+
+    assert "Requested 500 events, but only 76 available" in caplog.text
+
+
 def test_build_main_one_file_twice(tmp_path):
     out_file = tmp_path / "test_output.pkl"
     c = BuildMainTrainingConfig(
