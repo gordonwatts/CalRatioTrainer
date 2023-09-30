@@ -241,7 +241,10 @@ class training_input_file(BaseModel):
     )
 
     # The number of events to include in building the training file.
-    # If None, all events will be used.
+    # If None, all events will be used. If you ask for more than exist,
+    # a warning will be applied. The total number is applied to all files
+    # that match any wildcards. Events kept are randomly sampled from the
+    # full set of events.
     num_events: Optional[int] = Field(
         description="The number of events to include in building the training file."
     )
