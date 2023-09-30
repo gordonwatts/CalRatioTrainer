@@ -229,6 +229,7 @@ def build_main_training(config: BuildMainTrainingConfig):
         # `/foo/bar/baz*/*.pkl`, we need to scan back to `/foo/bar` and then pass
         # `baz*/*.pkl` to `glob`.
         stable, wild = split_path_by_wild(f_info.input_file)
+        logging.debug(f'Found stable path "{stable}" and wildcard "{wild}"')
         files_found = [stable] if wild is None else stable.glob(str(wild))
         for f_name in files_found:
             next_df = pd.read_pickle(f_name)
