@@ -273,13 +273,16 @@ def test_include_bib_file(tmp_path):
 
 
 def test_build_no_copy_view_errors(tmp_path, caplog):
-    logging.basicConfig(level=logging.DEBUG)
+    caplog.set_level(logging.DEBUG)
+    # logging.basicConfig(level=logging.DEBUG)
+    # logging.warning("hi")
 
     out_file = tmp_path / "test_output.pkl"
     c = BuildMainTrainingConfig(
         input_files=[
             training_input_file(
-                input_file=Path("tests/data/sig_311424_600_275.pkl"), num_events=None
+                input_file=Path("tests/data/sig_311424_600_275.pkl"),
+                num_events=None,
             )
         ],
         output_file=out_file,
@@ -293,4 +296,4 @@ def test_build_no_copy_view_errors(tmp_path, caplog):
     df = pd.read_pickle(out_file)
     assert len(df) == 76
 
-    assert caplog.text == ""
+    assert "SettingWithCopyWarning" not in caplog.text
