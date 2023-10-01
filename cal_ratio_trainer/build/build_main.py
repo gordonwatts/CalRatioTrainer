@@ -99,36 +99,32 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
             if col.startswith("clus_l") and col.endswith(f"_{i}")  # type: ignore
         ]
         sum_eFrac = df[filter_clus_eFrac].sum(axis=1)  # type: ignore
-        df.loc[:, "sum_eFrac"] = sum_eFrac
 
         df.loc[:, "clus_l1ecal_" + str(i)] = df["clus_l1ecal_" + str(i)].divide(
             sum_eFrac, axis="index"
         )
         df.loc[:, "clus_l2ecal_" + str(i)] = df["clus_l2ecal_" + str(i)].divide(
-            df["sum_eFrac"], axis="index"
+            sum_eFrac, axis="index"
         )
         df.loc[:, "clus_l3ecal_" + str(i)] = df["clus_l3ecal_" + str(i)].divide(
-            df["sum_eFrac"], axis="index"
+            sum_eFrac, axis="index"
         )
         df.loc[:, "clus_l4ecal_" + str(i)] = df["clus_l4ecal_" + str(i)].divide(
-            df["sum_eFrac"], axis="index"
+            sum_eFrac, axis="index"
         )
 
         df.loc[:, "clus_l1hcal_" + str(i)] = df["clus_l1hcal_" + str(i)].divide(
-            df["sum_eFrac"], axis="index"
+            sum_eFrac, axis="index"
         )
         df.loc[:, "clus_l2hcal_" + str(i)] = df["clus_l2hcal_" + str(i)].divide(
-            df["sum_eFrac"], axis="index"
+            sum_eFrac, axis="index"
         )
         df.loc[:, "clus_l3hcal_" + str(i)] = df["clus_l3hcal_" + str(i)].divide(
-            df["sum_eFrac"], axis="index"
+            sum_eFrac, axis="index"
         )
         df.loc[:, "clus_l4hcal_" + str(i)] = df["clus_l4hcal_" + str(i)].divide(
-            df["sum_eFrac"], axis="index"
+            sum_eFrac, axis="index"
         )
-
-    # Delete calculation variable
-    del df["sum_eFrac"]
 
     # Now For Tracks
     logging.debug("Pre-processing tracks")
@@ -149,7 +145,7 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
     # ]
 
     # Subtract the eta of the jet from all tracks
-    df[filter_track_eta] = df[filter_track_eta].sub(df["jet_eta"], axis="index")
+    df.loc[:, filter_track_eta] = df[filter_track_eta].sub(df["jet_eta"], axis="index")
 
     # Subtract the phi of the jet from all tracks
     df[filter_track_phi] = df[filter_track_phi].sub(df["jet_phi"], axis="index")
