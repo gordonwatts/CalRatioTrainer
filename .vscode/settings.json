@@ -58,6 +58,7 @@
         "ndarray",
         "ndim",
         "npad",
+        "numexpr",
         "perc",
         "pimask",
         "pydantic",
