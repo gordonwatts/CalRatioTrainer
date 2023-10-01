@@ -80,6 +80,7 @@
         "sublists",
         "topocluster",
         "trapz",
+        "vectorize",
         "verticalalignment",
         "xlabel",
         "xlim",

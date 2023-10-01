@@ -65,6 +65,10 @@ def load_dataset(file_url: str, cache: Path) -> pd.DataFrame:
 
     # Delete some 'virtual' variables only needed for pre-processing.
     # Make sure they exist before deleting them.
+    # These have been removed from the writing, however, if we need
+    # to read old datasets these might still be present. DO not know
+    # how much trouble that will cause downstream, so leaving this in
+    # for now.
     # TODO: Remove these guys before writing them out too
     for t_name in ["track_sign", "clus_sign"]:
         if t_name in df.columns:
