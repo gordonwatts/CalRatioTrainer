@@ -215,6 +215,9 @@ def build_main_training(config: BuildMainTrainingConfig):
     """Build main training file."""
     # Load up all the DataFrames and concat them into a single dataframe.
 
+    assert config.min_jet_pT is not None, "No min jet pT specified"
+    assert config.max_jet_pT is not None, "No max jet pT specified"
+
     df: Optional[pd.DataFrame] = None
     assert config.input_files is not None, "No input files specified"
 
@@ -231,6 +234,7 @@ def build_main_training(config: BuildMainTrainingConfig):
         stable, wild = split_path_by_wild(f_info.input_file)
         logging.debug(f'Found stable path "{stable}" and wildcard "{wild}"')
         files_found = [stable] if wild is None else stable.glob(str(wild))
+
         for count, f_name in enumerate(files_found):
             logging.debug(f'  Processing file #{count+1}: "{f_name}"')
             next_df = pd.read_pickle(f_name)
@@ -238,7 +242,7 @@ def build_main_training(config: BuildMainTrainingConfig):
                 next_df is not None
             ), f"Unable to read input files {f_info.input_file}"
 
-            # Filter it
+            # Top level global filters
             if f_info.event_filter is not None:
                 # Use the python engine, which is slower, because
                 # otherwise the `numexpr` tries to convert `uint65` to
@@ -247,15 +251,19 @@ def build_main_training(config: BuildMainTrainingConfig):
                     f_info.event_filter, engine="python"
                 )  # type: ignore
 
-            # Now, concat it.
-            if file_df is None:
-                file_df = next_df
-            else:
-                file_df = pd.concat([file_df, next_df])
+            # Next, run the preprocessing on just this file.
+            if len(next_df) > 0:
+                pre_process(next_df, config.min_jet_pT, config.max_jet_pT)
+
+                # Now, concat it.
+                if file_df is None:
+                    file_df = next_df
+                else:
+                    file_df = pd.concat([file_df, next_df])
 
         # If we are limited, resample randomly. And append to the
         # master training file.
-        assert file_df is not None, "No input files found"
+        assert file_df is not None, "No input events found"
         if f_info.num_events is not None:
             if len(file_df) > f_info.num_events:
                 file_df = file_df.sample(f_info.num_events)
@@ -269,13 +277,9 @@ def build_main_training(config: BuildMainTrainingConfig):
             df = file_df
         else:
             df = pd.concat([df, file_df])
+            logging.debug(f"  Total events in cumulative dataframe is: {len(df)}")
 
     assert df is not None
-
-    # Great, next build the final dataframe with Alex's code above.
-    assert config.min_jet_pT is not None, "No min jet pT specified"
-    assert config.max_jet_pT is not None, "No max jet pT specified"
-    pre_process(df, config.min_jet_pT, config.max_jet_pT)
 
     # Write it out.
     assert config.output_file is not None, "No output file specified"
