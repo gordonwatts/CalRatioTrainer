@@ -67,16 +67,15 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
 
     # Add all etas weighted by pT, then make column that is 1 if positive, -1 if
     # negative
-    df.loc[:, "clus_sign"] = np.sum(  # type: ignore
+    cluster_sign = np.sum(  # type: ignore
         np.multiply(
             df[filter_clus_eta].fillna(0).to_numpy(),
             df[filter_clus_pT].fillna(0).to_numpy(),
         ),
         axis=1,
     )
-    df.loc[:, "clus_sign"] = df["clus_sign"].apply(  # type: ignore
-        lambda x: 1 * (x >= 0) + (-1) * (x < 0)
-    )
+    cluster_sign = np.vectorize(lambda x: 1 * (x >= 0) + (-1) * (x < 0))(cluster_sign)
+    df.insert(0, "clus_sign", cluster_sign)
 
     # Flip (multiply by -1) according to previously calculated column
     df.loc[:, filter_clus_eta] = df[filter_clus_eta].multiply(
