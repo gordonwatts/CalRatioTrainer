@@ -75,11 +75,10 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
         axis=1,
     )
     cluster_sign = np.vectorize(lambda x: 1 * (x >= 0) + (-1) * (x < 0))(cluster_sign)
-    df.insert(0, "clus_sign", cluster_sign)
 
     # Flip (multiply by -1) according to previously calculated column
     df.loc[:, filter_clus_eta] = df[filter_clus_eta].multiply(
-        df["clus_sign"], axis="index"
+        cluster_sign, axis="index"
     )
 
     # SCALE CLUSTER PT
