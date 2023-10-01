@@ -102,7 +102,7 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
         df.loc[:, "sum_eFrac"] = sum_eFrac
 
         df.loc[:, "clus_l1ecal_" + str(i)] = df["clus_l1ecal_" + str(i)].divide(
-            df["sum_eFrac"], axis="index"
+            sum_eFrac, axis="index"
         )
         df.loc[:, "clus_l2ecal_" + str(i)] = df["clus_l2ecal_" + str(i)].divide(
             df["sum_eFrac"], axis="index"
