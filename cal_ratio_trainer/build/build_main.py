@@ -253,6 +253,10 @@ def build_main_training(config: BuildMainTrainingConfig):
                     file_df = next_df
                 else:
                     file_df = pd.concat([file_df, next_df])
+                    logging.debug(
+                        f"  Total events for this file: {len(file_df)} "
+                        f"(out of {f_info.num_events} required.)"
+                    )
 
         # If we are limited, resample randomly. And append to the
         # master training file.
