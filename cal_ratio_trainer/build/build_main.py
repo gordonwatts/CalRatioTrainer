@@ -98,7 +98,8 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
             for col in df
             if col.startswith("clus_l") and col.endswith(f"_{i}")  # type: ignore
         ]
-        df.loc[:, "sum_eFrac"] = df[filter_clus_eFrac].sum(axis=1)  # type: ignore
+        sum_eFrac = df[filter_clus_eFrac].sum(axis=1)  # type: ignore
+        df.loc[:, "sum_eFrac"] = sum_eFrac
 
         df.loc[:, "clus_l1ecal_" + str(i)] = df["clus_l1ecal_" + str(i)].divide(
             df["sum_eFrac"], axis="index"
@@ -125,13 +126,6 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
         df.loc[:, "clus_l4hcal_" + str(i)] = df["clus_l4hcal_" + str(i)].divide(
             df["sum_eFrac"], axis="index"
         )
-
-    # df.loc[filter_clus_eFrac] = df.loc[filter_clus_eFrac]
-    # .divide(df.loc['sum_eFrac'], axis='index')
-
-    # Delete all layer information we used to make l#... variables
-    # for item in layerDelete:
-    # del df[item]
 
     # Delete calculation variable
     del df["sum_eFrac"]
