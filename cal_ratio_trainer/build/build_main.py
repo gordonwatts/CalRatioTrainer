@@ -148,13 +148,15 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
     df.loc[:, filter_track_eta] = df[filter_track_eta].sub(df["jet_eta"], axis="index")
 
     # Subtract the phi of the jet from all tracks
-    df[filter_track_phi] = df[filter_track_phi].sub(df["jet_phi"], axis="index")
+    df.loc[:, filter_track_phi] = df[filter_track_phi].sub(df["jet_phi"], axis="index")
 
     # Do eta, phi FLIP
 
     # SCALE Track PT
-    df[filter_track_pt] = df[filter_track_pt].sub(min_pT, axis="index")
-    df[filter_track_pt] = df[filter_track_pt].divide((max_pT - min_pT), axis="index")
+    df.loc[:, filter_track_pt] = df[filter_track_pt].sub(min_pT, axis="index")
+    df.loc[:, filter_track_pt] = df[filter_track_pt].divide(
+        (max_pT - min_pT), axis="index"
+    )
     # print(df[filter_track_pt])
 
     # df[filter_track_vertex_z] = df[filter_track_vertex_z].divide( (100), axis='index')
@@ -162,7 +164,7 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
 
     # SCALE Track z0
     filter_track_z0 = [col for col in df if col.startswith("track_z0")]  # type: ignore
-    df[filter_track_z0] = df[filter_track_z0].divide(250, axis="index")
+    df.loc[:, filter_track_z0] = df[filter_track_z0].divide(250, axis="index")
     # print("2")
 
     # Add all etas weighted by pT, then make column that is 1 if positive, -1 if
@@ -180,7 +182,9 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
     # print("3")
 
     # Flip (multiply by -1) according to previously calculated column
-    df[filter_track_eta] = df[filter_track_eta].multiply(df["track_sign"], axis="index")
+    df.loc[:, filter_track_eta] = df[filter_track_eta].multiply(
+        df["track_sign"], axis="index"
+    )
     # print("4")
 
 
