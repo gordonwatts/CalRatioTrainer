@@ -57,11 +57,11 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
     filter_clus_pT = [col for col in df if col.startswith("clus_pt")]  # type: ignore
 
     # Subtract the eta of first cluster(largest pT) from all other
-    df[filter_clus_eta] = df[filter_clus_eta].sub(df["clus_eta_0"], axis="index")
+    df.loc[:, filter_clus_eta] = df[filter_clus_eta].sub(df["clus_eta_0"], axis="index")
 
     # Subtract the phi of first cluster(largest pT) from all other
     # TODO: This is a phi wrap-around bug!
-    df[filter_clus_phi] = df[filter_clus_phi].sub(df["clus_phi_0"], axis="index")
+    df.loc[:, filter_clus_phi] = df[filter_clus_phi].sub(df["clus_phi_0"], axis="index")
 
     # Do eta, phi FLIP
 
@@ -79,11 +79,13 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
     )
 
     # Flip (multiply by -1) according to previously calculated column
-    df[filter_clus_eta] = df[filter_clus_eta].multiply(df["clus_sign"], axis="index")
+    df.loc[:, filter_clus_eta] = df[filter_clus_eta].multiply(
+        df["clus_sign"], axis="index"
+    )
 
     # SCALE CLUSTER PT
-    df[filter_clus_pT] = df[filter_clus_pT].sub(min_pT, axis="index")
-    df[filter_clus_pT] = df[filter_clus_pT].divide(
+    df.loc[:, filter_clus_pT] = df[filter_clus_pT].sub(min_pT, axis="index")
+    df.loc[:, filter_clus_pT] = df[filter_clus_pT].divide(
         (max_pT * 1000 - min_pT), axis="index"
     )
 
