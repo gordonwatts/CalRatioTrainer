@@ -28,13 +28,15 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
     ]
 
     # Subtract the eta of the jet from all MSegs
-    df[filter_MSeg_eta] = df[filter_MSeg_eta].sub(df["jet_eta"], axis="index")
+    df.loc[:, filter_MSeg_eta] = df[filter_MSeg_eta].sub(df["jet_eta"], axis="index")
 
     # Subtract the phi of the jet from all MSegs
-    df[filter_MSeg_phi] = df[filter_MSeg_phi].sub(df["jet_phi"], axis="index")
+    df.loc[:, filter_MSeg_phi] = df[filter_MSeg_phi].sub(df["jet_phi"], axis="index")
 
     # Subtract the phi of the jet from all MSegs Dir
-    df[filter_MSeg_phiDir] = df[filter_MSeg_phiDir].sub(df["jet_phi"], axis="index")
+    df.loc[:, filter_MSeg_phiDir] = df[filter_MSeg_phiDir].sub(
+        df["jet_phi"], axis="index"
+    )
 
     logging.debug(f"Pre-processing jets for {min_pT} GeV < pT < {max_pT} GeV")
 
