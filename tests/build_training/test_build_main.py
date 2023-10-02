@@ -123,6 +123,33 @@ def test_build_via_wildcard(tmp_path):
     assert len(df) == 76 * 10
 
 
+def test_build_good_warning_if_no_files(tmp_path):
+    out_file = tmp_path / "output" / "test_output.pkl"
+    out_file.parent.mkdir()
+
+    # Build directory with several files in it.
+    in_dir = tmp_path / "inputs"
+    in_dir.mkdir()
+
+    try:
+        c = BuildMainTrainingConfig(
+            input_files=[
+                training_input_file(
+                    input_file=Path(f"{in_dir}/sig*.pkl"), num_events=None
+                )
+            ],
+            output_file=out_file,
+            min_jet_pT=30,
+            max_jet_pT=400,
+        )
+        build_main_training(c)
+
+        assert False
+
+    except ValueError as e:
+        assert "sig*.pkl" in str(e)
+
+
 def test_build_via_wildcard_with_limit(tmp_path):
     out_file = tmp_path / "output" / "test_output.pkl"
     out_file.parent.mkdir()

@@ -228,7 +228,12 @@ def build_main_training(config: BuildMainTrainingConfig):
         # `baz*/*.pkl` to `glob`.
         stable, wild = split_path_by_wild(f_info.input_file)
         logging.debug(f'Found stable path "{stable}" and wildcard "{wild}"')
-        files_found = [stable] if wild is None else stable.glob(str(wild))
+        files_found = [stable] if wild is None else list(stable.glob(str(wild)))
+
+        if len(files_found) == 0:
+            raise ValueError(
+                f"No files found for input file/pattern {f_info.input_file}"
+            )
 
         ddf = dd.from_delayed(  # type: ignore
             [
