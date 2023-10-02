@@ -405,20 +405,7 @@ def qcd_processing(file, branches: List[str], output_file: Path):
     sorted = sorting_by_pT(jet_masked, branches)
     big_df = column_guillotine(sorted, branches)
 
-    # jet_masked_0 = ak.Array({col: jet_masked[col][:,0] if col.startswith('llp')
-    #                      else jet_masked[col]
-    #                      for col in branches})
-    # jet_masked_1 = ak.Array({col: jet_masked[col][:,1] if col.startswith('llp')
-    #                          else jet_masked[col]
-    #                          for col in branches})
-
-    # sorted_0 = sorting_by_pT(jet_masked_0, branches)
-    # sorted_1 = sorting_by_pT(jet_masked_1, branches)
-
-    # big_df = pd.concat([column_guillotine(sorted_0, branches),
-    # column_guillotine(sorted_1, branches)], axis=0)
-
-    # this order should match order of columns in the signal data
+    # Add the extra columns in.
     big_df.insert(0, "llp_Lz", 0)
     big_df.insert(0, "llp_Lxy", 0)
     big_df.insert(0, "llp_phi", 0)
