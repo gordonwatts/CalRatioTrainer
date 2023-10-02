@@ -355,7 +355,7 @@ def signal_processing(
 
 def bib_processing(file, base_branches: List[str], output_file: Path):
     # need to add in dR calculation
-    extra_branches = ["HLT_jet_isBIB"]
+    extra_branches = ["HLT_jet_isBIB", "HLT_jet_phi", "HLT_jet_eta"]
     branches = base_branches + extra_branches
     bib_data = file["trees_DV_"].arrays(branches)
 

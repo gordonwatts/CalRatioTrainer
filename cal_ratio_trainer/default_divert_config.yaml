@@ -49,8 +49,6 @@ signal_branches:
   - MSeg_t0
   - MSeg_jetIndex
   - MSeg_chiSquared
-  - HLT_jet_eta
-  - HLT_jet_phi
   - mcEventWeight
   - runNumber
   - eventNumber
@@ -97,8 +95,6 @@ bib_branches:
   - MSeg_t0
   - MSeg_jetIndex
   - MSeg_chiSquared
-  - HLT_jet_eta
-  - HLT_jet_phi
   - runNumber
   - eventNumber
 qcd_branches:
@@ -144,8 +140,6 @@ qcd_branches:
   - MSeg_t0
   - MSeg_jetIndex
   - MSeg_chiSquared
-  - HLT_jet_eta
-  - HLT_jet_phi
   - mcEventWeight
   - runNumber
   - eventNumber
