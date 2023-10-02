@@ -13,6 +13,14 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
     # this should be added in for another function
     # And this particular version was copied from Alex.
 
+    # Rename any columns
+    # TODO: Remove this code once understand how this happened upstream.
+    # See issue https://github.com/gordonwatts/CalRatioTrainer/issues/116
+    if "mH" in df.columns:
+        df.rename(columns={"mH": "llp_mH"}, inplace=True)
+    if "mS" in df.columns:
+        df.rename(columns={"mS": "llp_mS"}, inplace=True)
+
     # Check to see if this is zero length.
     if len(df) == 0:
         return df
