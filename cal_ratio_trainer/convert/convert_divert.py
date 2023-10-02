@@ -353,8 +353,10 @@ def signal_processing(
     return big_df
 
 
-def bib_processing(file, branches: List[str], output_file: Path):
+def bib_processing(file, base_branches: List[str], output_file: Path):
     # need to add in dR calculation
+    extra_branches = ["HLT_jet_isBIB"]
+    branches = base_branches + extra_branches
     bib_data = file["trees_DV_"].arrays(branches)
 
     # tracking if the HLT jet is BIB
@@ -392,6 +394,9 @@ def bib_processing(file, branches: List[str], output_file: Path):
     big_df.insert(0, "llp_mS", 0.0)
     big_df.insert(0, "label", 2)
     big_df["mcEventWeight"] = 1
+
+    # Remove the extra branches we needed for processing
+    big_df = big_df.drop(columns=extra_branches)
 
     big_df.to_pickle(output_file)
 

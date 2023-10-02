@@ -166,6 +166,8 @@ def test_bib_file(tmp_path, caplog):
     assert df.dtypes["llp_mH"] == "float64"
     assert df.dtypes["label"] == "int64"
 
+    assert "HLT_jet_isBIB" not in df.columns
+
 
 def test_sig_file(tmp_path, caplog):
     "Make sure a signal file runs correctly"
