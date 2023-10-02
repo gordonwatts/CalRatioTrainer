@@ -464,6 +464,8 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                     # Process according to the data type.
                     if f_info.data_type == "sig":
                         assert config.signal_branches is not None
+                        assert config.llp_mH is not None
+                        assert config.llp_mS is not None
                         signal_processing(
                             in_file,
                             config.llp_mH,
