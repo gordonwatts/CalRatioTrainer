@@ -27,6 +27,28 @@ def test_build_main_one_file(tmp_path, caplog):
     assert caplog.text == ""
 
 
+def test_build_zero_length_file(tmp_path, caplog):
+    out_file = tmp_path / "test_output.pkl"
+    c = BuildMainTrainingConfig(
+        input_files=[
+            training_input_file(
+                input_file=Path("tests/data/one_length_file.pkl"),
+                num_events=None,
+                event_filter="eventNumber % 2 == 0",
+            ),
+        ],
+        output_file=out_file,
+        min_jet_pT=30,
+        max_jet_pT=400,
+    )
+
+    build_main_training(c)
+
+    assert out_file.exists()
+    df = pd.read_pickle(out_file)
+    assert len(df) == 0
+
+
 def test_build_main_one_file_ask_for_too_much(tmp_path, caplog):
     out_file = tmp_path / "test_output.pkl"
     c = BuildMainTrainingConfig(

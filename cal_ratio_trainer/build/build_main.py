@@ -13,6 +13,10 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
     # this should be added in for another function
     # And this particular version was copied from Alex.
 
+    # Check to see if this is zero length.
+    if len(df) == 0:
+        return df
+
     # Now For Muon Segments
     logging.debug("Pre-processing Muon Segments")
 
