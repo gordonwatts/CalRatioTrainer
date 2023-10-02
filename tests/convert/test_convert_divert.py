@@ -79,8 +79,8 @@ def test_no_redo_existing_file(caplog, tmp_path):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
-        llp_mH=125,
-        llp_mS=100,
+        llp_mH=0,
+        llp_mS=0,
     )
 
     convert_divert(config)
@@ -98,6 +98,36 @@ def test_no_redo_existing_file(caplog, tmp_path):
 
     assert output_file.exists()
     assert output_file.stat().st_size == 0
+
+
+def test_qcd_file(caplog, tmp_path):
+    default_branches = load_config(ConvertDiVertAnalysisConfig)
+
+    config = ConvertDiVertAnalysisConfig(
+        input_files=[
+            DiVertAnalysisInputFile(
+                input_file=Path("tests/data/short_divert_analysis_file.root"),
+                data_type=DiVertFileType.qcd,
+                output_dir=None,
+            )
+        ],
+        output_path=tmp_path,
+        signal_branches=default_branches.signal_branches,
+        bib_branches=default_branches.bib_branches,
+        qcd_branches=default_branches.qcd_branches,
+        llp_mH=0,
+        llp_mS=0,
+    )
+
+    convert_divert(config)
+
+    # Find the output file
+    output_file = tmp_path / "short_divert_analysis_file.pkl"
+    df = pd.read_pickle(output_file)
+
+    assert df.dtypes["llp_mS"] == "float64"
+    assert df.dtypes["llp_mH"] == "float64"
+    assert df.dtypes["label"] == "int64"
 
 
 def test_bib_file(tmp_path, caplog):
@@ -131,6 +161,10 @@ def test_bib_file(tmp_path, caplog):
     df = pd.read_pickle(output_file)
 
     assert len(df) == 1
+
+    assert df.dtypes["llp_mS"] == "float64"
+    assert df.dtypes["llp_mH"] == "float64"
+    assert df.dtypes["label"] == "int64"
 
 
 def test_sig_file(tmp_path, caplog):
@@ -169,3 +203,7 @@ def test_sig_file(tmp_path, caplog):
 
     assert df["llp_mS"].unique() == [275]
     assert df["llp_mH"].unique() == [600]
+
+    assert df.dtypes["llp_mS"] == "float64"
+    assert df.dtypes["llp_mH"] == "float64"
+    assert df.dtypes["label"] == "int64"

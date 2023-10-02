@@ -299,7 +299,7 @@ def column_guillotine(arr, branches):
 
 
 def signal_processing(
-    signal_file, llp_mH, llp_mS, branches: List[str], output_file: Path
+    signal_file, llp_mH: float, llp_mS: float, branches: List[str], output_file: Path
 ):
     # getting the specific branches as defined by branches
     # should be 'trees_DV_' for every file
@@ -336,11 +336,11 @@ def signal_processing(
     )
 
     # adding in mH and mS columns
-    big_df.insert(0, "llp_mH", llp_mH)
-    big_df.insert(0, "llp_mS", llp_mS)
+    big_df.insert(0, "llp_mH", float(llp_mH))
+    big_df.insert(0, "llp_mS", float(llp_mS))
 
     # creating the label column, filled with 0s because we're working with signal
-    big_df.insert(0, "label", 0)
+    big_df.insert(0, "label", int(0))
 
     # changing the mcEVentWeight to be all 1, matching what Felix does
     big_df["mcEventWeight"] = 1
@@ -382,14 +382,14 @@ def bib_processing(file, branches: List[str], output_file: Path):
     sorted_tcm = sorting_by_pT(dR_masked, branches)
     big_df = column_guillotine(sorted_tcm, branches)
 
-    big_df.insert(0, "llp_Lz", 0)
-    big_df.insert(0, "llp_Lxy", 0)
-    big_df.insert(0, "llp_phi", 0)
-    big_df.insert(0, "llp_eta", 0)
-    big_df.insert(0, "llp_pT", 0)
+    big_df.insert(0, "llp_Lz", 0.0)
+    big_df.insert(0, "llp_Lxy", 0.0)
+    big_df.insert(0, "llp_phi", 0.0)
+    big_df.insert(0, "llp_eta", 0.0)
+    big_df.insert(0, "llp_pT", 0.0)
 
-    big_df.insert(0, "llp_mH", 0)
-    big_df.insert(0, "llp_mS", 0)
+    big_df.insert(0, "llp_mH", 0.0)
+    big_df.insert(0, "llp_mS", 0.0)
     big_df.insert(0, "label", 2)
     big_df["mcEventWeight"] = 1
 
@@ -406,14 +406,14 @@ def qcd_processing(file, branches: List[str], output_file: Path):
     big_df = column_guillotine(sorted, branches)
 
     # Add the extra columns in.
-    big_df.insert(0, "llp_Lz", 0)
-    big_df.insert(0, "llp_Lxy", 0)
-    big_df.insert(0, "llp_phi", 0)
-    big_df.insert(0, "llp_eta", 0)
-    big_df.insert(0, "llp_pT", 0)
+    big_df.insert(0, "llp_Lz", 0.0)
+    big_df.insert(0, "llp_Lxy", 0.0)
+    big_df.insert(0, "llp_phi", 0.0)
+    big_df.insert(0, "llp_eta", 0.0)
+    big_df.insert(0, "llp_pT", 0.0)
 
-    big_df.insert(0, "llp_mH", 0)
-    big_df.insert(0, "llp_mS", 0)
+    big_df.insert(0, "llp_mH", 0.0)
+    big_df.insert(0, "llp_mS", 0.0)
     big_df.insert(0, "label", 1)
 
     big_df.to_pickle(output_file)
