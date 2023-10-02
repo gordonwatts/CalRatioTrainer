@@ -13,14 +13,6 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
     # this should be added in for another function
     # And this particular version was copied from Alex.
 
-    # Rename any columns
-    # TODO: Remove this code once understand how this happened upstream.
-    # See issue https://github.com/gordonwatts/CalRatioTrainer/issues/116
-    if "mH" in df.columns:
-        df.rename(columns={"mH": "llp_mH"}, inplace=True)
-    if "mS" in df.columns:
-        df.rename(columns={"mS": "llp_mS"}, inplace=True)
-
     # Check to see if this is zero length.
     if len(df) == 0:
         return df
@@ -220,6 +212,28 @@ def split_path_by_wild(p: Path) -> Tuple[Path, Optional[Path]]:
         return good_path / p.name, None
 
 
+def pickle_loader(f: Path) -> pd.DataFrame:
+    """Read the file, and make sure that we have the right columns.
+
+    Args:
+        f (Path): file to load
+
+    Returns:
+        pd.DataFrame: Sanitized DataFrame
+    """
+    df = pd.read_pickle(f)
+
+    # Rename any columns
+    # TODO: Remove this code once understand how this happened upstream.
+    # See issue https://github.com/gordonwatts/CalRatioTrainer/issues/116
+    if "mH" in df.columns:
+        df.rename(columns={"mH": "llp_mH"}, inplace=True)
+    if "mS" in df.columns:
+        df.rename(columns={"mS": "llp_mS"}, inplace=True)
+
+    return df
+
+
 def build_main_training(config: BuildMainTrainingConfig):
     """Build main training file."""
     # Load up all the DataFrames and concat them into a single dataframe.
@@ -249,7 +263,7 @@ def build_main_training(config: BuildMainTrainingConfig):
 
         ddf = dd.from_delayed(  # type: ignore
             [
-                dask.delayed(pd.read_pickle)(f_name)  # type: ignore
+                dask.delayed(pickle_loader)(f_name)  # type: ignore
                 for f_name in files_found
             ]
         )
