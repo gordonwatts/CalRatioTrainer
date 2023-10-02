@@ -336,8 +336,8 @@ def signal_processing(
     )
 
     # adding in mH and mS columns
-    big_df.insert(0, "mH", llp_mH)
-    big_df.insert(0, "mS", llp_mS)
+    big_df.insert(0, "llp_mH", llp_mH)
+    big_df.insert(0, "llp_mS", llp_mS)
 
     # creating the label column, filled with 0s because we're working with signal
     big_df.insert(0, "label", 0)
@@ -388,8 +388,8 @@ def bib_processing(file, branches: List[str], output_file: Path):
     big_df.insert(0, "llp_eta", 0)
     big_df.insert(0, "llp_pT", 0)
 
-    big_df.insert(0, "mH", 0)
-    big_df.insert(0, "mS", 0)
+    big_df.insert(0, "llp_mH", 0)
+    big_df.insert(0, "llp_mS", 0)
     big_df.insert(0, "label", 2)
     big_df["mcEventWeight"] = 1
 
@@ -425,8 +425,8 @@ def qcd_processing(file, branches: List[str], output_file: Path):
     big_df.insert(0, "llp_eta", 0)
     big_df.insert(0, "llp_pT", 0)
 
-    big_df.insert(0, "mH", 0)
-    big_df.insert(0, "mS", 0)
+    big_df.insert(0, "llp_mH", 0)
+    big_df.insert(0, "llp_mS", 0)
     big_df.insert(0, "label", 1)
 
     big_df.to_pickle(output_file)

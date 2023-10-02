@@ -150,8 +150,8 @@ def test_sig_file(tmp_path, caplog):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
-        llp_mH=0,
-        llp_mS=0,
+        llp_mH=600,
+        llp_mS=275,
     )
 
     convert_divert(config)
@@ -164,3 +164,8 @@ def test_sig_file(tmp_path, caplog):
     df = pd.read_pickle(output_file)
 
     assert len(df) == 76
+    assert "llp_mS" in df.columns
+    assert "llp_mH" in df.columns
+
+    assert df["llp_mS"].unique() == [275]
+    assert df["llp_mH"].unique() == [600]
