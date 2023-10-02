@@ -1,9 +1,11 @@
 import logging
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 import numpy as np
 import pandas as pd
 from cal_ratio_trainer.config import BuildMainTrainingConfig
+import dask.dataframe as dd
+import dask
 
 
 def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
@@ -182,6 +184,8 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
     )
     # print("4")
 
+    return df
+
 
 def split_path_by_wild(p: Path) -> Tuple[Path, Optional[Path]]:
     """Split a path by the last wildcard character, respecting directory boundaries"""
@@ -215,8 +219,6 @@ def build_main_training(config: BuildMainTrainingConfig):
     assert config.input_files is not None, "No input files specified"
 
     for f_info in config.input_files:
-        file_df: Optional[pd.DataFrame] = None
-
         # Use the f_info.input_file as a "glob" expression and loop over all found
         # files. Since parent directories might contain the glob character, we need to
         # scan back to the longest root that contains no wildcard characters and then
@@ -228,53 +230,39 @@ def build_main_training(config: BuildMainTrainingConfig):
         logging.debug(f'Found stable path "{stable}" and wildcard "{wild}"')
         files_found = [stable] if wild is None else stable.glob(str(wild))
 
-        for count, f_name in enumerate(files_found):
-            logging.debug(f'  Processing file #{count+1}: "{f_name}"')
-            next_df = pd.read_pickle(f_name)
-            assert (
-                next_df is not None
-            ), f"Unable to read input files {f_info.input_file}"
+        ddf = dd.from_delayed(  # type: ignore
+            [
+                dask.delayed(pd.read_pickle)(f_name)  # type: ignore
+                for f_name in files_found
+            ]
+        )
 
-            # Top level global filters
-            if f_info.event_filter is not None:
-                # Use the python engine, which is slower, because
-                # otherwise the `numexpr` tries to convert `uint65` to
-                # `int64` and that pops an exception.
-                next_df = next_df.query(
-                    f_info.event_filter, engine="python"
-                )  # type: ignore
+        # Top level global filter for events
+        if f_info.event_filter is not None:
+            ddf = ddf.query(f_info.event_filter, engine="python")  # type: ignore
 
-            # Next, run the preprocessing on just this file.
-            if len(next_df) > 0:
-                pre_process(next_df, config.min_jet_pT, config.max_jet_pT)
+        # Do the preprocessing
+        processed_ddf = ddf.map_partitions(  # type: ignore
+            lambda df: pre_process(
+                df, config.min_jet_pT, config.max_jet_pT  # type: ignore
+            )
+        )  # type: List
 
-                # Now, concat it.
-                if file_df is None:
-                    file_df = next_df
-                else:
-                    file_df = pd.concat([file_df, next_df])
-                    logging.debug(
-                        f"  Total events for this file: {len(file_df)} "
-                        f"(out of {f_info.num_events} required.)"
-                    )
-
-        # If we are limited, resample randomly. And append to the
-        # master training file.
-        assert file_df is not None, "No input events found"
+        # Resample the thing
         if f_info.num_events is not None:
-            if len(file_df) > f_info.num_events:
-                file_df = file_df.sample(f_info.num_events)
+            ddf_len = len(processed_ddf)
+            if ddf_len > f_info.num_events:
+                fraction = f_info.num_events / ddf_len
+                processed_ddf = processed_ddf.sample(frac=fraction)  # type: ignore
             else:
                 logging.warning(
                     f"File {f_info.input_file}: Requested {f_info.num_events} events,"
-                    f" but only {len(file_df)} available. Ignoring limit."
+                    f" but only {len(processed_ddf)} available. Ignoring limit."
                 )
 
-        if df is None:
-            df = file_df
-        else:
-            df = pd.concat([df, file_df])
-            logging.debug(f"  Total events in cumulative dataframe is: {len(df)}")
+        file_df = processed_ddf.compute()  # type: ignore
+        df = file_df if df is None else pd.concat([df, file_df])
+        logging.debug(f"  Total events in cumulative dataframe is: {len(df)}")
 
     assert df is not None
 
