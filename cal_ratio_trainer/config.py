@@ -197,6 +197,18 @@ class DiVertAnalysisInputFile(BaseModel):
         "`output_path` of the master config."
     )
 
+    llp_mH: Optional[float] = Field(
+        description="The mass of the heavy higgs like particle. Zero if not a signal"
+        " file.",
+        default=0.0,
+    )
+
+    llp_mS: Optional[float] = Field(
+        description="The mass of the dark sector light LLP like particle. Zero if not a"
+        " signal file.",
+        default=0.0,
+    )
+
 
 class ConvertDiVertAnalysisConfig(BaseModel):
     "Configuration for converting a divertanalysis output file"
@@ -219,16 +231,6 @@ class ConvertDiVertAnalysisConfig(BaseModel):
     )
     qcd_branches: Optional[List[str]] = Field(
         description="The list of branches to store in the output training file for qcd."
-    )
-
-    llp_mH: Optional[float] = Field(
-        description="The mass of the heavy higgs like particle. Zero if not a signal"
-        " file."
-    )
-
-    llp_mS: Optional[float] = Field(
-        description="The mass of the dark sector light LLP like particle. Zero if not a"
-        " signal file."
     )
 
 

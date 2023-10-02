@@ -24,6 +24,7 @@
         "divertanalysis",
         "dphi",
         "dtype",
+        "dtypes",
         "ecal",
         "errorbar",
         "errstate",

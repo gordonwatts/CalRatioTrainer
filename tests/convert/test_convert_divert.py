@@ -19,14 +19,14 @@ def test_empty_root_files(caplog, tmp_path):
                 input_file=Path("tests/data/empty_divert_analysis_file.root"),
                 data_type=DiVertFileType.bib,
                 output_dir=None,
+                llp_mH=125,
+                llp_mS=100,
             )
         ],
         output_path=tmp_path,
         signal_branches=["one", "two"],
         bib_branches=["three", "four"],
         qcd_branches=["five", "six"],
-        llp_mH=125,
-        llp_mS=100,
     )
 
     convert_divert(config)
@@ -45,14 +45,14 @@ def test_missing_root_files(caplog, tmp_path):
                 input_file=Path("tests/data/short_divert_analysis_file.root"),
                 data_type=DiVertFileType.bib,
                 output_dir=None,
+                llp_mH=0,
+                llp_mS=0,
             )
         ],
         output_path=tmp_path,
         signal_branches=["one"],
         bib_branches=["one"],
         qcd_branches=["one"],
-        llp_mH=125,
-        llp_mS=100,
     )
 
     convert_divert(config)
@@ -73,14 +73,14 @@ def test_no_redo_existing_file(caplog, tmp_path):
                 input_file=Path("tests/data/short_divert_analysis_file.root"),
                 data_type=DiVertFileType.qcd,
                 output_dir=None,
+                llp_mH=0,
+                llp_mS=0,
             )
         ],
         output_path=tmp_path,
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
-        llp_mH=0,
-        llp_mS=0,
     )
 
     convert_divert(config)
@@ -109,14 +109,14 @@ def test_qcd_file(caplog, tmp_path):
                 input_file=Path("tests/data/short_divert_analysis_file.root"),
                 data_type=DiVertFileType.qcd,
                 output_dir=None,
+                llp_mH=0,
+                llp_mS=0,
             )
         ],
         output_path=tmp_path,
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
-        llp_mH=0,
-        llp_mS=0,
     )
 
     convert_divert(config)
@@ -141,14 +141,14 @@ def test_bib_file(tmp_path, caplog):
                 input_file=Path("tests/data/bib.root"),
                 data_type=DiVertFileType.bib,
                 output_dir=None,
+                llp_mH=0,
+                llp_mS=0,
             )
         ],
         output_path=tmp_path,
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
-        llp_mH=0,
-        llp_mS=0,
     )
 
     convert_divert(config)
@@ -180,14 +180,14 @@ def test_sig_file(tmp_path, caplog):
                 input_file=Path("tests/data/sig_311424_600_275.root"),
                 data_type=DiVertFileType.sig,
                 output_dir=None,
+                llp_mH=600,
+                llp_mS=275,
             )
         ],
         output_path=tmp_path,
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
-        llp_mH=600,
-        llp_mS=275,
     )
 
     convert_divert(config)
