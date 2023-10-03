@@ -456,6 +456,7 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                 continue
 
             # Make sure no one else is working on this file:
+            output_file.parent.mkdir(parents=True, exist_ok=True)
             with FileLock(output_file) as lock:
                 if not lock.is_locked:
                     logging.warning(
