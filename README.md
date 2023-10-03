@@ -16,7 +16,7 @@ This isn't meant to be an exploratory thing as much as "easy-to-run". Use `--hel
 * `cr_trainer plot` will generate a report comparing the test main training data and adversary training data file. The results are stored under `reports`, which is created in your current directory. Look at the `report.md` file for quick info.
 * `cr _trainer analyze` will compare several runs looking for a _best_ epoch, make a few plots, and run a few comparisons on the `test` dataset.
 * `cr_trainer convert training name/run/epoch` will convert that run's model with weights from that epoch to a `json` file that DiVertAnalysis's `fdeep` package can import and run.
-* `cr_trainer convert divertanalysis file_path -data_type qcd` will convert the `DiVertAnalysisR21` output at `file_path` to a pre-training file. This can then be used to build a full training sample. Wildcards are allowed. Use `yaml` config to build a complete set. Note that the conversion is designed to skip errors (and files previously converted). It is important to look at the log messages that result from this run to make sure all the files you want processed have been processed.
+* `cr_trainer convert divertanalysis file_path -data_type qcd` will convert the `DiVertAnalysisR21` output at `file_path` to a pre-training file. This can then be used to build a full training sample. Wildcards are allowed. Use `yaml` config to build a complete set. Note that the conversion is designed to skip errors (and files previously converted). It is important to look at the log messages that result from this run to make sure all the files you want processed have been processed. It is possible to run multiple copies of this command at once - they shouldn't step on each other.
 
 Some quick notes:
 
