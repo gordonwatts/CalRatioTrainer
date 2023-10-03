@@ -310,7 +310,8 @@ def main():
         description="Convert a DiVertAnalysis file to a training file. This"
         " will process all the files specified on the command line or in the yaml"
         " config file. Please watch warning and error messages carefully to make sure"
-        " all the files expected are processed.",
+        " all the files expected are processed. You can run multiple instances at once"
+        " - they should not step on each other.",
     )
     parser_divertanalysis_convert.add_argument(
         "--config",
