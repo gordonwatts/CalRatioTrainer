@@ -1,6 +1,8 @@
 from pathlib import Path
 
 import pandas as pd
+
+from cal_ratio_trainer.common.file_lock import FileLock
 from cal_ratio_trainer.config import (
     ConvertDiVertAnalysisConfig,
     DiVertAnalysisInputFile,
@@ -167,6 +169,42 @@ def test_bib_file(tmp_path, caplog):
     assert df.dtypes["label"] == "int64"
 
     assert "HLT_jet_isBIB" not in df.columns
+
+
+def test_lock_file(tmp_path, caplog):
+    "Lock file causes skip"
+
+    default_branches = load_config(ConvertDiVertAnalysisConfig)
+
+    config = ConvertDiVertAnalysisConfig(
+        input_files=[
+            DiVertAnalysisInputFile(
+                input_file=Path("tests/data/bib.root"),
+                data_type=DiVertFileType.bib,
+                output_dir=None,
+                llp_mH=0,
+                llp_mS=0,
+            )
+        ],
+        output_path=tmp_path,
+        signal_branches=default_branches.signal_branches,
+        bib_branches=default_branches.bib_branches,
+        qcd_branches=default_branches.qcd_branches,
+    )
+
+    # Create lock file.
+    output_file = tmp_path / "bib.pkl"
+    with FileLock(output_file) as lock:
+        assert lock.is_locked
+
+        # Run
+        convert_divert(config)
+
+        # Make sure there is no output file.
+        assert not output_file.exists()
+
+        # Make sure a warning was issued
+        assert "skipped" not in caplog.text
 
 
 def test_sig_file(tmp_path, caplog):
