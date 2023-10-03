@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Optional, Tuple, List
+from typing import Callable, Optional, Tuple, List
 import numpy as np
 import pandas as pd
 from cal_ratio_trainer.config import BuildMainTrainingConfig
@@ -212,26 +212,37 @@ def split_path_by_wild(p: Path) -> Tuple[Path, Optional[Path]]:
         return good_path / p.name, None
 
 
-def pickle_loader(f: Path) -> pd.DataFrame:
-    """Read the file, and make sure that we have the right columns.
+def pickle_loader(drop_branches: List[str]) -> Callable[[Path], pd.DataFrame]:
+    "Create a function that will drop some branches!"
 
-    Args:
-        f (Path): file to load
+    def my_pickle_loader(f: Path) -> pd.DataFrame:
+        """Read the file, and make sure that we have the right columns.
 
-    Returns:
-        pd.DataFrame: Sanitized DataFrame
-    """
-    df = pd.read_pickle(f)
+        Args:
+            f (Path): file to load
 
-    # Rename any columns
-    # TODO: Remove this code once understand how this happened upstream.
-    # See issue https://github.com/gordonwatts/CalRatioTrainer/issues/116
-    if "mH" in df.columns:
-        df.rename(columns={"mH": "llp_mH"}, inplace=True)
-    if "mS" in df.columns:
-        df.rename(columns={"mS": "llp_mS"}, inplace=True)
+        Returns:
+            pd.DataFrame: Sanitized DataFrame
+        """
+        df = pd.read_pickle(f)
 
-    return df
+        # Rename any columns
+        # TODO: Remove this code once understand how this happened upstream.
+        # See issue https://github.com/gordonwatts/CalRatioTrainer/issues/116
+        if "mH" in df.columns:
+            df.rename(columns={"mH": "llp_mH"}, inplace=True)
+        if "mS" in df.columns:
+            df.rename(columns={"mS": "llp_mS"}, inplace=True)
+
+        # Get rid of branches that should not, perhaps, have been
+        # written out in the first place!
+        for b in drop_branches:
+            if b in df.columns:
+                df.drop(columns=b, inplace=True)
+
+        return df
+
+    return my_pickle_loader
 
 
 def build_main_training(config: BuildMainTrainingConfig):
@@ -263,7 +274,7 @@ def build_main_training(config: BuildMainTrainingConfig):
 
         ddf = dd.from_delayed(  # type: ignore
             [
-                dask.delayed(pickle_loader)(f_name)  # type: ignore
+                dask.delayed(pickle_loader(config.remove_branches))(f_name)  # type: ignore
                 for f_name in files_found
             ]
         )

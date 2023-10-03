@@ -283,6 +283,11 @@ class BuildMainTrainingConfig(BaseModel):
     max_jet_pT: Optional[float] = Field(
         description="The maximum jet pT to use for the training [GeV]."
     )
+    remove_branches: List[str] = Field(
+        description="The list of branches to exclude from the training file"
+        " (if present).",
+        default=[],
+    )
 
 
 config_default_file = {

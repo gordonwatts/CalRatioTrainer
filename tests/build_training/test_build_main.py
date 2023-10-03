@@ -45,8 +45,8 @@ def test_build_sig_has_llp_columns(tmp_path, caplog):
     assert out_file.exists()
     df = pd.read_pickle(out_file)
 
-    assert 'llp_mH' in df.columns
-    assert 'llp_mS' in df.columns
+    assert "llp_mH" in df.columns
+    assert "llp_mS" in df.columns
 
 
 def test_build_zero_length_file(tmp_path, caplog):
@@ -321,6 +321,31 @@ def test_include_bib_file_with_expression(tmp_path):
     df = pd.read_pickle(out_file)
     assert len(df[df.eventNumber % 2 == 0]) == 0
     assert len(df) >= 1
+
+
+def test_drop_columns(tmp_path):
+    "Crash seen in the real world"
+    out_file = tmp_path / "test_output.pkl"
+    c = BuildMainTrainingConfig(
+        input_files=[
+            training_input_file(
+                input_file=Path("tests/data/bib.pkl"),
+                num_events=None,
+                event_filter="eventNumber % 2 == 1",
+            )
+        ],
+        output_file=out_file,
+        min_jet_pT=40,
+        max_jet_pT=500,
+        remove_branches=["HLT_jet_eta", "bogus_no_problem"],
+    )
+
+    build_main_training(c)
+
+    assert out_file.exists()
+    df = pd.read_pickle(out_file)
+
+    assert "HLT_jet_eta" not in df.columns
 
 
 def test_include_bib_file(tmp_path):
