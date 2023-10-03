@@ -212,7 +212,7 @@ def split_path_by_wild(p: Path) -> Tuple[Path, Optional[Path]]:
         return good_path / p.name, None
 
 
-def pickle_loader(drop_branches: List[str]) -> Callable[[Path], pd.DataFrame]:
+def pickle_loader(drop_branches: Optional[List[str]]) -> Callable[[Path], pd.DataFrame]:
     "Create a function that will drop some branches!"
 
     def my_pickle_loader(f: Path) -> pd.DataFrame:
@@ -242,12 +242,13 @@ def pickle_loader(drop_branches: List[str]) -> Callable[[Path], pd.DataFrame]:
 
         # Get rid of branches that should not, perhaps, have been
         # written out in the first place!
-        for b in drop_branches:
-            if b in df.columns:
-                logging.warning(
-                    f"Dropping branch {b} - should not have been written in first place"
-                )
-                df.drop(columns=b, inplace=True)
+        if drop_branches is not None:
+            for b in drop_branches:
+                if b in df.columns:
+                    logging.warning(
+                        f"Dropping branch {b} - should not have been written in first place"
+                    )
+                    df.drop(columns=b, inplace=True)
 
         return df
 
