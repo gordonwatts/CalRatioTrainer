@@ -283,7 +283,9 @@ def build_main_training(config: BuildMainTrainingConfig):
 
         ddf = dd.from_delayed(  # type: ignore
             [
-                dask.delayed(pickle_loader(config.remove_branches))(f_name)  # type: ignore
+                dask.delayed(pickle_loader(config.remove_branches))(  # type: ignore
+                    f_name
+                )
                 for f_name in files_found
             ]
         )
