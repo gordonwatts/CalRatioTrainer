@@ -5,6 +5,9 @@ def test_file_lock_simple(tmp_path):
     with FileLock(tmp_path / "test_file.txt") as lock:
         assert lock.is_locked
 
+    lock_file = tmp_path / "test_file.txt.lock"
+    assert not lock_file.exists()
+
 
 def test_two_try(tmp_path):
     interesting_file = tmp_path / "test_file.txt"

@@ -27,3 +27,9 @@ class FileLock:
             fcntl.flock(self.file, fcntl.LOCK_UN)
             self.file.close()
             self.file = None
+
+            # Try to remove file
+            try:
+                self.file_path.unlink()
+            except Exception:
+                pass

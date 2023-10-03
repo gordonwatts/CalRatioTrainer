@@ -458,7 +458,7 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
             # Make sure no one else is working on this file:
             with FileLock(output_file) as lock:
                 if not lock.is_locked:
-                    logging.info(
+                    logging.warning(
                         f"File {output_file} already being processed. Skipping."
                     )
                     continue
