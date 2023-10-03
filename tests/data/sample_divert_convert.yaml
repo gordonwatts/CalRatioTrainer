@@ -1,0 +1,481 @@
+input_files:
+  - data_type: qcd
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/QCDMC/user.tavandaa.mc16_13TeV.361020.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ0W.mc16a.0517.v01_trees.root/*.root
+    mH: 0
+    mS: 0
+    output_dir: user.tavandaa.mc16_13TeV.361020.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ0W.mc16a.0517.v01_trees.root
+  - data_type: qcd
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/QCDMC/user.tavandaa.mc16_13TeV.361021.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ1W.mc16a.0517.v01_trees.root/*.root
+    mH: 0
+    mS: 0
+    output_dir: user.tavandaa.mc16_13TeV.361021.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ1W.mc16a.0517.v01_trees.root
+  - data_type: qcd
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/QCDMC/user.tavandaa.mc16_13TeV.361022.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ2W.mc16a.0517.v01_trees.root/*.root
+    mH: 0
+    mS: 0
+    output_dir: user.tavandaa.mc16_13TeV.361022.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ2W.mc16a.0517.v01_trees.root
+  - data_type: qcd
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/QCDMC/user.tavandaa.mc16_13TeV.361023.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ3W.mc16a.0517.v01_trees.root/*.root
+    mH: 0
+    mS: 0
+    output_dir: user.tavandaa.mc16_13TeV.361023.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ3W.mc16a.0517.v01_trees.root
+  - data_type: qcd
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/QCDMC/user.tavandaa.mc16_13TeV.361024.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ4W.mc16a.0517.v01_trees.root/*.root
+    mH: 0
+    mS: 0
+    output_dir: user.tavandaa.mc16_13TeV.361024.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ4W.mc16a.0517.v01_trees.root
+  - data_type: qcd
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/QCDMC/user.tavandaa.mc16_13TeV.361025.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ5W.mc16a.0517.v02_trees.root/*.root
+    mH: 0
+    mS: 0
+    output_dir: user.tavandaa.mc16_13TeV.361025.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ5W.mc16a.0517.v02_trees.root
+  - data_type: qcd
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/QCDMC/user.tavandaa.mc16_13TeV.361026.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ6W.mc16a.0517.v01_trees.root/*.root
+    mH: 0
+    mS: 0
+    output_dir: user.tavandaa.mc16_13TeV.361026.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ6W.mc16a.0517.v01_trees.root
+  - data_type: qcd
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/QCDMC/user.tavandaa.mc16_13TeV.361027.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ7W.mc16a.0517.v01_trees.root/*.root
+    mH: 0
+    mS: 0
+    output_dir: user.tavandaa.mc16_13TeV.361027.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ7W.mc16a.0517.v01_trees.root
+  - data_type: qcd
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/QCDMC/user.tavandaa.mc16_13TeV.361028.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ8W.mc16a.0517.v01_trees.root/*.root
+    mH: 0
+    mS: 0
+    output_dir: user.tavandaa.mc16_13TeV.361028.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ8W.mc16a.0517.v01_trees.root
+  - data_type: qcd
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/QCDMC/user.tavandaa.mc16_13TeV.361029.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ9W.mc16a.0517.v01_trees.root/*.root
+    mH: 0
+    mS: 0
+    output_dir: user.tavandaa.mc16_13TeV.361029.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ9W.mc16a.0517.v01_trees.root
+  - data_type: qcd
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/QCDMC/user.tavandaa.mc16_13TeV.361030.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ10W.mc16a.0517.v01_trees.root/*.root
+    mH: 0
+    mS: 0
+    output_dir: user.tavandaa.mc16_13TeV.361030.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ10W.mc16a.0517.v01_trees.root
+  - data_type: qcd
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/QCDMC/user.tavandaa.mc16_13TeV.361031.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ11W.mc16a.0517.v01_trees.root/*.root
+    mH: 0
+    mS: 0
+    output_dir: user.tavandaa.mc16_13TeV.361031.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ11W.mc16a.0517.v01_trees.root
+  - data_type: qcd
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/QCDMC/user.tavandaa.mc16_13TeV.361032.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ12W.mc16a.0517.v04_trees.root/*.root
+    mH: 0
+    mS: 0
+    output_dir: user.tavandaa.mc16_13TeV.361032.Pythia8EvtGen_A14NNPDF23LO_jetjet_JZ12W.mc16a.0517.v04_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311314.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS55_ltlow.mc16a.0512.v1_trees.root/*.root
+    mH: 125
+    mS: 55
+    output_dir: user.lcorpe.mc16_13TeV.311314.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS55_ltlow.mc16a.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311314.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS55_ltlow.mc16d.0512.v1_trees.root/*.root
+    mH: 125
+    mS: 55
+    output_dir: user.lcorpe.mc16_13TeV.311314.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS55_ltlow.mc16d.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311314.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS55_ltlow.mc16e.0512.v1_trees.root/*.root
+    mH: 125
+    mS: 55
+    output_dir: user.lcorpe.mc16_13TeV.311314.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS55_ltlow.mc16e.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311315.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS55_lthigh.mc16a.0512.v1.jn_trees.root/*.root
+    mH: 125
+    mS: 55
+    output_dir: user.lcorpe.mc16_13TeV.311315.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS55_lthigh.mc16a.0512.v1.jn_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311315.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS55_lthigh.mc16a.0512.v1_trees.root/*.root
+    mH: 125
+    mS: 55
+    output_dir: user.lcorpe.mc16_13TeV.311315.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS55_lthigh.mc16a.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311315.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS55_lthigh.mc16d.0512.v1.jn_trees.root/*.root
+    mH: 125
+    mS: 55
+    output_dir: user.lcorpe.mc16_13TeV.311315.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS55_lthigh.mc16d.0512.v1.jn_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311315.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS55_lthigh.mc16d.0512.v1_trees.root/*.root
+    mH: 125
+    mS: 55
+    output_dir: user.lcorpe.mc16_13TeV.311315.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS55_lthigh.mc16d.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311315.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS55_lthigh.mc16e.0512.v1.jn_trees.root/*.root
+    mH: 125
+    mS: 55
+    output_dir: user.lcorpe.mc16_13TeV.311315.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS55_lthigh.mc16e.0512.v1.jn_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311315.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS55_lthigh.mc16e.0512.v1_trees.root/*.root
+    mH: 125
+    mS: 55
+    output_dir: user.lcorpe.mc16_13TeV.311315.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS55_lthigh.mc16e.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311419.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH200_mS50.mc16a.0512.v1.jn_trees.root/*.root
+    mH: 200
+    mS: 50
+    output_dir: user.lcorpe.mc16_13TeV.311419.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH200_mS50.mc16a.0512.v1.jn_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311419.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH200_mS50.mc16a.0512.v1_trees.root/*.root
+    mH: 200
+    mS: 50
+    output_dir: user.lcorpe.mc16_13TeV.311419.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH200_mS50.mc16a.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311419.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH200_mS50.mc16d.0512.v1.jn_trees.root/*.root
+    mH: 200
+    mS: 50
+    output_dir: user.lcorpe.mc16_13TeV.311419.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH200_mS50.mc16d.0512.v1.jn_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311419.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH200_mS50.mc16d.0512.v1_trees.root/*.root
+    mH: 200
+    mS: 50
+    output_dir: user.lcorpe.mc16_13TeV.311419.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH200_mS50.mc16d.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311419.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH200_mS50.mc16e.0512.v1.jn_trees.root/*.root
+    mH: 200
+    mS: 50
+    output_dir: user.lcorpe.mc16_13TeV.311419.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH200_mS50.mc16e.0512.v1.jn_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311419.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH200_mS50.mc16e.0512.v1_trees.root/*.root
+    mH: 200
+    mS: 50
+    output_dir: user.lcorpe.mc16_13TeV.311419.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH200_mS50.mc16e.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311420.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH400_mS100.mc16a.0512.v1.jn_trees.root/*.root
+    mH: 400
+    mS: 100
+    output_dir: user.lcorpe.mc16_13TeV.311420.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH400_mS100.mc16a.0512.v1.jn_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311420.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH400_mS100.mc16a.0512.v1_trees.root/*.root
+    mH: 400
+    mS: 100
+    output_dir: user.lcorpe.mc16_13TeV.311420.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH400_mS100.mc16a.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311420.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH400_mS100.mc16d.0512.v1.jn_trees.root/*.root
+    mH: 400
+    mS: 100
+    output_dir: user.lcorpe.mc16_13TeV.311420.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH400_mS100.mc16d.0512.v1.jn_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311420.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH400_mS100.mc16d.0512.v1_trees.root/*.root
+    mH: 400
+    mS: 100
+    output_dir: user.lcorpe.mc16_13TeV.311420.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH400_mS100.mc16d.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311420.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH400_mS100.mc16e.0512.v1.jn_trees.root/*.root
+    mH: 400
+    mS: 100
+    output_dir: user.lcorpe.mc16_13TeV.311420.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH400_mS100.mc16e.0512.v1.jn_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311420.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH400_mS100.mc16e.0512.v1_trees.root/*.root
+    mH: 400
+    mS: 100
+    output_dir: user.lcorpe.mc16_13TeV.311420.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH400_mS100.mc16e.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311422.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS150_ltlow.mc16a.0512.v1_trees.root/*.root
+    mH: 600
+    mS: 150
+    output_dir: user.lcorpe.mc16_13TeV.311422.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS150_ltlow.mc16a.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311422.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS150_ltlow.mc16d.0512.v1_trees.root/*.root
+    mH: 600
+    mS: 150
+    output_dir: user.lcorpe.mc16_13TeV.311422.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS150_ltlow.mc16d.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311422.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS150_ltlow.mc16e.0512.v1_trees.root/*.root
+    mH: 600
+    mS: 150
+    output_dir: user.lcorpe.mc16_13TeV.311422.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS150_ltlow.mc16e.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311423.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS150_lthigh.mc16a.0512.v1.jn_trees.root/*.root
+    mH: 600
+    mS: 150
+    output_dir: user.lcorpe.mc16_13TeV.311423.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS150_lthigh.mc16a.0512.v1.jn_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311423.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS150_lthigh.mc16a.0512.v1_trees.root/*.root
+    mH: 600
+    mS: 150
+    output_dir: user.lcorpe.mc16_13TeV.311423.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS150_lthigh.mc16a.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311423.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS150_lthigh.mc16d.0512.v1.jn_trees.root/*.root
+    mH: 600
+    mS: 150
+    output_dir: user.lcorpe.mc16_13TeV.311423.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS150_lthigh.mc16d.0512.v1.jn_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311423.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS150_lthigh.mc16d.0512.v1_trees.root/*.root
+    mH: 600
+    mS: 150
+    output_dir: user.lcorpe.mc16_13TeV.311423.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS150_lthigh.mc16d.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311423.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS150_lthigh.mc16e.0512.v1.jn_trees.root/*.root
+    mH: 600
+    mS: 150
+    output_dir: user.lcorpe.mc16_13TeV.311423.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS150_lthigh.mc16e.0512.v1.jn_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311423.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS150_lthigh.mc16e.0512.v1_trees.root/*.root
+    mH: 600
+    mS: 150
+    output_dir: user.lcorpe.mc16_13TeV.311423.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS150_lthigh.mc16e.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311426.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS275_ltlow.mc16a.0512.v1_trees.root/*.root
+    mH: 1000
+    mS: 275
+    output_dir: user.lcorpe.mc16_13TeV.311426.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS275_ltlow.mc16a.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311426.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS275_ltlow.mc16d.0512.v1_trees.root/*.root
+    mH: 1000
+    mS: 275
+    output_dir: user.lcorpe.mc16_13TeV.311426.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS275_ltlow.mc16d.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311426.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS275_ltlow.mc16e.0512.v1_trees.root/*.root
+    mH: 1000
+    mS: 275
+    output_dir: user.lcorpe.mc16_13TeV.311426.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS275_ltlow.mc16e.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311427.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS275_lthigh.mc16a.0512.v1_trees.root/*.root
+    mH: 1000
+    mS: 275
+    output_dir: user.lcorpe.mc16_13TeV.311427.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS275_lthigh.mc16a.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311427.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS275_lthigh.mc16d.0512.v1.jn_trees.root/*.root
+    mH: 1000
+    mS: 275
+    output_dir: user.lcorpe.mc16_13TeV.311427.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS275_lthigh.mc16d.0512.v1.jn_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311427.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS275_lthigh.mc16d.0512.v1_trees.root/*.root
+    mH: 1000
+    mS: 275
+    output_dir: user.lcorpe.mc16_13TeV.311427.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS275_lthigh.mc16d.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311427.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS275_lthigh.mc16e.0512.v1_trees.root/*.root
+    mH: 1000
+    mS: 275
+    output_dir: user.lcorpe.mc16_13TeV.311427.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS275_lthigh.mc16e.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311309.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS5_ltlow.mc16a.0512.v1_trees.root/*.root
+    mH: 125
+    mS: 5
+    output_dir: user.lcorpe.mc16_13TeV.311309.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS5_ltlow.mc16a.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311309.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS5_ltlow.mc16d.0512.v1_trees.root/*.root
+    mH: 125
+    mS: 5
+    output_dir: user.lcorpe.mc16_13TeV.311309.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS5_ltlow.mc16d.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311309.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS5_ltlow.mc16e.0512.v1_trees.root/*.root
+    mH: 125
+    mS: 5
+    output_dir: user.lcorpe.mc16_13TeV.311309.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS5_ltlow.mc16e.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311310.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS5_lthigh.mc16a.0512.v1_trees.root/*.root
+    mH: 125
+    mS: 5
+    output_dir: user.lcorpe.mc16_13TeV.311310.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS5_lthigh.mc16a.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311310.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS5_lthigh.mc16d.0512.v1_trees.root/*.root
+    mH: 125
+    mS: 5
+    output_dir: user.lcorpe.mc16_13TeV.311310.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS5_lthigh.mc16d.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311310.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS5_lthigh.mc16e.0512.v1_trees.root/*.root
+    mH: 125
+    mS: 5
+    output_dir: user.lcorpe.mc16_13TeV.311310.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS5_lthigh.mc16e.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311312.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS35_ltlow.mc16a.0512.v1_trees.root/*.root
+    mH: 125
+    mS: 35
+    output_dir: user.lcorpe.mc16_13TeV.311312.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS35_ltlow.mc16a.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311312.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS35_ltlow.mc16d.0512.v1_trees.root/*.root
+    mH: 125
+    mS: 35
+    output_dir: user.lcorpe.mc16_13TeV.311312.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS35_ltlow.mc16d.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311312.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS35_ltlow.mc16e.0512.v1_trees.root/*.root
+    mH: 125
+    mS: 35
+    output_dir: user.lcorpe.mc16_13TeV.311312.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS35_ltlow.mc16e.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311313.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS35_lthigh.mc16a.0512.v1_trees.root/*.root
+    mH: 125
+    mS: 35
+    output_dir: user.lcorpe.mc16_13TeV.311313.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS35_lthigh.mc16a.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311313.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS35_lthigh.mc16a.0512.v4_trees.root/*.root
+    mH: 125
+    mS: 35
+    output_dir: user.lcorpe.mc16_13TeV.311313.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS35_lthigh.mc16a.0512.v4_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311313.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS35_lthigh.mc16d.0512.v1_trees.root/*.root
+    mH: 125
+    mS: 35
+    output_dir: user.lcorpe.mc16_13TeV.311313.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS35_lthigh.mc16d.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311313.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS35_lthigh.mc16d.0512.v4_trees.root/*.root
+    mH: 125
+    mS: 35
+    output_dir: user.lcorpe.mc16_13TeV.311313.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS35_lthigh.mc16d.0512.v4_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311313.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS35_lthigh.mc16e.0512.v1_trees.root/*.root
+    mH: 125
+    mS: 35
+    output_dir: user.lcorpe.mc16_13TeV.311313.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS35_lthigh.mc16e.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311313.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS35_lthigh.mc16e.0512.v4_trees.root/*.root
+    mH: 125
+    mS: 35
+    output_dir: user.lcorpe.mc16_13TeV.311313.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS35_lthigh.mc16e.0512.v4_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311314.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS55_ltlow.mc16d.0512.v4_trees.root/*.root
+    mH: 125
+    mS: 55
+    output_dir: user.lcorpe.mc16_13TeV.311314.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS55_ltlow.mc16d.0512.v4_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311417.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH60_mS5.mc16a.0512.v1_trees.root/*.root
+    mH: 60
+    mS: 5
+    output_dir: user.lcorpe.mc16_13TeV.311417.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH60_mS5.mc16a.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311417.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH60_mS5.mc16d.0512.v1_trees.root/*.root
+    mH: 60
+    mS: 5
+    output_dir: user.lcorpe.mc16_13TeV.311417.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH60_mS5.mc16d.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311417.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH60_mS5.mc16e.0512.v3_trees.root/*.root
+    mH: 60
+    mS: 5
+    output_dir: user.lcorpe.mc16_13TeV.311417.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH60_mS5.mc16e.0512.v3_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311421.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS50.mc16a.0512.v1_trees.root/*.root
+    mH: 600
+    mS: 50
+    output_dir: user.lcorpe.mc16_13TeV.311421.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS50.mc16a.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311421.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS50.mc16d.0512.v1_trees.root/*.root
+    mH: 600
+    mS: 50
+    output_dir: user.lcorpe.mc16_13TeV.311421.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS50.mc16d.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311421.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS50.mc16e.0512.v1_trees.root/*.root
+    mH: 600
+    mS: 50
+    output_dir: user.lcorpe.mc16_13TeV.311421.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS50.mc16e.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311421.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS50.mc16e.0512.v4_trees.root/*.root
+    mH: 600
+    mS: 50
+    output_dir: user.lcorpe.mc16_13TeV.311421.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS50.mc16e.0512.v4_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311424.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS275.mc16a.0512.v1_trees.root/*.root
+    mH: 600
+    mS: 275
+    output_dir: user.lcorpe.mc16_13TeV.311424.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS275.mc16a.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311424.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS275.mc16d.0512.v1_trees.root/*.root
+    mH: 600
+    mS: 275
+    output_dir: user.lcorpe.mc16_13TeV.311424.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS275.mc16d.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311424.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS275.mc16d.0512.v4_trees.root/*.root
+    mH: 600
+    mS: 275
+    output_dir: user.lcorpe.mc16_13TeV.311424.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS275.mc16d.0512.v4_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311424.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS275.mc16e.0512.v3_trees.root/*.root
+    mH: 600
+    mS: 275
+    output_dir: user.lcorpe.mc16_13TeV.311424.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS275.mc16e.0512.v3_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311425.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS50.mc16a.0512.v1_trees.root/*.root
+    mH: 1000
+    mS: 50
+    output_dir: user.lcorpe.mc16_13TeV.311425.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS50.mc16a.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311425.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS50.mc16d.0512.v1_trees.root/*.root
+    mH: 1000
+    mS: 50
+    output_dir: user.lcorpe.mc16_13TeV.311425.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS50.mc16d.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311425.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS50.mc16d.0512.v4_trees.root/*.root
+    mH: 1000
+    mS: 50
+    output_dir: user.lcorpe.mc16_13TeV.311425.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS50.mc16d.0512.v4_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311425.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS50.mc16e.0512.v4_trees.root/*.root
+    mH: 1000
+    mS: 50
+    output_dir: user.lcorpe.mc16_13TeV.311425.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS50.mc16e.0512.v4_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311428.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS475.mc16a.0512.v1_trees.root/*.root
+    mH: 1000
+    mS: 475
+    output_dir: user.lcorpe.mc16_13TeV.311428.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS475.mc16a.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311428.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS475.mc16a.0512.v4_trees.root/*.root
+    mH: 1000
+    mS: 475
+    output_dir: user.lcorpe.mc16_13TeV.311428.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS475.mc16a.0512.v4_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311428.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS475.mc16d.0512.v1_trees.root/*.root
+    mH: 1000
+    mS: 475
+    output_dir: user.lcorpe.mc16_13TeV.311428.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS475.mc16d.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311428.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS475.mc16d.0512.v4_trees.root/*.root
+    mH: 1000
+    mS: 475
+    output_dir: user.lcorpe.mc16_13TeV.311428.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS475.mc16d.0512.v4_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311428.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS475.mc16e.0512.v1_trees.root/*.root
+    mH: 1000
+    mS: 475
+    output_dir: user.lcorpe.mc16_13TeV.311428.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS475.mc16e.0512.v1_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.311428.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS475.mc16e.0512.v4_trees.root/*.root
+    mH: 1000
+    mS: 475
+    output_dir: user.lcorpe.mc16_13TeV.311428.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH1000_mS475.mc16e.0512.v4_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.313417.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS16.mc16a.0512.v5.jn.npu_trees.root/*.root
+    mH: 125
+    mS: 16
+    output_dir: user.lcorpe.mc16_13TeV.313417.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS16.mc16a.0512.v5.jn.npu_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.313417.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS16.mc16d.0512.v5.jn.npu_trees.root/*.root
+    mH: 125
+    mS: 16
+    output_dir: user.lcorpe.mc16_13TeV.313417.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS16.mc16d.0512.v5.jn.npu_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.313417.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS16.mc16e.0512.v5.jn.npu_trees.root/*.root
+    mH: 125
+    mS: 16
+    output_dir: user.lcorpe.mc16_13TeV.313417.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS16.mc16e.0512.v5.jn.npu_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.313418.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH60_mS16.mc16a.0512.v5.jn.npu_trees.root/*.root
+    mH: 60
+    mS: 16
+    output_dir: user.lcorpe.mc16_13TeV.313418.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH60_mS16.mc16a.0512.v5.jn.npu_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.313418.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH60_mS16.mc16d.0512.v5.jn.npu_trees.root/*.root
+    mH: 60
+    mS: 16
+    output_dir: user.lcorpe.mc16_13TeV.313418.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH60_mS16.mc16d.0512.v5.jn.npu_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.lcorpe.mc16_13TeV.313418.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH60_mS16.mc16e.0512.v5.jn.npu_trees.root/*.root
+    mH: 60
+    mS: 16
+    output_dir: user.lcorpe.mc16_13TeV.313418.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH60_mS16.mc16e.0512.v5.jn.npu_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.mproffit.mc16_13TeV.311314.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS55_ltlow.651e1e5c_trees.root/*.root
+    mH: 125
+    mS: 55
+    output_dir: user.mproffit.mc16_13TeV.311314.MadGraphPythia8EvtGen_A14NNPDF31LO_HSS_LLP_mH125_mS55_ltlow.651e1e5c_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.mproffit.mc16_13TeV.311421.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS50.651e1e5c_trees.root/*.root
+    mH: 600
+    mS: 50
+    output_dir: user.mproffit.mc16_13TeV.311421.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS50.651e1e5c_trees.root
+  - data_type: sig
+    input_file: /LLPData/Outputs/DiVertAnaR21/CalRatioOnly/ntups_0512.v1/user.mproffit.mc16_13TeV.311424.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS275.651e1e5c_trees.root/*.root
+    mH: 600
+    mS: 275
+    output_dir: user.mproffit.mc16_13TeV.311424.MGPy8EG_A14NNPDF23_NNPDF31ME_HSS_LLP_mH600_mS275.651e1e5c_trees.root

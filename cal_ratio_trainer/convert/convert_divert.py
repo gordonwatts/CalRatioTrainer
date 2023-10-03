@@ -299,7 +299,7 @@ def column_guillotine(arr, branches):
 
 
 def signal_processing(
-    signal_file, llp_mH, llp_mS, branches: List[str], output_file: Path
+    signal_file, llp_mH: float, llp_mS: float, branches: List[str], output_file: Path
 ):
     # getting the specific branches as defined by branches
     # should be 'trees_DV_' for every file
@@ -336,11 +336,11 @@ def signal_processing(
     )
 
     # adding in mH and mS columns
-    big_df.insert(0, "mH", llp_mH)
-    big_df.insert(0, "mS", llp_mS)
+    big_df.insert(0, "llp_mH", float(llp_mH))
+    big_df.insert(0, "llp_mS", float(llp_mS))
 
     # creating the label column, filled with 0s because we're working with signal
-    big_df.insert(0, "label", 0)
+    big_df.insert(0, "label", int(0))
 
     # changing the mcEVentWeight to be all 1, matching what Felix does
     big_df["mcEventWeight"] = 1
@@ -353,8 +353,10 @@ def signal_processing(
     return big_df
 
 
-def bib_processing(file, branches: List[str], output_file: Path):
+def bib_processing(file, base_branches: List[str], output_file: Path):
     # need to add in dR calculation
+    extra_branches = ["HLT_jet_isBIB", "HLT_jet_phi", "HLT_jet_eta"]
+    branches = base_branches + extra_branches
     bib_data = file["trees_DV_"].arrays(branches)
 
     # tracking if the HLT jet is BIB
@@ -382,16 +384,19 @@ def bib_processing(file, branches: List[str], output_file: Path):
     sorted_tcm = sorting_by_pT(dR_masked, branches)
     big_df = column_guillotine(sorted_tcm, branches)
 
-    big_df.insert(0, "llp_Lz", 0)
-    big_df.insert(0, "llp_Lxy", 0)
-    big_df.insert(0, "llp_phi", 0)
-    big_df.insert(0, "llp_eta", 0)
-    big_df.insert(0, "llp_pT", 0)
+    big_df.insert(0, "llp_Lz", 0.0)
+    big_df.insert(0, "llp_Lxy", 0.0)
+    big_df.insert(0, "llp_phi", 0.0)
+    big_df.insert(0, "llp_eta", 0.0)
+    big_df.insert(0, "llp_pT", 0.0)
 
-    big_df.insert(0, "mH", 0)
-    big_df.insert(0, "mS", 0)
+    big_df.insert(0, "llp_mH", 0.0)
+    big_df.insert(0, "llp_mS", 0.0)
     big_df.insert(0, "label", 2)
     big_df["mcEventWeight"] = 1
+
+    # Remove the extra branches we needed for processing
+    big_df = big_df.drop(columns=extra_branches)
 
     big_df.to_pickle(output_file)
 
@@ -405,28 +410,15 @@ def qcd_processing(file, branches: List[str], output_file: Path):
     sorted = sorting_by_pT(jet_masked, branches)
     big_df = column_guillotine(sorted, branches)
 
-    # jet_masked_0 = ak.Array({col: jet_masked[col][:,0] if col.startswith('llp')
-    #                      else jet_masked[col]
-    #                      for col in branches})
-    # jet_masked_1 = ak.Array({col: jet_masked[col][:,1] if col.startswith('llp')
-    #                          else jet_masked[col]
-    #                          for col in branches})
+    # Add the extra columns in.
+    big_df.insert(0, "llp_Lz", 0.0)
+    big_df.insert(0, "llp_Lxy", 0.0)
+    big_df.insert(0, "llp_phi", 0.0)
+    big_df.insert(0, "llp_eta", 0.0)
+    big_df.insert(0, "llp_pT", 0.0)
 
-    # sorted_0 = sorting_by_pT(jet_masked_0, branches)
-    # sorted_1 = sorting_by_pT(jet_masked_1, branches)
-
-    # big_df = pd.concat([column_guillotine(sorted_0, branches),
-    # column_guillotine(sorted_1, branches)], axis=0)
-
-    # this order should match order of columns in the signal data
-    big_df.insert(0, "llp_Lz", 0)
-    big_df.insert(0, "llp_Lxy", 0)
-    big_df.insert(0, "llp_phi", 0)
-    big_df.insert(0, "llp_eta", 0)
-    big_df.insert(0, "llp_pT", 0)
-
-    big_df.insert(0, "mH", 0)
-    big_df.insert(0, "mS", 0)
+    big_df.insert(0, "llp_mH", 0.0)
+    big_df.insert(0, "llp_mS", 0.0)
     big_df.insert(0, "label", 1)
 
     big_df.to_pickle(output_file)
@@ -477,10 +469,12 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                     # Process according to the data type.
                     if f_info.data_type == "sig":
                         assert config.signal_branches is not None
+                        assert f_info.llp_mH is not None
+                        assert f_info.llp_mS is not None
                         signal_processing(
                             in_file,
-                            config.llp_mH,
-                            config.llp_mS,
+                            f_info.llp_mH,
+                            f_info.llp_mS,
                             config.signal_branches,
                             output_file,
                         )
