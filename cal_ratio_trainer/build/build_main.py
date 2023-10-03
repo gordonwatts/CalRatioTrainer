@@ -230,14 +230,23 @@ def pickle_loader(drop_branches: List[str]) -> Callable[[Path], pd.DataFrame]:
         # TODO: Remove this code once understand how this happened upstream.
         # See issue https://github.com/gordonwatts/CalRatioTrainer/issues/116
         if "mH" in df.columns:
+            logging.warning(
+                "Renaming mH to llp_mH - should not need to happen - old input file?"
+            )
             df.rename(columns={"mH": "llp_mH"}, inplace=True)
         if "mS" in df.columns:
+            logging.warning(
+                "Renaming mS to llp_mS - should not need to happen - old input file?"
+            )
             df.rename(columns={"mS": "llp_mS"}, inplace=True)
 
         # Get rid of branches that should not, perhaps, have been
         # written out in the first place!
         for b in drop_branches:
             if b in df.columns:
+                logging.warning(
+                    f"Dropping branch {b} - should not have been written in first place"
+                )
                 df.drop(columns=b, inplace=True)
 
         return df
