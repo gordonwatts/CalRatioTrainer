@@ -9,6 +9,9 @@ from pydantic import BaseModel, Field
 # WARNING:
 # This should include no other modules that eventually import TensorFlow
 # This gets imported in just about every instance, so worth keeping clean.
+# IF you put a default in here, it should be `None`!!! Otherwise the logic
+# will think this is properly set value. Put defaults in the `default_xxx.yaml`
+# files.
 
 
 class TrainingConfig(BaseModel):
@@ -200,13 +203,13 @@ class DiVertAnalysisInputFile(BaseModel):
     llp_mH: Optional[float] = Field(
         description="The mass of the heavy higgs like particle. Zero if not a signal"
         " file.",
-        default=0.0,
+        default=None,
     )
 
     llp_mS: Optional[float] = Field(
         description="The mass of the dark sector light LLP like particle. Zero if not a"
         " signal file.",
-        default=0.0,
+        default=None,
     )
 
 
@@ -283,10 +286,10 @@ class BuildMainTrainingConfig(BaseModel):
     max_jet_pT: Optional[float] = Field(
         description="The maximum jet pT to use for the training [GeV]."
     )
-    remove_branches: List[str] = Field(
+    remove_branches: Optional[List[str]] = Field(
         description="The list of branches to exclude from the training file"
         " (if present).",
-        default=[],
+        default=None,
     )
 
 
