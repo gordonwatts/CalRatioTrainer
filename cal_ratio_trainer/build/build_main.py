@@ -246,7 +246,8 @@ def pickle_loader(drop_branches: Optional[List[str]]) -> Callable[[Path], pd.Dat
             for b in drop_branches:
                 if b in df.columns:
                     logging.warning(
-                        f"Dropping branch {b} - should not have been written in first place"
+                        f"Dropping branch {b} - should not have been "
+                        "written in first place?"
                     )
                     df.drop(columns=b, inplace=True)
 
