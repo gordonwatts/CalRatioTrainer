@@ -180,8 +180,8 @@ def test_qcd_multi_jets(caplog, tmp_path):
         clus_jet_index = event.cluster_jetIndex[clus_list_mask]
         assert len(clus_jet_index) == 1, f"Cluster {clus_pt} not found"
         assert jet_index in clus_jet_index[0], (
-            f"Cluster {clus_pt:.2f} not part of clusters for jet {jet_index} - looks like"
-            f" it is from {clus_jet_index[0][0]}"
+            f"Cluster {clus_pt:.2f} not part of clusters for jet {jet_index} - looks "
+            f"like it is from {clus_jet_index[0][0]}"
         )
 
     match_event_and_cluster_pt(df.eventNumber[0], df.jet_pT[0], df.clus_pt_1[0])
