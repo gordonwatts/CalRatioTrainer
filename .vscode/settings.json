@@ -26,6 +26,7 @@
         "dtype",
         "dtypes",
         "ecal",
+        "endcap",
         "errorbar",
         "errstate",
         "fdeep",
