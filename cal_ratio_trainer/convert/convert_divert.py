@@ -68,13 +68,14 @@ def mseg_filter(mseg, correct_jets):
 def applying_llp_cuts(arr, branches):
     # creating the LLP eta/Lxy/Lz masks, based off of the ones mention in the internal
     # note
-    llp_eta_mask = abs(arr.llp_eta) < 1.4
+    central_llp_eta_mask = abs(arr.llp_eta) < 1.4
+    endcap_llp_eta_mask = abs(arr.llp_eta) > 1.4
 
     llp_Lxy_mask = (arr.llp_Lxy > 1200) & (arr.llp_Lxy < 4000)
 
     llp_Lz_mask = (arr.llp_Lz > 3500) & (arr.llp_Lz < 6000)
 
-    return llp_eta_mask & (llp_Lxy_mask | llp_Lz_mask)
+    return (central_llp_eta_mask & llp_Lxy_mask) | (endcap_llp_eta_mask & llp_Lz_mask)
 
 
 def delta_R(arr, phi, eta):
