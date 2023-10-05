@@ -32,6 +32,7 @@ def jets_masking(array, branches):
         }
     )
     length_mask = ak.num(masked.jet_pT, axis=-1) > 0  # type: ignore
+    # TODO: This could probably be just `masked[length_mask]`.
     return ak.Array({col: masked[col][length_mask] for col in branches})
 
 
