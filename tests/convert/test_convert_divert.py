@@ -1,6 +1,8 @@
 from pathlib import Path
 
+import awkward as ak
 import pandas as pd
+import uproot
 
 from cal_ratio_trainer.common.file_lock import FileLock
 from cal_ratio_trainer.config import (
@@ -130,6 +132,61 @@ def test_qcd_file(caplog, tmp_path):
     assert df.dtypes["llp_mS"] == "float64"
     assert df.dtypes["llp_mH"] == "float64"
     assert df.dtypes["label"] == "int64"
+
+
+def test_qcd_multi_jets(caplog, tmp_path):
+    default_branches = load_config(ConvertDiVertAnalysisConfig)
+
+    config = ConvertDiVertAnalysisConfig(
+        input_files=[
+            DiVertAnalysisInputFile(
+                input_file=Path("tests/data/sig_311424_600_275.root"),
+                data_type=DiVertFileType.qcd,
+                output_dir=None,
+                llp_mH=0,
+                llp_mS=0,
+            )
+        ],
+        output_path=tmp_path,
+        signal_branches=default_branches.signal_branches,
+        bib_branches=default_branches.bib_branches,
+        qcd_branches=default_branches.qcd_branches,
+    )
+
+    convert_divert(config)
+
+    # Find the output file
+    output_file = tmp_path / "sig_311424_600_275.pkl"
+    df = pd.read_pickle(output_file)
+
+    assert len(df.eventNumber.unique()) < len(df)
+
+    def match_event_and_cluster_pt(event_number: int, jet_pt: float, clus_pt: float):
+        tree_data = uproot.open("tests/data/sig_311424_600_275.root")[
+            "trees_DV_"
+        ].arrays()  # type: ignore
+        event = tree_data[tree_data.eventNumber == event_number]
+        assert len(event) == 1, f"Event {event_number} not found"
+
+        # get the jet index for this jet pt.
+        jet_index_list = event.nn_jet_index[event.jet_pT == jet_pt]
+        assert len(jet_index_list) == 1, f"Jet {jet_pt} not found"
+        jet_index = jet_index_list[0][0]
+
+        clus_list_mask = event.clus_pt == clus_pt
+        assert (
+            ak.sum(clus_list_mask) == 1
+        ), f"Cluster {clus_pt} not found in the cluster list for the event!"
+        clus_jet_index = event.cluster_jetIndex[clus_list_mask]
+        assert len(clus_jet_index) == 1, f"Cluster {clus_pt} not found"
+        assert jet_index in clus_jet_index[0], (
+            f"Cluster {clus_pt:.2f} not part of clusters for jet {jet_index} - looks like"
+            f" it is from {clus_jet_index[0][0]}"
+        )
+
+    match_event_and_cluster_pt(df.eventNumber[0], df.jet_pT[0], df.clus_pt_1[0])
+    match_event_and_cluster_pt(df.eventNumber[0], df.jet_pT[0], df.clus_pt_0[0])
+    match_event_and_cluster_pt(df.eventNumber[1], df.jet_pT[1], df.clus_pt_0[1])
 
 
 def test_bib_file(tmp_path, caplog):
@@ -307,3 +364,6 @@ def test_cluster_pt(tmp_path):
     df = pd.read_pickle(output_file)
 
     assert len(df[df.clus_pt_0 > 0]) > 0
+
+
+# def test_pt_sorting(tmp_path):
