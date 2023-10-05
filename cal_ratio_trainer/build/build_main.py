@@ -87,11 +87,11 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
         cluster_sign, axis="index"
     )
 
-    # SCALE CLUSTER PT
-    df.loc[:, filter_clus_pT] = df[filter_clus_pT].sub(min_pT, axis="index")
-    df.loc[:, filter_clus_pT] = df[filter_clus_pT].divide(
-        (max_pT * 1000 - min_pT), axis="index"
-    )
+    # Scale cluster pT by the total cluster pT's
+    def rescale_row_by_sum(row):
+        return row / row.sum()
+
+    df.loc[:, filter_clus_pT] = df[filter_clus_pT].apply(rescale_row_by_sum, axis=1)
 
     logging.debug("Pre-processing cluster energy fraction")
 
