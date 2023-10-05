@@ -29,6 +29,27 @@ def test_build_main_one_file(tmp_path, caplog):
     ), f"Failed: {caplog.text}"
 
 
+def test_build_clus_pt_0(tmp_path, caplog):
+    out_file = tmp_path / "test_output.pkl"
+    c = BuildMainTrainingConfig(
+        input_files=[
+            training_input_file(
+                input_file=Path("tests/data/sig_311424_600_275.pkl"), num_events=None
+            )
+        ],
+        output_file=out_file,
+        min_jet_pT=30,
+        max_jet_pT=400,
+    )
+
+    build_main_training(c)
+
+    assert out_file.exists()
+    df = pd.read_pickle(out_file)
+    # TODO: if we reverse sorting, then this perhaps should be 0 not 6.
+    assert len(df[df.clus_pt_6 > 0.1]) > 1
+
+
 def test_build_sig_has_llp_columns(tmp_path, caplog):
     out_file = tmp_path / "test_output.pkl"
     c = BuildMainTrainingConfig(
