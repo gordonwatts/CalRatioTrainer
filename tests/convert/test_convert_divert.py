@@ -277,3 +277,33 @@ def test_sig_eta(tmp_path):
     df = pd.read_pickle(output_file)
 
     assert len(df[abs(df.jet_eta) > 2.0]) > 0
+
+
+def test_cluster_pt(tmp_path):
+    "Make sure we aren't cutting eta tightly"
+
+    default_branches = load_config(ConvertDiVertAnalysisConfig)
+
+    config = ConvertDiVertAnalysisConfig(
+        input_files=[
+            DiVertAnalysisInputFile(
+                input_file=Path("tests/data/sig_311424_600_275.root"),
+                data_type=DiVertFileType.sig,
+                output_dir=None,
+                llp_mH=600,
+                llp_mS=275,
+            )
+        ],
+        output_path=tmp_path,
+        signal_branches=default_branches.signal_branches,
+        bib_branches=default_branches.bib_branches,
+        qcd_branches=default_branches.qcd_branches,
+    )
+
+    convert_divert(config)
+
+    # Check what was written out.
+    output_file = tmp_path / "sig_311424_600_275.pkl"
+    df = pd.read_pickle(output_file)
+
+    assert len(df[df.clus_pt_0 > 0]) > 0
