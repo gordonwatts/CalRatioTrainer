@@ -1,7 +1,6 @@
 import glob
 import logging
 from pathlib import Path
-from typing import List
 
 import awkward as ak
 import numpy as np
@@ -302,39 +301,35 @@ def column_guillotine(arr, branches):
     return pd.concat(df_combine, axis=1)
 
 
-def signal_processing(
-    signal_file, llp_mH: float, llp_mS: float, branches: List[str], output_file: Path
-):
+def signal_processing(signal_file_branch, llp_mH: float, llp_mS: float) -> pd.DataFrame:
     # getting the specific branches as defined by branches
     # should be 'trees_DV_' for every file
-    signal_file_branch = signal_file["trees_DV_"].arrays(branches)
-
-    jet_masked = jets_masking(signal_file_branch, branches)
+    jet_masked = jets_masking(signal_file_branch, signal_file_branch.fields)
 
     # splitting up into the 0th and 1th LLPs
 
     jet_masked_0 = ak.Array(
         {
             col: jet_masked[col][:, 0] if col.startswith("llp") else jet_masked[col]
-            for col in branches
+            for col in signal_file_branch.fields
         }
     )
     jet_masked_1 = ak.Array(
         {
             col: jet_masked[col][:, 1] if col.startswith("llp") else jet_masked[col]
-            for col in branches
+            for col in signal_file_branch.fields
         }
     )
 
-    dR_masked_0 = apply_dR_mask(jet_masked_0, branches, "signal")
-    dR_masked_1 = apply_dR_mask(jet_masked_1, branches, "signal")
+    dR_masked_0 = apply_dR_mask(jet_masked_0, signal_file_branch.fields, "signal")
+    dR_masked_1 = apply_dR_mask(jet_masked_1, signal_file_branch.fields, "signal")
 
-    sorted_tcm_0 = sorting_by_pT(dR_masked_0, branches)
-    sorted_tcm_1 = sorting_by_pT(dR_masked_1, branches)
+    sorted_tcm_0 = sorting_by_pT(dR_masked_0, signal_file_branch.fields)
+    sorted_tcm_1 = sorting_by_pT(dR_masked_1, signal_file_branch.fields)
     big_df = pd.concat(
         [
-            column_guillotine(sorted_tcm_0, branches),
-            column_guillotine(sorted_tcm_1, branches),
+            column_guillotine(sorted_tcm_0, signal_file_branch.fields),
+            column_guillotine(sorted_tcm_1, signal_file_branch.fields),
         ],
         axis=0,
     )
@@ -349,44 +344,36 @@ def signal_processing(
     # changing the mcEVentWeight to be all 1, matching what Felix does
     big_df["mcEventWeight"] = 1
 
-    # writes it out to pickle file
-    # this should be removed when the infrastructure for reading in multiple root files
-    # is added as the pickle file should be written out after reading in all of them
-    big_df.to_pickle(output_file)
-
     return big_df
 
 
-def bib_processing(file, base_branches: List[str], output_file: Path):
-    # need to add in dR calculation
-    extra_branches = ["HLT_jet_isBIB", "HLT_jet_phi", "HLT_jet_eta"]
-    branches = base_branches + extra_branches
-    bib_data = file["trees_DV_"].arrays(branches)
-
+def bib_processing(bib_data) -> pd.DataFrame:
     # tracking if the HLT jet is BIB
     is_bib_mask = bib_data.HLT_jet_isBIB == 1
     bib_masked = ak.Array(
         {
             col: bib_data[col][is_bib_mask] if col.startswith("HLT") else bib_data[col]
-            for col in branches
+            for col in bib_data.fields
         }
     )
     length_mask = ak.num(bib_masked.HLT_jet_isBIB, axis=-1) > 0  # type: ignore
-    bib_masked = ak.Array({col: bib_masked[col][length_mask] for col in branches})
+    bib_masked = ak.Array(
+        {col: bib_masked[col][length_mask] for col in bib_data.fields}
+    )
 
-    jet_masked = jets_masking(bib_masked, branches)
+    jet_masked = jets_masking(bib_masked, bib_data.fields)
 
     # keeping only the 1st HLT jet - should be fixed later but fine for now
     jet_masked = ak.Array(
         {
             col: jet_masked[col][:, 0] if col.startswith("HLT") else jet_masked[col]
-            for col in branches
+            for col in bib_data.fields
         }
     )
 
-    dR_masked = apply_dR_mask(jet_masked, branches, "BIB")
-    sorted_tcm = sorting_by_pT(dR_masked, branches)
-    big_df = column_guillotine(sorted_tcm, branches)
+    dR_masked = apply_dR_mask(jet_masked, bib_data.fields, "BIB")
+    sorted_tcm = sorting_by_pT(dR_masked, bib_data.fields)
+    big_df = column_guillotine(sorted_tcm, bib_data.fields)
 
     big_df.insert(0, "llp_Lz", 0.0)
     big_df.insert(0, "llp_Lxy", 0.0)
@@ -399,20 +386,14 @@ def bib_processing(file, base_branches: List[str], output_file: Path):
     big_df.insert(0, "label", 2)
     big_df["mcEventWeight"] = 1
 
-    # Remove the extra branches we needed for processing
-    big_df = big_df.drop(columns=extra_branches)
-
-    big_df.to_pickle(output_file)
-
     return big_df
 
 
-def qcd_processing(file, branches: List[str], output_file: Path):
-    qcd_data = file["trees_DV_"].arrays(branches)
-    jet_masked = jets_masking(qcd_data, branches)
+def qcd_processing(qcd_data) -> pd.DataFrame:
+    jet_masked = jets_masking(qcd_data, qcd_data.fields)
 
-    sorted = sorting_by_pT(jet_masked, branches)
-    big_df = column_guillotine(sorted, branches)
+    sorted = sorting_by_pT(jet_masked, qcd_data.fields)
+    big_df = column_guillotine(sorted, qcd_data.fields)
 
     # Add the extra columns in.
     big_df.insert(0, "llp_Lz", 0.0)
@@ -424,8 +405,6 @@ def qcd_processing(file, branches: List[str], output_file: Path):
     big_df.insert(0, "llp_mH", 0.0)
     big_df.insert(0, "llp_mS", 0.0)
     big_df.insert(0, "label", 1)
-
-    big_df.to_pickle(output_file)
 
     return big_df
 
@@ -471,34 +450,53 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                 try:
                     with uproot.open(file_path) as in_file:  # type: ignore
                         # Check that we don't have an empty file.
-                        data = in_file["trees_DV_"]
-                        if len(data) == 0:
+                        tree = in_file["trees_DV_"]
+                        if len(tree) == 0:
                             logging.warning(f"File {file_path} has 0 events. Skipped.")
                             continue
+
+                        # Load up the trees with the proper branches.
+                        branches = (
+                            config.signal_branches
+                            if f_info.data_type == "sig"
+                            else (
+                                config.qcd_branches
+                                if f_info.data_type == "qcd"
+                                else config.bib_branches
+                            )
+                        )
+                        assert branches is not None
+                        extra_branches = (
+                            ["HLT_jet_isBIB", "HLT_jet_phi", "HLT_jet_eta"]
+                            if f_info.data_type == "bib"
+                            else []
+                        )
+                        data = tree.arrays(branches + extra_branches)  # type: ignore
 
                         # Create output directory
                         output_dir_path.mkdir(parents=True, exist_ok=True)
 
                         # Process according to the data type.
                         if f_info.data_type == "sig":
-                            assert config.signal_branches is not None
                             assert f_info.llp_mH is not None
                             assert f_info.llp_mS is not None
-                            signal_processing(
-                                in_file,
+                            result = signal_processing(
+                                data,
                                 f_info.llp_mH,
                                 f_info.llp_mS,
-                                config.signal_branches,
-                                output_file,
                             )
                         elif f_info.data_type == "qcd":
-                            assert config.qcd_branches is not None
-                            qcd_processing(in_file, config.qcd_branches, output_file)
+                            result = qcd_processing(data)
                         elif f_info.data_type == "bib":
-                            assert config.bib_branches is not None
-                            bib_processing(in_file, config.bib_branches, output_file)
+                            result = bib_processing(data)
                         else:
                             raise ValueError(f"Unknown data type {f_info.data_type}")
+
+                        # Write the output file
+                        if len(extra_branches) > 0:
+                            result = result.drop(columns=extra_branches)
+                        result.to_pickle(output_file)
+
                 except uproot.exceptions.KeyInFileError as e:  # type:ignore
                     logging.warning(
                         f"File {file_path} does not contain the required branches: "
