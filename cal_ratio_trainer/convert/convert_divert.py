@@ -20,6 +20,7 @@ def jets_masking(array, branches):
     Returns masked array
     """
 
+    # Build a new masked array with just the jets we are interested in.
     jet_pT_mask = (array.jet_pT >= 40) & (array.jet_pT < 500)
     jet_eta_mask = (array.jet_eta >= -2.5) & (array.jet_eta <= 2.5)
     masked = ak.Array(
@@ -30,9 +31,10 @@ def jets_masking(array, branches):
             for col in branches
         }
     )
+
+    # Eliminate all events with zero jets.
     length_mask = ak.num(masked.jet_pT, axis=-1) > 0  # type: ignore
-    # TODO: This could probably be just `masked[length_mask]`.
-    return ak.Array({col: masked[col][length_mask] for col in branches})
+    return masked[length_mask]
 
 
 def apply_good_jet_mask(arr, mindex_mask, min_index):
