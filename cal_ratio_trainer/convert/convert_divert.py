@@ -467,11 +467,24 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                         )
                         assert branches is not None
                         extra_branches = (
-                            ["HLT_jet_isBIB", "HLT_jet_phi", "HLT_jet_eta"]
+                            [
+                                "HLT_jet_isBIB",
+                                "HLT_jet_phi",
+                                "HLT_jet_eta",
+                                "nn_jet_index",
+                            ]
                             if f_info.data_type == "bib"
-                            else []
+                            else ["nn_jet_index"]
                         )
                         data = tree.arrays(branches + extra_branches)  # type: ignore
+                        if config.rename_branches is not None:
+                            for b_orig, b_new in config.rename_branches.items():
+                                if b_orig in data.fields:
+                                    data[b_new] = data[b_orig]
+                                    del data[b_orig]
+                                    if b_orig in extra_branches:
+                                        extra_branches.remove(b_orig)
+                                        extra_branches.append(b_new)
 
                         # Create output directory
                         output_dir_path.mkdir(parents=True, exist_ok=True)

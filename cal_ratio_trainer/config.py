@@ -235,6 +235,10 @@ class ConvertDiVertAnalysisConfig(BaseModel):
     qcd_branches: Optional[List[str]] = Field(
         description="The list of branches to store in the output training file for qcd."
     )
+    rename_branches: Optional[Dict[str, str]] = Field(
+        description="A dictionary of branches to rename. The key is the old name, the "
+        "value is the new name."
+    )
 
 
 class training_input_file(BaseModel):

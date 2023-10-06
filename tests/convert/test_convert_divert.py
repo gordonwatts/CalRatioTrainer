@@ -31,6 +31,7 @@ def test_empty_root_files(caplog, tmp_path):
         signal_branches=["one", "two"],
         bib_branches=["three", "four"],
         qcd_branches=["five", "six"],
+        rename_branches={"nn_jet_index": "jet_index"},
     )
 
     convert_divert(config)
@@ -57,6 +58,7 @@ def test_missing_root_files(caplog, tmp_path):
         signal_branches=["one"],
         bib_branches=["one"],
         qcd_branches=["one"],
+        rename_branches={"nn_jet_index": "jet_index"},
     )
 
     convert_divert(config)
@@ -85,6 +87,7 @@ def test_no_redo_existing_file(caplog, tmp_path):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
+        rename_branches={"nn_jet_index": "jet_index"},
     )
 
     convert_divert(config)
@@ -121,6 +124,7 @@ def test_qcd_file(caplog, tmp_path):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
+        rename_branches={"nn_jet_index": "jet_index"},
     )
 
     convert_divert(config)
@@ -151,6 +155,7 @@ def test_qcd_multi_jets(caplog, tmp_path):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
+        rename_branches={"nn_jet_index": "jet_index"},
     )
 
     convert_divert(config)
@@ -254,6 +259,7 @@ def test_bib_file(tmp_path, caplog):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
+        rename_branches={"nn_jet_index": "jet_index"},
     )
 
     convert_divert(config)
@@ -293,6 +299,7 @@ def test_lock_file(tmp_path, caplog):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
+        rename_branches={"nn_jet_index": "jet_index"},
     )
 
     # Create lock file.
@@ -329,6 +336,7 @@ def test_sig_file(tmp_path, caplog):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
+        rename_branches={"nn_jet_index": "jet_index"},
     )
 
     convert_divert(config)
@@ -371,6 +379,7 @@ def test_sig_eta(tmp_path):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
+        rename_branches={"nn_jet_index": "jet_index"},
     )
 
     convert_divert(config)
@@ -401,6 +410,7 @@ def test_cluster_pt(tmp_path):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
+        rename_branches={"nn_jet_index": "jet_index"},
     )
 
     convert_divert(config)
