@@ -161,7 +161,32 @@ def test_qcd_multi_jets(caplog, tmp_path):
 
     assert len(df.eventNumber.unique()) < len(df)
 
+    # Code to help with dipping into the event data structure and making sure,
+    # by hand, we've built up a good set of clusters and tracks and MSeg's.
     def match_event_and_cluster_pt(event_number: int, jet_pt: float, clus_pt: float):
+        match_event_and_common(
+            event_number, jet_pt, clus_pt, "clus_pt", "cluster_jetIndex", "cluster", 1
+        )
+
+    def match_event_and_track_pt(event_number: int, jet_pt: float, track_pt: float):
+        match_event_and_common(
+            event_number, jet_pt, track_pt, "track_pT", "track_jetIndex", "track", 2
+        )
+
+    def match_event_and_MSeg_etaDir(event_number: int, jet_pt: float, eta_dir: float):
+        match_event_and_common(
+            event_number, jet_pt, eta_dir, "MSeg_etaDir", "MSeg_jetIndex", "MSeg", 2
+        )
+
+    def match_event_and_common(
+        event_number: int,
+        jet_pt: float,
+        item: float,
+        event_item_name: str,
+        event_item_jetIndex: str,
+        name: str,
+        deref_times: int,
+    ):
         tree_data = uproot.open("tests/data/sig_311424_600_275.root")[
             "trees_DV_"
         ].arrays()  # type: ignore
@@ -173,20 +198,41 @@ def test_qcd_multi_jets(caplog, tmp_path):
         assert len(jet_index_list) == 1, f"Jet {jet_pt} not found"
         jet_index = jet_index_list[0][0]
 
-        clus_list_mask = event.clus_pt == clus_pt
+        # Now, find the item in the list of clusters, tracks, etc.
+        clus_list_mask = event[event_item_name] == item
         assert (
             ak.sum(clus_list_mask) == 1
-        ), f"Cluster {clus_pt} not found in the cluster list for the event!"
-        clus_jet_index = event.cluster_jetIndex[clus_list_mask]
-        assert len(clus_jet_index) == 1, f"Cluster {clus_pt} not found"
-        assert jet_index in clus_jet_index[0], (
-            f"Cluster {clus_pt:.2f} not part of clusters for jet {jet_index} - looks "
-            f"like it is from {clus_jet_index[0][0]}"
+        ), f"{name} {item} not found in the {event_item_name} for the event!"
+
+        # Now find the matching index. This depends if the list is nested
+        # or not. For clusters it is nested once, for tracks and MSegs it is
+        # nested twice (e.g. each can be attached to more than one jet).
+        item_jet_index_list = event[event_item_jetIndex][clus_list_mask]
+        if deref_times == 2:
+            assert (
+                len(item_jet_index_list) == 1
+                and len(item_jet_index_list[0]) == 1
+                and len(item_jet_index_list[0][0]) == 1
+            ), f"Item {item} not found in the jet match list"
+            item_jet_index = item_jet_index_list[0][0]
+        elif deref_times == 1:
+            assert (
+                len(item_jet_index_list) == 1 and len(item_jet_index_list[0]) == 1
+            ), f"Item {item} not found in the jet match list"
+            item_jet_index = item_jet_index_list[0]
+        else:
+            raise RuntimeError(f"Unknown deref times {deref_times}")
+
+        assert jet_index in item_jet_index, (
+            f"{name} {item:.2f} not part of {name}s for jet {jet_index} - looks "
+            f"like it associated to jet(s) {item_jet_index}"
         )
 
     match_event_and_cluster_pt(df.eventNumber[0], df.jet_pT[0], df.clus_pt_1[0])
     match_event_and_cluster_pt(df.eventNumber[0], df.jet_pT[0], df.clus_pt_0[0])
     match_event_and_cluster_pt(df.eventNumber[1], df.jet_pT[1], df.clus_pt_0[1])
+    match_event_and_track_pt(df.eventNumber[0], df.jet_pT[0], df.track_pT_0[0])
+    match_event_and_MSeg_etaDir(df.eventNumber[0], df.jet_pT[0], df.MSeg_etaDir_0[0])
 
 
 def test_bib_file(tmp_path, caplog):
