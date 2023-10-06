@@ -199,6 +199,7 @@ def column_guillotine(arr, branches):
     """
 
     mseg_cols = [
+        # TODO: What is the difference between etaPos and etaDir?
         "MSeg_etaPos",
         "MSeg_phiPos",
         "MSeg_etaDir",
