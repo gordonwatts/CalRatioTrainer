@@ -1,6 +1,7 @@
 import glob
 import logging
 from pathlib import Path
+from typing import Tuple
 
 import awkward as ak
 import numpy as np
@@ -37,19 +38,19 @@ def jets_masking(array, branches):
     return masked[length_mask]
 
 
-def apply_good_jet_mask(arr, mindex_mask, min_index):
-    """
-    Creating the good jet indices mask and then searching through the clus/track/mseg
-    jetIndex values to find which ones match
-    This function serves to not need to do 'as much' copy/paste
-    """
-    good_jet_indices = ak.flatten(min_index[mindex_mask])
+# def apply_good_jet_mask(arr, mindex_mask, min_index):
+#     """
+#     Creating the good jet indices mask and then searching through the clus/track/mseg
+#     jetIndex values to find which ones match
+#     This function serves to not need to do 'as much' copy/paste
+#     """
+#     good_jet_indices = ak.flatten(min_index[mindex_mask])
 
-    correct_clusters = arr.cluster_jetIndex == good_jet_indices
-    correct_track = ak.flatten(arr.track_jetIndex, axis=-1) == good_jet_indices
-    correct_mseg = mseg_filter(arr.MSeg_jetIndex, good_jet_indices)
+#     correct_clusters = arr.cluster_jetIndex == good_jet_indices
+#     correct_track = ak.flatten(arr.track_jetIndex, axis=-1) == good_jet_indices
+#     correct_mseg = mseg_filter(arr.MSeg_jetIndex, good_jet_indices)
 
-    return (correct_clusters, correct_track, correct_mseg)
+#     return (correct_clusters, correct_track, correct_mseg)
 
 
 def mseg_filter(mseg, correct_jets):
@@ -67,7 +68,7 @@ def mseg_filter(mseg, correct_jets):
     return ak.Array(output)
 
 
-def applying_llp_cuts(arr, branches):
+def applying_llp_cuts(arr):
     # creating the LLP eta/Lxy/Lz masks, based off of the ones mention in the internal
     # note
     central_llp_eta_mask = abs(arr.llp_eta) < 1.4
@@ -77,20 +78,53 @@ def applying_llp_cuts(arr, branches):
 
     llp_Lz_mask = (arr.llp_Lz > 3500) & (arr.llp_Lz < 6000)
 
-    return (central_llp_eta_mask & llp_Lxy_mask) | (endcap_llp_eta_mask & llp_Lz_mask)
+    llp_mask = (central_llp_eta_mask & llp_Lxy_mask) | (
+        endcap_llp_eta_mask & llp_Lz_mask
+    )
+
+    # Create all the LLP info that we find "good":
+    llp_info = ak.Array(
+        {col: arr[col][llp_mask] for col in arr.fields if col.startswith("llp")}
+    )
+
+    return llp_info
 
 
-def delta_R(arr, phi, eta):
-    """
-    doing a dR calculation for llp or HLT_jet and jet
-    phi should be passed in as arr.llp_phi or arr.HLT_jet_phi, etc.
-    eta should be arr.llp_eta, arr.HLT_jet_eta
-    """
-    dphi = np.abs(arr.jet_phi - phi)
-    pimask = dphi > np.pi
-    dphi = ((2 * np.pi - dphi) * pimask) + (dphi * ~pimask)
-    deta = arr.jet_eta - eta
-    return np.sqrt(dphi**2 + deta**2)
+def delta_R2(jets, item_eta, item_phi) -> Tuple[ak.Array, ak.Array]:
+    "Calculate the DeltaR^2 between each jet and all eta/phi's"
+
+    # Calculate delta eta, which is, as always, straight forward.
+    index = ak.argcartesian({"i_jet": jets.jet_eta, "i_item": item_eta})
+    eta_info = ak.cartesian({"j_eta": jets.jet_eta, "eta": item_eta})
+    d_eta = eta_info.j_eta - eta_info.eta
+
+    # Calculate delta-phi, which is a bit more complicated.
+    # First, we need to make sure that the phi's are in the right range.
+    phi_info = ak.cartesian({"j_phi": jets.jet_phi, "phi": item_phi})
+    d_phi = np.abs(phi_info.j_phi - phi_info.phi)
+    while True:
+        mask = d_phi > np.pi
+        if not np.any(mask):
+            break
+        d_phi = (2 * np.pi - d_phi) * mask + d_phi * ~mask
+
+    # Finally we can calculate the delta-R^2.
+    delta_r2 = d_eta**2 + d_phi**2
+    return delta_r2, index
+
+    # dphi = np.abs(jets.jet_phi - phi)
+    # pimask = dphi > np.pi
+    # dphi = ((2 * np.pi - dphi) * pimask) + (dphi * ~pimask)
+    # deta = jets.jet_eta - eta
+    # return np.sqrt(dphi**2 + deta**2)
+
+
+def closest_jet_index(jets, eta, phi, max_DR: float):
+    # Return the `jet_index` of the closest jets in each event to the eta/phi given
+    # with an upper bound of max_DR.
+    dR = delta_R2(jets, eta, phi)
+
+    pass
 
 
 def apply_dR_mask(arr, branches, event_type):
@@ -140,22 +174,25 @@ def apply_dR_mask(arr, branches, event_type):
                 for col in branches
             }
         )
-        mindex_mask = ak.flatten(dRmask)
-    correct_clus, correct_track, correct_mseg = apply_good_jet_mask(
-        dR_masked, mindex_mask, min_index
-    )
-    return ak.Array(
-        {
-            col: dR_masked[col][correct_mseg]
-            if col.startswith("MSeg")
-            else dR_masked[col][correct_track]
-            if col.startswith("track")
-            else dR_masked[col][correct_clus]
-            if col.startswith("clus")
-            else dR_masked[col]
-            for col in branches
-        }
-    )
+        # mindex_mask = ak.flatten(dRmask)
+
+    # Return the list of good jets
+    return dR_masked
+    # correct_clus, correct_track, correct_mseg = apply_good_jet_mask(
+    #     dR_masked, mindex_mask, min_index
+    # )
+    # return ak.Array(
+    #     {
+    #         col: dR_masked[col][correct_mseg]
+    #         if col.startswith("MSeg")
+    #         else dR_masked[col][correct_track]
+    #         if col.startswith("track")
+    #         else dR_masked[col][correct_clus]
+    #         if col.startswith("clus")
+    #         else dR_masked[col]
+    #         for col in branches
+    #     }
+    # )
 
 
 def sorting_by_pT(arr, branches):
@@ -304,10 +341,16 @@ def column_guillotine(arr, branches):
 
 
 def signal_processing(signal_file_branch, llp_mH: float, llp_mS: float) -> pd.DataFrame:
-    # getting the specific branches as defined by branches
-    # should be 'trees_DV_' for every file
+    # Only look at "good" jets.
     jet_masked = jets_masking(signal_file_branch, signal_file_branch.fields)
 
+    # Get the LLP's that are "interesting" for us:
+    llp_info = applying_llp_cuts(jet_masked)
+
+    # Find the closest jet index to each LLP, return a list per event.
+    matched_jet_index = closest_jet_index(
+        jet_masked, llp_info.llp_eta, llp_info.llp_phi, max_DR=0.4
+    )
     # splitting up into the 0th and 1th LLPs
 
     jet_masked_0 = ak.Array(
