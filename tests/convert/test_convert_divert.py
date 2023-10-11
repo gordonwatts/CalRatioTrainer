@@ -124,7 +124,7 @@ def test_qcd_file(caplog, tmp_path):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
-        rename_branches={"nn_jet_index": "jet_index"},
+        rename_branches=default_branches.rename_branches,
     )
 
     convert_divert(config)
@@ -136,6 +136,33 @@ def test_qcd_file(caplog, tmp_path):
     assert df.dtypes["llp_mS"] == "float64"
     assert df.dtypes["llp_mH"] == "float64"
     assert df.dtypes["label"] == "int64"
+
+
+def test_sig_as_qcd_file(caplog, tmp_path):
+    default_branches = load_config(ConvertDiVertAnalysisConfig)
+
+    config = ConvertDiVertAnalysisConfig(
+        input_files=[
+            DiVertAnalysisInputFile(
+                input_file=Path("tests/data/sig_311424_600_275.root"),
+                data_type=DiVertFileType.qcd,
+                output_dir=None,
+                llp_mH=0,
+                llp_mS=0,
+            )
+        ],
+        output_path=tmp_path,
+        signal_branches=default_branches.signal_branches,
+        bib_branches=default_branches.bib_branches,
+        qcd_branches=default_branches.qcd_branches,
+        rename_branches=default_branches.rename_branches,
+    )
+
+    convert_divert(config)
+
+    # Find the output file
+    output_file = tmp_path / "sig_311424_600_275.pkl"
+    assert output_file.exists()
 
 
 def test_qcd_multi_jets(caplog, tmp_path):
@@ -155,7 +182,7 @@ def test_qcd_multi_jets(caplog, tmp_path):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
-        rename_branches={"nn_jet_index": "jet_index"},
+        rename_branches=default_branches.rename_branches,
     )
 
     convert_divert(config)
