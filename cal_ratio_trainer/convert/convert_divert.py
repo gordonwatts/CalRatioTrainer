@@ -1,41 +1,42 @@
 import glob
 import logging
 from pathlib import Path
-from typing import Tuple
+from typing import Dict, List, Optional, Tuple
 
 import awkward as ak
 import numpy as np
 import pandas as pd
 import uproot
-from cal_ratio_trainer.common.file_lock import FileLock
+import vector
 
+from cal_ratio_trainer.common.file_lock import FileLock
 from cal_ratio_trainer.config import ConvertDiVertAnalysisConfig
 
 # Much of the code was copied directly from Alex Golub's code on gitlab.
 # Many thanks to their work fro this!
 
+vector.register_awkward()
 
-def jets_masking(array, branches):
+
+def jets_masking(array: ak.Array) -> ak.Array:
     """
-    Applies various cuts on the jets
-    Returns masked array
+    Returns an awkward array containing only good, central jets with pT between 40 and 500 GeV.
+
+    Parameters:
+    -----------
+    array : ak.Array
+        An awkward array containing jet information.
+
+    Returns:
+    --------
+    ak.Array
+        An awkward array containing only good, central jets with pT between 40 and 500 GeV.
     """
+    # Only good, central, jets are considered.
+    jet_pT_mask = (array.jets.pt >= 40) & (array.jets.pt < 500)  # type: ignore
+    jet_eta_mask = np.abs(array.jets.eta) <= 2.5  # type: ignore
 
-    # Build a new masked array with just the jets we are interested in.
-    jet_pT_mask = (array.jet_pT >= 40) & (array.jet_pT < 500)
-    jet_eta_mask = (array.jet_eta >= -2.5) & (array.jet_eta <= 2.5)
-    masked = ak.Array(
-        {
-            col: array[col][jet_pT_mask & jet_eta_mask]
-            if col.startswith("jet")
-            else array[col]
-            for col in branches
-        }
-    )
-
-    # Eliminate all events with zero jets.
-    length_mask = ak.num(masked.jet_pT, axis=-1) > 0  # type: ignore
-    return masked[length_mask]
+    return array.jets[jet_pT_mask & jet_eta_mask]  # type: ignore
 
 
 # def apply_good_jet_mask(arr, mindex_mask, min_index):
@@ -92,6 +93,9 @@ def applying_llp_cuts(arr):
 
 def delta_R2(jets, item_eta, item_phi) -> Tuple[ak.Array, ak.Array]:
     "Calculate the DeltaR^2 between each jet and all eta/phi's"
+
+    all_jets = vector.awk(eta=jets.jet_eta, phi=jets.jet_phi, pt=1)
+    items = vector.awk(eta=item_eta, phi=item_phi, pt=1)
 
     # Calculate delta eta, which is, as always, straight forward.
     index = ak.argcartesian({"i_jet": jets.jet_eta, "i_item": item_eta})
@@ -195,30 +199,49 @@ def apply_dR_mask(arr, branches, event_type):
     # )
 
 
-def sorting_by_pT(arr, branches):
+def sort_by_pt(data: ak.Array) -> ak.Array:
     """
-    takes in an array, creates a sorting mask based on pt
-    and returns the sorted array
+    Sorts the clusters and tracks in the input `data` object by their transverse
+    momentum (pt), in descending order. Returns a new `Data` object with the
+    same content as `data`, but with the clusters and tracks sorted by pt.
+
+    Parameters
+    ----------
+    data : Data
+        The input data object to be sorted.
+
+    Returns
+    -------
+    Data
+        A new `Data` object with the same content as `data`, but with the clusters and
+        tracks sorted by pt.
     """
+    new_clusters_index = ak.argsort(
+        data.clusters.pt,  # type: ignore
+        axis=1,
+        ascending=False,
+    )
+    new_clusters = data.clusters[new_clusters_index]
 
-    # creating the sorting mask
-    clus_sort = ak.argsort(arr.clus_pt, axis=1)
-    track_sort = ak.argsort(arr.track_pT, axis=1)
+    new_track_index = ak.argsort(
+        data.tracks.pt,  # type: ignore
+        axis=1,
+        ascending=False,
+    )
+    new_tracks = data.tracks[new_track_index]
 
-    # applying the sorts to the columns
-    return ak.Array(
-        {
-            col: arr[col][track_sort]
-            if col.startswith("track")
-            else arr[col][clus_sort]
-            if col.startswith("clus")
-            else arr[col]
-            for col in branches
-        }
+    # Apparently this is not stable between C++ and python, so have to leave it in
+    # the order we found it. The current C++ code does not do ordering either.
+    # new_mseg_index = ak.argsort(data.msegs.phiDir, axis=1, ascending=False)
+    # new_msegs = data.msegs[new_mseg_index]
+
+    # And re-create the array and return it!
+    return remake_by_replacing(
+        data, clusters=new_clusters, tracks=new_tracks  # type: ignore
     )
 
 
-def column_guillotine(arr, branches):
+def column_guillotine(data: ak.Array) -> pd.DataFrame:
     """
     This array should be sorted already
 
@@ -272,6 +295,46 @@ def column_guillotine(arr, branches):
         "track_vertex_nParticles",
         "track_z0",
     ]
+
+    def expand_and_jet_filter(
+        jet_index_list: ak.Array,
+        to_match_objects: ak.Array,
+        matched_object_nested_jet_index: bool,
+    ) -> ak.Array:
+        """Take the jets, which are in their un-flattened state, and match each jet to
+        a to_match_objects by jet index. to_match_objects has an entry per event."""
+
+        matches_one_down = ak.unflatten(
+            to_match_objects, np.ones(len(to_match_objects), dtype=int)
+        )
+        pairs = ak.cartesian({"jet": jet_index_list, "to_match": matches_one_down})
+        mask = pairs.jet == pairs.to_match.jetIndex
+        if matched_object_nested_jet_index:
+            mask = ak.any(mask, axis=-1)
+
+        matched_objects = pairs.to_match[mask]
+        return matched_objects
+
+    matched_clusters = expand_and_jet_filter(
+        data.jets.jetIndex, data.clusters, matched_object_nested_jet_index=False
+    )
+    matched_tracks = expand_and_jet_filter(
+        data.jets.jetIndex, data.tracks, matched_object_nested_jet_index=True
+    )
+    matched_msegs = expand_and_jet_filter(
+        data.jets.jetIndex, data.msegs, matched_object_nested_jet_index=True
+    )
+
+    # Now we have all the bits. Switch to a per-jet view rather than a per-event view.
+    jet_list = ak.flatten(data.jets)
+    cluster_list = ak.flatten(matched_clusters)
+    track_list = ak.flatten(matched_tracks)
+    mseg_list = ak.flatten(matched_msegs)
+
+    # Next, lets pad teh cluster, track, and mseg to the length we are
+    # going to allow for training.
+
+    return None
 
     # creating a new array that only contains the
 
@@ -434,11 +497,71 @@ def bib_processing(bib_data) -> pd.DataFrame:
     return big_df
 
 
-def qcd_processing(qcd_data) -> pd.DataFrame:
-    jet_masked = jets_masking(qcd_data, qcd_data.fields)
+def remake_by_replacing(
+    data: ak.Array,
+    jets: Optional[ak.Array] = None,
+    clusters: Optional[ak.Array] = None,
+    msegs: Optional[ak.Array] = None,
+    tracks: Optional[ak.Array] = None,
+) -> ak.Array:
+    """
+    Replaces the jets, clusters, tracks, and msegs arrays in the input data with new
+    arrays if they are provided. Returns a new ak.Array object with the updated arrays.
 
-    sorted = sorting_by_pT(jet_masked, qcd_data.fields)
-    big_df = column_guillotine(sorted, qcd_data.fields)
+    Parameters
+    ----------
+    data : ak.Array
+        The input ak.Array object to be updated.
+    jets : ak.Array, optional
+        The new jets array to replace the one in `data`. If not provided, the original
+        jets array in `data` is used.
+    clusters : ak.Array, optional
+        The new clusters array to replace the one in `data`. If not provided, the
+        original clusters array in `data` is used.
+    msegs : ak.Array, optional
+        The new msegs array to replace the one in `data`. If not provided, the original
+        msegs array in `data` is used.
+    tracks : ak.Array, optional
+        The new tracks array to replace the one in `data`. If not provided, the
+        original tracks array in `data` is used.
+
+    Returns
+    -------
+    ak.Array
+        A new ak.Array object with the updated arrays. If `jets` is not provided, the
+        updated arrays are applied to all events. If `jets` is provided, the updated
+        arrays are applied only to events with at least one jet.
+    """
+    new_jets = jets if jets is not None else data.jets
+    new_clusters = clusters if clusters is not None else data.clusters
+    new_tracks = tracks if tracks is not None else data.tracks
+    new_msegs = msegs if msegs is not None else data.msegs
+
+    new_data = ak.Array(
+        {
+            "jets": new_jets,
+            "clusters": new_clusters,
+            "tracks": new_tracks,
+            "msegs": new_msegs,
+        }
+    )
+
+    if jets is None:
+        return new_data
+
+    return new_data[ak.num(jets.pt, axis=-1) > 0]  # type: ignore
+
+
+def qcd_processing(qcd_data) -> pd.DataFrame:
+    # Get a list of all the jets we will consider.
+    good_jets = jets_masking(qcd_data)
+
+    # Next, for the jets we want to consider, sort everything
+    # by pt.
+    sorted = sort_by_pt(remake_by_replacing(qcd_data, jets=good_jets))
+
+    # Turn it into a dataframe.
+    big_df = column_guillotine(sorted)
 
     # Add the extra columns in.
     big_df.insert(0, "llp_Lz", 0.0)
@@ -452,6 +575,87 @@ def qcd_processing(qcd_data) -> pd.DataFrame:
     big_df.insert(0, "label", 1)
 
     return big_df
+
+
+# vector.backends.awkward.MomentumAwkward3D
+class DiVertJetArray(ak.Array):
+    def clusters(self, clusters: ak.Array) -> ak.Array:
+        return ak.Array({"pt": [1, 2, 3], "eta": {4, 5, 6}})
+
+
+ak.behavior["*", "DiVertJetArray"] = DiVertJetArray
+
+
+def load_divert_file(
+    file_path: Path, branches: List[str], rename_branches: Optional[Dict[str, str]]
+) -> Optional[ak.Array]:
+    with uproot.open(file_path) as in_file:  # type: ignore
+        # Check that we don't have an empty file.
+        tree = in_file["trees_DV_"]
+        if len(tree) == 0:
+            logging.warning(f"File {file_path} has 0 events. Skipped.")
+            return None
+
+        data = tree.arrays(branches)  # type: ignore
+
+        # Rename any branches needed
+        if rename_branches is not None:
+            for b_orig, b_new in rename_branches.items():
+                if b_orig in data.fields:
+                    data[b_new] = data[b_orig]
+                    del data[b_orig]
+
+        # Now build the event.
+        def zip_common_columns(
+            name_stem: str,
+            with_name: Optional[str] = "Momentum3D",
+            index_column: Optional[str] = None,
+        ):
+            # add a index column if we've been asked to, and it isn't
+            # already there.
+            if index_column is not None:
+                col_name = name_stem + index_column
+                if col_name not in data.fields:
+                    index = ak.local_index(data[name_stem + "pt"], axis=1)
+                    data[col_name] = index
+
+            stem_len = len(name_stem)
+            return ak.zip(
+                {c[stem_len:]: data[c] for c in data.fields if c.startswith(name_stem)},
+                depth_limit=2,
+                with_name=with_name,
+            )
+
+        jets = zip_common_columns("jet_", index_column="jetIndex")
+        clusters = zip_common_columns("clus_")
+        tracks = zip_common_columns("track_")
+        msegs = zip_common_columns("MSeg_", with_name=None)
+
+        # # if there is no next array on the event, then we had better create one.
+        # if "jetIndex" not in jets.fields:  # type: ignore
+        #     # TODO: Integrate this with `zip_common_columns` so we run ak.zip only once.
+        #     index = ak.local_index(jets.pt, axis=1)  # type: ignore
+        #     # index = ak.argsort(jets.pt, axis=1, ascending=False)  # type: ignore
+        #     # sorted_index = ak.sort(index, axis=1)  # type: ignore
+        #     jets = ak.zip(
+        #         {"jetIndex": index, **{c: jets[c] for c in jets.fields}},  # type:ignore
+        #         with_name="Momentum3D",
+        #     )
+
+        # Make sure jets are sorted. We will sort everything else later on
+        # when we've eliminated potentially a lot of events we don't care
+        # about.
+        sorted_jet_index = ak.argsort(jets.pt, axis=1, ascending=False)  # type: ignore
+        sorted_jets = jets[sorted_jet_index]  # type: ignore
+
+        return ak.Array(
+            {
+                "jets": sorted_jets,
+                "clusters": clusters,
+                "tracks": tracks,
+                "msegs": msegs,
+            }
+        )
 
 
 def convert_divert(config: ConvertDiVertAnalysisConfig):
@@ -493,67 +697,71 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
 
                 # Now run the requested processing
                 try:
-                    with uproot.open(file_path) as in_file:  # type: ignore
-                        # Check that we don't have an empty file.
-                        tree = in_file["trees_DV_"]
-                        if len(tree) == 0:
-                            logging.warning(f"File {file_path} has 0 events. Skipped.")
-                            continue
-
-                        # Load up the trees with the proper branches.
-                        branches = (
-                            config.signal_branches
-                            if f_info.data_type == "sig"
-                            else (
-                                config.qcd_branches
-                                if f_info.data_type == "qcd"
-                                else config.bib_branches
-                            )
+                    # Load up the trees with the proper branches.
+                    branches = (
+                        config.signal_branches
+                        if f_info.data_type == "sig"
+                        else (
+                            config.qcd_branches
+                            if f_info.data_type == "qcd"
+                            else config.bib_branches
                         )
-                        assert branches is not None
-                        extra_branches = (
-                            [
-                                "HLT_jet_isBIB",
-                                "HLT_jet_phi",
-                                "HLT_jet_eta",
-                                "nn_jet_index",
-                            ]
-                            if f_info.data_type == "bib"
-                            else ["nn_jet_index"]
+                    )
+                    assert branches is not None
+
+                    data = load_divert_file(file_path, branches, config.rename_branches)
+
+                    # with uproot.open(file_path) as in_file:  # type: ignore
+                    #     # Check that we don't have an empty file.
+                    #     tree = in_file["trees_DV_"]
+                    #     if len(tree) == 0:
+                    #         logging.warning(f"File {file_path} has 0 events. Skipped.")
+                    #         continue
+
+                    #     assert branches is not None
+                    #     extra_branches = (
+                    #         [
+                    #             "HLT_jet_isBIB",
+                    #             "HLT_jet_phi",
+                    #             "HLT_jet_eta",
+                    #             "nn_jet_index",
+                    #         ]
+                    #         if f_info.data_type == "bib"
+                    #         else ["nn_jet_index"]
+                    #     )
+                    #     data = tree.arrays(branches + extra_branches)  # type: ignore
+                    #     if config.rename_branches is not None:
+                    #         for b_orig, b_new in config.rename_branches.items():
+                    #             if b_orig in data.fields:
+                    #                 data[b_new] = data[b_orig]
+                    #                 del data[b_orig]
+                    #                 if b_orig in extra_branches:
+                    #                     extra_branches.remove(b_orig)
+                    #                     extra_branches.append(b_new)
+
+                    # Create output directory
+                    output_dir_path.mkdir(parents=True, exist_ok=True)
+
+                    # Process according to the data type.
+                    if f_info.data_type == "sig":
+                        assert f_info.llp_mH is not None
+                        assert f_info.llp_mS is not None
+                        result = signal_processing(
+                            data,
+                            f_info.llp_mH,
+                            f_info.llp_mS,
                         )
-                        data = tree.arrays(branches + extra_branches)  # type: ignore
-                        if config.rename_branches is not None:
-                            for b_orig, b_new in config.rename_branches.items():
-                                if b_orig in data.fields:
-                                    data[b_new] = data[b_orig]
-                                    del data[b_orig]
-                                    if b_orig in extra_branches:
-                                        extra_branches.remove(b_orig)
-                                        extra_branches.append(b_new)
+                    elif f_info.data_type == "qcd":
+                        result = qcd_processing(data)
+                    elif f_info.data_type == "bib":
+                        result = bib_processing(data)
+                    else:
+                        raise ValueError(f"Unknown data type {f_info.data_type}")
 
-                        # Create output directory
-                        output_dir_path.mkdir(parents=True, exist_ok=True)
-
-                        # Process according to the data type.
-                        if f_info.data_type == "sig":
-                            assert f_info.llp_mH is not None
-                            assert f_info.llp_mS is not None
-                            result = signal_processing(
-                                data,
-                                f_info.llp_mH,
-                                f_info.llp_mS,
-                            )
-                        elif f_info.data_type == "qcd":
-                            result = qcd_processing(data)
-                        elif f_info.data_type == "bib":
-                            result = bib_processing(data)
-                        else:
-                            raise ValueError(f"Unknown data type {f_info.data_type}")
-
-                        # Write the output file
-                        if len(extra_branches) > 0:
-                            result = result.drop(columns=extra_branches)
-                        result.to_pickle(output_file)
+                    # Write the output file
+                    if len(extra_branches) > 0:
+                        result = result.drop(columns=extra_branches)
+                    result.to_pickle(output_file)
 
                 except uproot.exceptions.KeyInFileError as e:  # type:ignore
                     logging.warning(
