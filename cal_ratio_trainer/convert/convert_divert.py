@@ -308,21 +308,29 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
             to_match_objects, np.ones(len(to_match_objects), dtype=int)
         )
         pairs = ak.cartesian({"jet": jet_index_list, "to_match": matches_one_down})
-        mask = pairs.jet == pairs.to_match.jetIndex
+        mask = pairs.jet == pairs.to_match.jetIndex  # type: ignore
+        # TODO: we should be able to determine this by looking at the jetIndex - single
+        # number or list.
         if matched_object_nested_jet_index:
             mask = ak.any(mask, axis=-1)
 
-        matched_objects = pairs.to_match[mask]
+        matched_objects = pairs.to_match[mask]  # type: ignore
         return matched_objects
 
     matched_clusters = expand_and_jet_filter(
-        data.jets.jetIndex, data.clusters, matched_object_nested_jet_index=False
+        data.jets.jetIndex,  # type: ignore
+        data.clusters,  # type: ignore
+        matched_object_nested_jet_index=False,
     )
     matched_tracks = expand_and_jet_filter(
-        data.jets.jetIndex, data.tracks, matched_object_nested_jet_index=True
+        data.jets.jetIndex,  # type: ignore
+        data.tracks,  # type: ignore
+        matched_object_nested_jet_index=True,
     )
     matched_msegs = expand_and_jet_filter(
-        data.jets.jetIndex, data.msegs, matched_object_nested_jet_index=True
+        data.jets.jetIndex,  # type: ignore
+        data.msegs,  # type: ignore
+        matched_object_nested_jet_index=True,
     )
 
     # Now we have all the bits. Switch to a per-jet view rather than a per-event view.
@@ -331,65 +339,75 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
     track_list = ak.flatten(matched_tracks)
     mseg_list = ak.flatten(matched_msegs)
 
-    # Next, lets pad teh cluster, track, and mseg to the length we are
+    # Next, lets pad, with zeros, the cluster, track, and mseg to the length we are
     # going to allow for training.
 
-    return None
+    track_list_padded = ak.fill_none(ak.pad_none(track_list, 20, axis=1), 0)
+    cluster_list_padded = ak.fill_none(ak.pad_none(cluster_list, 30, axis=1), 0)
+    mseg_list_padded = ak.fill_none(ak.pad_none(mseg_list, 30, axis=1), 0)
 
-    # creating a new array that only contains the
+    # Next task is to split the padded arrays into their constituent columns.
 
-    # padding the array with nones & filling nones with 0s
-    # only need to pad out ot the max number of new columns
-    # we're going to make
+    def split_array(array: ak.Array, name_prefix: str) -> ak.Array:
+        # When splitting, these should be ignored!
+        ignore_columns = ["jetIndex"]
+        col_elements = len(array[array.fields[0]][0])  # type: ignore
 
-    padded_tcm = ak.Array(
-        {
-            col: ak.fill_none(ak.pad_none(arr[col], 20, axis=1), 0)
-            if col.startswith("track")
-            else ak.fill_none(ak.pad_none(arr[col], 30, axis=1), 0)
-            if col.startswith("clus")
-            else ak.fill_none(ak.pad_none(arr[col], 30, axis=1), 0)
-            if col.startswith("MSeg")
-            else arr[col]
-            for col in branches
-        }
-    )
+        split_array = ak.Array(
+            {
+                f"{name_prefix}_{col}_{i_col}": array[col][:, i_col]
+                for i_col in range(0, col_elements)
+                for col in array.fields
+                if col not in ignore_columns
+            }
+        )
+        return ak.to_dataframe(split_array).reset_index(drop=True)  # type: ignore
 
-    # Creating a new array without any of the track/cluster/mseg columns
-    no_tcm = ak.Array(
-        {
-            col: padded_tcm[col]
-            for col in branches
-            if not (
-                col.startswith("track")
-                or col.startswith("clus")
-                or col.startswith("MSeg")
-            )
-        }
-    )
+    split_track_list = split_array(track_list_padded, "track")  # type: ignore
+    split_cluster_list = split_array(cluster_list_padded, "clus")  # type: ignore
+    split_mseg_list = split_array(mseg_list_padded, "MSeg")  # type: ignore
+
+    df_jet_list = ak.to_dataframe(jet_list).reset_index(drop=True)  # type: ignore
+
+    df_combine = [df_jet_list, split_track_list, split_cluster_list, split_mseg_list]
+
+    return pd.concat(df_combine, axis=1)
+
+    # # Creating a new array without any of the track/cluster/mseg columns
+    # no_tcm = ak.Array(
+    #     {
+    #         col: padded_tcm[col]
+    #         for col in branches
+    #         if not (
+    #             col.startswith("track")
+    #             or col.startswith("clus")
+    #             or col.startswith("MSeg")
+    #         )
+    #     }
+    # )
 
     # creating new arrays of *only* the split columns
-    mseg_split = ak.Array(
-        {
-            mseg_name + "_" + str(i_col): padded_tcm[mseg_name][:, i_col]
-            for i_col in range(0, 30)
-            for mseg_name in mseg_cols
-        }
-    )
-    clus_split = ak.Array(
-        {
-            clus_name + "_" + str(i_col): padded_tcm[clus_name][:, i_col]
-            for i_col in range(0, 30)
-            for clus_name in clus_cols
-        }
-    )
-    track_split = ak.Array(
-        {
-            track_name + "_" + str(i_col): padded_tcm[track_name][:, i_col]
-            for i_col in range(0, 20)
-            for track_name in track_cols
-        }
-    )
+    # mseg_split = ak.Array(
+    #     {
+    #         mseg_name + "_" + str(i_col): padded_tcm[mseg_name][:, i_col]
+    #         for i_col in range(0, 30)
+    #         for mseg_name in mseg_cols
+    #     }
+    # )
+    # clus_split = ak.Array(
+    #     {
+    #         clus_name + "_" + str(i_col): padded_tcm[clus_name][:, i_col]
+    #         for i_col in range(0, 30)
+    #         for clus_name in clus_cols
+    #     }
+    # )
+    # track_split = ak.Array(
+    #     {
+    #         track_name + "_" + str(i_col): padded_tcm[track_name][:, i_col]
+    #         for i_col in range(0, 20)
+    #         for track_name in track_cols
+    #     }
+    # )
 
     no_tcm_df = (ak.to_dataframe(no_tcm)).reset_index(drop=True)  # type: ignore
     mseg_split_df = (ak.to_dataframe(mseg_split)).reset_index(drop=True)  # type: ignore
