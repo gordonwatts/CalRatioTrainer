@@ -2,7 +2,10 @@ output_path: "."
 llp_mH: 0.0
 llp_mS: 0.0
 rename_branches:
-  nn_jet_index: jet_index
+  nn_jet_index: jet_jetIndex
+  jet_pT: jet_pt
+  track_pT: track_pt
+  cluster_jetIndex: clus_jetIndex
 signal_branches:
   - llp_pT
   - llp_eta
