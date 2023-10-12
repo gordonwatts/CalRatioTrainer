@@ -259,43 +259,6 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
     (and preexisting old columns that didn't need to be split)
     """
 
-    mseg_cols = [
-        # TODO: What is the difference between etaPos and etaDir?
-        "MSeg_etaPos",
-        "MSeg_phiPos",
-        "MSeg_etaDir",
-        "MSeg_phiDir",
-        "MSeg_t0",
-        "MSeg_chiSquared",
-    ]
-    clus_cols = [
-        "clus_pt",
-        "clus_eta",
-        "clus_phi",
-        "clus_time",
-        "clus_l1ecal",
-        "clus_l1hcal",
-        "clus_l2ecal",
-        "clus_l2hcal",
-        "clus_l3ecal",
-        "clus_l3hcal",
-        "clus_l4ecal",
-        "clus_l4hcal",
-    ]
-    track_cols = [
-        "track_pT",
-        "track_eta",
-        "track_phi",
-        "track_chiSquared",
-        "track_d0",
-        "track_PixelHits",
-        "track_SCTHits",
-        "track_SCTHoles",
-        "track_SCTShared",
-        "track_vertex_nParticles",
-        "track_z0",
-    ]
-
     def expand_and_jet_filter(
         jet_index_list: ak.Array,
         to_match_objects: ak.Array,
@@ -339,15 +302,29 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
     track_list = ak.flatten(matched_tracks)
     mseg_list = ak.flatten(matched_msegs)
 
+    # We need to drop the jetIndex column next - because it sometimes is a list,
+    # and padding below makes no real sense with zeros.
+    def drop_columns(data: ak.Array, drop_list) -> ak.Array:
+        return ak.zip(
+            {col: data[col] for col in data.fields if col not in drop_list},
+            with_name="Momentum3D",  # type:ignore
+        )
+
+    jet_list = drop_columns(jet_list, ["jetIndex"])  # type: ignore
+    cluster_list = drop_columns(cluster_list, ["jetIndex"])  # type: ignore
+    track_list = drop_columns(track_list, ["jetIndex"])  # type: ignore
+
     # Next, lets pad, with zeros, the cluster, track, and mseg to the length we are
     # going to allow for training.
+    # NOTE: We do not zero out these entries because
+    # awkward alters the type in such a way that `track_list_padded.fields` is
+    # an empty type (due to a Union type)
 
-    track_list_padded = ak.fill_none(ak.pad_none(track_list, 20, axis=1), 0)
-    cluster_list_padded = ak.fill_none(ak.pad_none(cluster_list, 30, axis=1), 0)
-    mseg_list_padded = ak.fill_none(ak.pad_none(mseg_list, 30, axis=1), 0)
+    track_list_padded = ak.pad_none(track_list, 20, axis=1)
+    cluster_list_padded = ak.pad_none(cluster_list, 30, axis=1)
+    mseg_list_padded = ak.pad_none(mseg_list, 30, axis=1)
 
     # Next task is to split the padded arrays into their constituent columns.
-
     def split_array(array: ak.Array, name_prefix: str) -> ak.Array:
         # When splitting, these should be ignored!
         ignore_columns = ["jetIndex"]
@@ -369,56 +346,14 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
 
     df_jet_list = ak.to_dataframe(jet_list).reset_index(drop=True)  # type: ignore
 
+    # Finally combine the arrays  into a single very large DataFrame, and replace all
+    # NaN's with 0's.
+    # TODO: Missing event level variables
+
     df_combine = [df_jet_list, split_track_list, split_cluster_list, split_mseg_list]
-
-    return pd.concat(df_combine, axis=1)
-
-    # # Creating a new array without any of the track/cluster/mseg columns
-    # no_tcm = ak.Array(
-    #     {
-    #         col: padded_tcm[col]
-    #         for col in branches
-    #         if not (
-    #             col.startswith("track")
-    #             or col.startswith("clus")
-    #             or col.startswith("MSeg")
-    #         )
-    #     }
-    # )
-
-    # creating new arrays of *only* the split columns
-    # mseg_split = ak.Array(
-    #     {
-    #         mseg_name + "_" + str(i_col): padded_tcm[mseg_name][:, i_col]
-    #         for i_col in range(0, 30)
-    #         for mseg_name in mseg_cols
-    #     }
-    # )
-    # clus_split = ak.Array(
-    #     {
-    #         clus_name + "_" + str(i_col): padded_tcm[clus_name][:, i_col]
-    #         for i_col in range(0, 30)
-    #         for clus_name in clus_cols
-    #     }
-    # )
-    # track_split = ak.Array(
-    #     {
-    #         track_name + "_" + str(i_col): padded_tcm[track_name][:, i_col]
-    #         for i_col in range(0, 20)
-    #         for track_name in track_cols
-    #     }
-    # )
-
-    no_tcm_df = (ak.to_dataframe(no_tcm)).reset_index(drop=True)  # type: ignore
-    mseg_split_df = (ak.to_dataframe(mseg_split)).reset_index(drop=True)  # type: ignore
-    clus_split_df = (ak.to_dataframe(clus_split)).reset_index(drop=True)  # type: ignore
-    track_split_df = (ak.to_dataframe(track_split)).reset_index(  # type: ignore
-        drop=True
-    )
-
-    df_combine = [no_tcm_df, mseg_split_df, clus_split_df, track_split_df]
-
-    return pd.concat(df_combine, axis=1)
+    df = pd.concat(df_combine, axis=1)
+    df_zeroed = df.replace(np.nan, 0.0)
+    return df_zeroed
 
 
 def signal_processing(signal_file_branch, llp_mH: float, llp_mS: float) -> pd.DataFrame:
@@ -777,8 +712,8 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                         raise ValueError(f"Unknown data type {f_info.data_type}")
 
                     # Write the output file
-                    if len(extra_branches) > 0:
-                        result = result.drop(columns=extra_branches)
+                    # if len(extra_branches) > 0:
+                    #     result = result.drop(columns=extra_branches)
                     result.to_pickle(output_file)
 
                 except uproot.exceptions.KeyInFileError as e:  # type:ignore
