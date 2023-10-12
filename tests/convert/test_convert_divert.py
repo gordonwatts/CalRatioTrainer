@@ -260,11 +260,11 @@ def test_qcd_multi_jets(caplog, tmp_path):
             f"like it associated to jet(s) {item_jet_index}"
         )
 
-    match_event_and_cluster_pt(df.eventNumber[0], df.jet_pT[0], df.clus_pt_1[0])
-    match_event_and_cluster_pt(df.eventNumber[0], df.jet_pT[0], df.clus_pt_0[0])
-    match_event_and_cluster_pt(df.eventNumber[1], df.jet_pT[1], df.clus_pt_0[1])
-    match_event_and_track_pt(df.eventNumber[0], df.jet_pT[0], df.track_pT_0[0])
-    match_event_and_MSeg_etaDir(df.eventNumber[0], df.jet_pT[0], df.MSeg_etaDir_0[0])
+    match_event_and_cluster_pt(df.eventNumber[0], df.jet_pt[0], df.clus_pt_1[0])
+    match_event_and_cluster_pt(df.eventNumber[0], df.jet_pt[0], df.clus_pt_0[0])
+    match_event_and_cluster_pt(df.eventNumber[1], df.jet_pt[1], df.clus_pt_0[1])
+    match_event_and_track_pt(df.eventNumber[0], df.jet_pt[0], df.track_pt_0[0])
+    match_event_and_MSeg_etaDir(df.eventNumber[0], df.jet_pt[0], df.MSeg_etaDir_0[0])
 
 
 def test_bib_file(tmp_path, caplog):

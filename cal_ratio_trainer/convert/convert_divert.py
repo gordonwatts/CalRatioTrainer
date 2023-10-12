@@ -331,7 +331,7 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
     mseg_list_padded = ak.pad_none(mseg_list, 30, axis=1)
 
     # Next task is to split the padded arrays into their constituent columns.
-    def split_array(array: ak.Array, name_prefix: str) -> ak.Array:
+    def split_array(array: ak.Array, name_prefix: str) -> pd.DataFrame:
         # When splitting, these should be ignored!
         ignore_columns = ["jetIndex"]
         col_elements = len(array[array.fields[0]][0])  # type: ignore
@@ -346,11 +346,15 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
         )
         return ak.to_dataframe(split_array).reset_index(drop=True)  # type: ignore
 
+    def prefix_array(array: ak.Array, name_prefix: str) -> ak.Array:
+        a = ak.Array({f"{name_prefix}_{col}": array[col] for col in array.fields})
+        return ak.to_dataframe(a).reset_index(drop=True)  # type: ignore
+
     split_track_list = split_array(track_list_padded, "track")  # type: ignore
     split_cluster_list = split_array(cluster_list_padded, "clus")  # type: ignore
     split_mseg_list = split_array(mseg_list_padded, "MSeg")  # type: ignore
 
-    df_jet_list = ak.to_dataframe(jet_list).reset_index(drop=True)  # type: ignore
+    df_jet_list = prefix_array(jet_list, "jet")
     df_event_list = ak.to_dataframe(event_list).reset_index(drop=True)  # type: ignore
 
     # Finally combine the arrays  into a single very large DataFrame, and replace all
