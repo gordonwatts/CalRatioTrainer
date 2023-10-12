@@ -302,6 +302,12 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
     track_list = ak.flatten(matched_tracks)
     mseg_list = ak.flatten(matched_msegs)
 
+    # We also have to deal with the per-event view. Each row has to be
+    # duplicated the right number of times.
+
+    event_x_jet = ak.cartesian({"event": data.event, "jet": data.jets})
+    event_list = ak.flatten(event_x_jet.event)  # type: ignore
+
     # We need to drop the jetIndex column next - because it sometimes is a list,
     # and padding below makes no real sense with zeros.
     def drop_columns(data: ak.Array, drop_list) -> ak.Array:
@@ -345,12 +351,18 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
     split_mseg_list = split_array(mseg_list_padded, "MSeg")  # type: ignore
 
     df_jet_list = ak.to_dataframe(jet_list).reset_index(drop=True)  # type: ignore
+    df_event_list = ak.to_dataframe(event_list).reset_index(drop=True)  # type: ignore
 
     # Finally combine the arrays  into a single very large DataFrame, and replace all
     # NaN's with 0's.
-    # TODO: Missing event level variables
 
-    df_combine = [df_jet_list, split_track_list, split_cluster_list, split_mseg_list]
+    df_combine = [
+        df_event_list,
+        df_jet_list,
+        split_track_list,
+        split_cluster_list,
+        split_mseg_list,
+    ]
     df = pd.concat(df_combine, axis=1)
     df_zeroed = df.replace(np.nan, 0.0)
     return df_zeroed
@@ -492,6 +504,7 @@ def remake_by_replacing(
 
     new_data = ak.Array(
         {
+            "event": data.event,
             "jets": new_jets,
             "clusters": new_clusters,
             "tracks": new_tracks,
@@ -528,15 +541,6 @@ def qcd_processing(qcd_data) -> pd.DataFrame:
     big_df.insert(0, "label", 1)
 
     return big_df
-
-
-# vector.backends.awkward.MomentumAwkward3D
-class DiVertJetArray(ak.Array):
-    def clusters(self, clusters: ak.Array) -> ak.Array:
-        return ak.Array({"pt": [1, 2, 3], "eta": {4, 5, 6}})
-
-
-ak.behavior["*", "DiVertJetArray"] = DiVertJetArray
 
 
 def load_divert_file(
@@ -584,25 +588,27 @@ def load_divert_file(
         tracks = zip_common_columns("track_")
         msegs = zip_common_columns("MSeg_", with_name=None)
 
-        # # if there is no next array on the event, then we had better create one.
-        # if "jetIndex" not in jets.fields:  # type: ignore
-        #     # TODO: Integrate this with `zip_common_columns` so we run ak.zip only once.
-        #     index = ak.local_index(jets.pt, axis=1)  # type: ignore
-        #     # index = ak.argsort(jets.pt, axis=1, ascending=False)  # type: ignore
-        #     # sorted_index = ak.sort(index, axis=1)  # type: ignore
-        #     jets = ak.zip(
-        #         {"jetIndex": index, **{c: jets[c] for c in jets.fields}},  # type:ignore
-        #         with_name="Momentum3D",
-        #     )
-
         # Make sure jets are sorted. We will sort everything else later on
         # when we've eliminated potentially a lot of events we don't care
         # about.
         sorted_jet_index = ak.argsort(jets.pt, axis=1, ascending=False)  # type: ignore
         sorted_jets = jets[sorted_jet_index]  # type: ignore
 
+        # And build an array of all the columns that aren't part of anything.
+        event_level_info = ak.zip(
+            {
+                c: data[c]
+                for c in data.fields
+                if (not c.startswith("jet_"))
+                and (not c.startswith("clus_"))
+                and (not c.startswith("track_"))
+                and (not c.startswith("MSeg_"))
+            },
+        )
+
         return ak.Array(
             {
+                "event": event_level_info,
                 "jets": sorted_jets,
                 "clusters": clusters,
                 "tracks": tracks,
