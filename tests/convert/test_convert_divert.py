@@ -87,7 +87,7 @@ def test_no_redo_existing_file(caplog, tmp_path):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
-        rename_branches={"nn_jet_index": "jet_index"},
+        rename_branches=default_branches.rename_branches,
     )
 
     convert_divert(config)
@@ -286,7 +286,7 @@ def test_bib_file(tmp_path, caplog):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
-        rename_branches={"nn_jet_index": "jet_index"},
+        rename_branches=default_branches.rename_branches,
     )
 
     convert_divert(config)
@@ -363,7 +363,7 @@ def test_sig_file(tmp_path, caplog):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
-        rename_branches={"nn_jet_index": "jet_index"},
+        rename_branches=default_branches.rename_branches,
     )
 
     convert_divert(config)
@@ -375,7 +375,7 @@ def test_sig_file(tmp_path, caplog):
     output_file = tmp_path / "sig_311424_600_275.pkl"
     df = pd.read_pickle(output_file)
 
-    assert len(df) == 91
+    assert len(df) == 95
     assert "llp_mS" in df.columns
     assert "llp_mH" in df.columns
 
@@ -385,6 +385,28 @@ def test_sig_file(tmp_path, caplog):
     assert df.dtypes["llp_mS"] == "float64"
     assert df.dtypes["llp_mH"] == "float64"
     assert df.dtypes["label"] == "int64"
+
+    # Make sure nothing is too far away for llp matching.
+    jets = ak.zip(
+        {
+            "eta": df.jet_eta,
+            "phi": df.jet_phi,
+            "pt": df.jet_pt,
+        },
+        with_name="Momentum3D",
+    )
+    llps = ak.zip(
+        {
+            "eta": df.llp_eta,
+            "phi": df.llp_phi,
+            "pt": df.llp_pt,
+        },
+        with_name="Momentum3D",
+    )
+
+    dR = jets.deltaR(llps)
+
+    assert not ak.any(dR > 0.4)
 
 
 def test_sig_eta(tmp_path):
