@@ -4,6 +4,7 @@ llp_mS: 0.0
 rename_branches:
   nn_jet_index: jet_jetIndex
   jet_pT: jet_pt
+  llp_pT: llp_pt
   track_pT: track_pt
   cluster_jetIndex: clus_jetIndex
 signal_branches:
