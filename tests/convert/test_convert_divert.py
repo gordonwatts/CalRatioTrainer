@@ -1,6 +1,8 @@
 from pathlib import Path
 
+import awkward as ak
 import pandas as pd
+import uproot
 
 from cal_ratio_trainer.common.file_lock import FileLock
 from cal_ratio_trainer.config import (
@@ -29,6 +31,7 @@ def test_empty_root_files(caplog, tmp_path):
         signal_branches=["one", "two"],
         bib_branches=["three", "four"],
         qcd_branches=["five", "six"],
+        rename_branches={"nn_jet_index": "jet_index"},
     )
 
     convert_divert(config)
@@ -55,6 +58,7 @@ def test_missing_root_files(caplog, tmp_path):
         signal_branches=["one"],
         bib_branches=["one"],
         qcd_branches=["one"],
+        rename_branches={"nn_jet_index": "jet_index"},
     )
 
     convert_divert(config)
@@ -83,6 +87,7 @@ def test_no_redo_existing_file(caplog, tmp_path):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
+        rename_branches=default_branches.rename_branches,
     )
 
     convert_divert(config)
@@ -119,6 +124,7 @@ def test_qcd_file(caplog, tmp_path):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
+        rename_branches=default_branches.rename_branches,
     )
 
     convert_divert(config)
@@ -130,6 +136,135 @@ def test_qcd_file(caplog, tmp_path):
     assert df.dtypes["llp_mS"] == "float64"
     assert df.dtypes["llp_mH"] == "float64"
     assert df.dtypes["label"] == "int64"
+
+
+def test_sig_as_qcd_file(caplog, tmp_path):
+    default_branches = load_config(ConvertDiVertAnalysisConfig)
+
+    config = ConvertDiVertAnalysisConfig(
+        input_files=[
+            DiVertAnalysisInputFile(
+                input_file=Path("tests/data/sig_311424_600_275.root"),
+                data_type=DiVertFileType.qcd,
+                output_dir=None,
+                llp_mH=0,
+                llp_mS=0,
+            )
+        ],
+        output_path=tmp_path,
+        signal_branches=default_branches.signal_branches,
+        bib_branches=default_branches.bib_branches,
+        qcd_branches=default_branches.qcd_branches,
+        rename_branches=default_branches.rename_branches,
+    )
+
+    convert_divert(config)
+
+    # Find the output file
+    output_file = tmp_path / "sig_311424_600_275.pkl"
+    assert output_file.exists()
+
+
+def test_qcd_multi_jets(caplog, tmp_path):
+    default_branches = load_config(ConvertDiVertAnalysisConfig)
+
+    config = ConvertDiVertAnalysisConfig(
+        input_files=[
+            DiVertAnalysisInputFile(
+                input_file=Path("tests/data/sig_311424_600_275.root"),
+                data_type=DiVertFileType.qcd,
+                output_dir=None,
+                llp_mH=0,
+                llp_mS=0,
+            )
+        ],
+        output_path=tmp_path,
+        signal_branches=default_branches.signal_branches,
+        bib_branches=default_branches.bib_branches,
+        qcd_branches=default_branches.qcd_branches,
+        rename_branches=default_branches.rename_branches,
+    )
+
+    convert_divert(config)
+
+    # Find the output file
+    output_file = tmp_path / "sig_311424_600_275.pkl"
+    df = pd.read_pickle(output_file)
+
+    assert len(df.eventNumber.unique()) < len(df)
+
+    # Code to help with dipping into the event data structure and making sure,
+    # by hand, we've built up a good set of clusters and tracks and MSeg's.
+    def match_event_and_cluster_pt(event_number: int, jet_pt: float, clus_pt: float):
+        match_event_and_common(
+            event_number, jet_pt, clus_pt, "clus_pt", "cluster_jetIndex", "cluster", 1
+        )
+
+    def match_event_and_track_pt(event_number: int, jet_pt: float, track_pt: float):
+        match_event_and_common(
+            event_number, jet_pt, track_pt, "track_pT", "track_jetIndex", "track", 2
+        )
+
+    def match_event_and_MSeg_etaDir(event_number: int, jet_pt: float, eta_dir: float):
+        match_event_and_common(
+            event_number, jet_pt, eta_dir, "MSeg_etaDir", "MSeg_jetIndex", "MSeg", 2
+        )
+
+    def match_event_and_common(
+        event_number: int,
+        jet_pt: float,
+        item: float,
+        event_item_name: str,
+        event_item_jetIndex: str,
+        name: str,
+        deref_times: int,
+    ):
+        tree_data = uproot.open("tests/data/sig_311424_600_275.root")[
+            "trees_DV_"
+        ].arrays()  # type: ignore
+        event = tree_data[tree_data.eventNumber == event_number]
+        assert len(event) == 1, f"Event {event_number} not found"
+
+        # get the jet index for this jet pt.
+        jet_index_list = event.nn_jet_index[event.jet_pT == jet_pt]
+        assert len(jet_index_list) == 1, f"Jet {jet_pt} not found"
+        jet_index = jet_index_list[0][0]
+
+        # Now, find the item in the list of clusters, tracks, etc.
+        clus_list_mask = event[event_item_name] == item
+        assert (
+            ak.sum(clus_list_mask) == 1
+        ), f"{name} {item} not found in the {event_item_name} for the event!"
+
+        # Now find the matching index. This depends if the list is nested
+        # or not. For clusters it is nested once, for tracks and MSegs it is
+        # nested twice (e.g. each can be attached to more than one jet).
+        item_jet_index_list = event[event_item_jetIndex][clus_list_mask]
+        if deref_times == 2:
+            assert (
+                len(item_jet_index_list) == 1
+                and len(item_jet_index_list[0]) == 1
+                and len(item_jet_index_list[0][0]) == 1
+            ), f"Item {item} not found in the jet match list"
+            item_jet_index = item_jet_index_list[0][0]
+        elif deref_times == 1:
+            assert (
+                len(item_jet_index_list) == 1 and len(item_jet_index_list[0]) == 1
+            ), f"Item {item} not found in the jet match list"
+            item_jet_index = item_jet_index_list[0]
+        else:
+            raise RuntimeError(f"Unknown deref times {deref_times}")
+
+        assert jet_index in item_jet_index, (
+            f"{name} {item:.2f} not part of {name}s for jet {jet_index} - looks "
+            f"like it associated to jet(s) {item_jet_index}"
+        )
+
+    match_event_and_cluster_pt(df.eventNumber[0], df.jet_pt[0], df.clus_pt_1[0])
+    match_event_and_cluster_pt(df.eventNumber[0], df.jet_pt[0], df.clus_pt_0[0])
+    match_event_and_cluster_pt(df.eventNumber[1], df.jet_pt[1], df.clus_pt_0[1])
+    match_event_and_track_pt(df.eventNumber[0], df.jet_pt[0], df.track_pt_0[0])
+    match_event_and_MSeg_etaDir(df.eventNumber[0], df.jet_pt[0], df.MSeg_etaDir_0[0])
 
 
 def test_bib_file(tmp_path, caplog):
@@ -151,6 +286,7 @@ def test_bib_file(tmp_path, caplog):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
+        rename_branches=default_branches.rename_branches,
     )
 
     convert_divert(config)
@@ -190,6 +326,7 @@ def test_lock_file(tmp_path, caplog):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
+        rename_branches={"nn_jet_index": "jet_index"},
     )
 
     # Create lock file.
@@ -226,6 +363,7 @@ def test_sig_file(tmp_path, caplog):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
+        rename_branches=default_branches.rename_branches,
     )
 
     convert_divert(config)
@@ -237,7 +375,7 @@ def test_sig_file(tmp_path, caplog):
     output_file = tmp_path / "sig_311424_600_275.pkl"
     df = pd.read_pickle(output_file)
 
-    assert len(df) == 91
+    assert len(df) == 95
     assert "llp_mS" in df.columns
     assert "llp_mH" in df.columns
 
@@ -247,6 +385,28 @@ def test_sig_file(tmp_path, caplog):
     assert df.dtypes["llp_mS"] == "float64"
     assert df.dtypes["llp_mH"] == "float64"
     assert df.dtypes["label"] == "int64"
+
+    # Make sure nothing is too far away for llp matching.
+    jets = ak.zip(
+        {
+            "eta": df.jet_eta,
+            "phi": df.jet_phi,
+            "pt": df.jet_pt,
+        },
+        with_name="Momentum3D",
+    )
+    llps = ak.zip(
+        {
+            "eta": df.llp_eta,
+            "phi": df.llp_phi,
+            "pt": df.llp_pt,
+        },
+        with_name="Momentum3D",
+    )
+
+    dR = jets.deltaR(llps)  # type: ignore
+
+    assert not ak.any(dR > 0.4)
 
 
 def test_sig_eta(tmp_path):
@@ -268,6 +428,7 @@ def test_sig_eta(tmp_path):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
+        rename_branches=default_branches.rename_branches,
     )
 
     convert_divert(config)
@@ -298,6 +459,7 @@ def test_cluster_pt(tmp_path):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
+        rename_branches=default_branches.rename_branches,
     )
 
     convert_divert(config)
