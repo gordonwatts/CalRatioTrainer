@@ -41,21 +41,27 @@ def jets_masking(array: ak.Array) -> ak.Array:
     return array.jets[jet_pT_mask & jet_eta_mask]  # type: ignore
 
 
-def applying_llp_cuts(llps):
-    # creating the LLP eta/Lxy/Lz masks, based off of the ones mention in the internal
-    # note
-    central_llp_eta_mask = abs(llps.eta) < 1.4
-    endcap_llp_eta_mask = abs(llps.eta) > 1.4
+def applying_llp_cuts(llps: ak.Array):
+    """
+    Applies cuts to the input LLPs (Long-Lived Particles) array and returns only the
+    "good" LLPs that pass the basic LLP acceptance.
 
-    llp_Lxy_mask = (llps.Lxy > 1200) & (llps.Lxy < 4000)
+    Args:
+        llps (ak.Array): An array of LLPs with eta, Lxy, and Lz attributes.
 
-    llp_Lz_mask = (llps.Lz > 3500) & (llps.Lz < 6000)
+    Returns:
+        ak.Array: An array of "good" LLPs that pass the cuts.
+    """
+    central_llp_eta_mask = abs(llps.eta) < 1.4  # type: ignore
+    endcap_llp_eta_mask = abs(llps.eta) > 1.4  # type: ignore
+
+    llp_Lxy_mask = (llps.Lxy > 1200) & (llps.Lxy < 4000)  # type: ignore
+    llp_Lz_mask = (llps.Lz > 3500) & (llps.Lz < 6000)  # type: ignore
 
     llp_mask = (central_llp_eta_mask & llp_Lxy_mask) | (
         endcap_llp_eta_mask & llp_Lz_mask
     )
 
-    # Create all the LLP info that we find "good":
     return llps[llp_mask]
 
 
@@ -198,8 +204,6 @@ def sort_by_pt(data: ak.Array) -> ak.Array:
 
 def column_guillotine(data: ak.Array) -> pd.DataFrame:
     """
-    This array should be sorted already
-
     Takes an array with clus/mseg/track columns not split
     up and splits them up into new columns.
     Number of new columns hardcoded in
@@ -340,23 +344,40 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
     return df_zeroed
 
 
-def signal_processing(data, llp_mH: float, llp_mS: float) -> pd.DataFrame:
+def signal_processing(data: ak.Array, llp_mH: float, llp_mS: float) -> pd.DataFrame:
+    """
+    Processes the input data to create a pandas DataFrame with relevant columns
+    for signal training data.
+
+    Args:
+        data (awkward.Array): Input data containing information about jets and LLPs.
+        llp_mH (float): Mass of the heavy LLP.
+        llp_mS (float): Mass of the light LLP.
+
+    Returns:
+        pd.DataFrame: A pandas DataFrame with columns for LLP masses, jet information,
+        and a label column.
+    """
     # Only look at "good" jets.
     jets_masked = jets_masking(data)
 
     # Get the LLP's that are "interesting" for us:
-    llp_info = applying_llp_cuts(data.llps)
+    llp_info = applying_llp_cuts(data.llps)  # type: ignore
 
     # Find the closest jet index to each LLP, return a list per event.
     # TODO: turn this into dr2
-    matches, metric = nearest(llp_info, jets_masked, axis=1, return_metric=True)
+    matches, metric = nearest(
+        llp_info, jets_masked, axis=1, return_metric=True  # type: ignore
+    )
     close_matches = metric <= 0.4  # type: ignore
 
     matched_jets = matches[close_matches]  # type: ignore
     matched_llps = llp_info[close_matches]
 
     # Rebuild the awkward array with these LLP's and jets.
-    rebuilt_data = remake_by_replacing(data, jets=matched_jets, llps=matched_llps)
+    rebuilt_data = remake_by_replacing(
+        data, jets=matched_jets, llps=matched_llps  # type: ignore
+    )
 
     # build the pandas df:
     big_df = column_guillotine(rebuilt_data)
@@ -374,15 +395,24 @@ def signal_processing(data, llp_mH: float, llp_mS: float) -> pd.DataFrame:
     return big_df
 
 
-def bib_processing(data) -> pd.DataFrame:
+def bib_processing(data: ak.Array) -> pd.DataFrame:
+    """
+    Process data to match BIB HLT jets with actual jets and create a pandas DataFrame.
+
+    Args:
+        data (ak.Array): An Awkward Array containing event data.
+
+    Returns:
+        pd.DataFrame: A pandas DataFrame containing processed data.
+    """
     # Make sure we are only working with events with a BIB in them.
     bib_events_mask = (
-        ak.num(data.hlt_jets[data.hlt_jets.isBIB == 1].pt, axis=-1) > 0
-    )  # type: ignore
+        ak.num(data.hlt_jets[data.hlt_jets.isBIB == 1].pt, axis=-1) > 0  # type: ignore
+    )
     data_with_bib = data[bib_events_mask]
 
     # Now, we care only about "interesting" jets.
-    jets_masked = jets_masking(data_with_bib)
+    jets_masked = jets_masking(data_with_bib)  # type: ignore
 
     # and we want to match the BIB HLT jets with the actual jets.
     bib_jets = data_with_bib.hlt_jets[data_with_bib.hlt_jets.isBIB == 1]  # type: ignore
@@ -408,13 +438,23 @@ def bib_processing(data) -> pd.DataFrame:
     return big_df
 
 
-def qcd_processing(qcd_data) -> pd.DataFrame:
+def qcd_processing(qcd_data: ak.Array) -> pd.DataFrame:
+    """
+    Process the given QCD data to prepare it for training a model.
+
+    Args:
+        qcd_data (ak.Array): The input QCD data.
+
+    Returns:
+        pd.DataFrame: The processed data, with extra columns added and the
+        jets sorted by pt.
+    """
     # Get a list of all the jets we will consider.
     good_jets = jets_masking(qcd_data)
 
     # Next, for the jets we want to consider, sort everything
     # by pt.
-    rebuilt = remake_by_replacing(qcd_data, jets=good_jets)
+    rebuilt = remake_by_replacing(qcd_data, jets=good_jets)  # type: ignore
 
     # Turn it into a dataframe.
     big_df = column_guillotine(rebuilt)
@@ -433,19 +473,12 @@ def qcd_processing(qcd_data) -> pd.DataFrame:
     return big_df
 
 
-def remake_by_replacing(
-    data: ak.Array,
-    **kwargs: Dict[str, ak.Array]
-    # jets: Optional[ak.Array] = _default_array,
-    # clusters: Optional[ak.Array] = _default_array,
-    # msegs: Optional[ak.Array] = _default_array,
-    # tracks: Optional[ak.Array] = _default_array,
-    # llps: Optional[ak.Array] = _default_array,
-    # hlt_jets: Optional[ak.Array] = _default_array,
-) -> ak.Array:
+def remake_by_replacing(data: ak.Array, **kwargs: Dict[str, ak.Array]) -> ak.Array:
     """
     Replaces the jets, clusters, tracks, and msegs arrays in the input data with new
     arrays if they are provided. Returns a new ak.Array object with the updated arrays.
+
+    Arguments are the `field` names in `data`.
 
     If no argument is given, the original arrays in `data` are used.
     If the argument is given as `None` then the original array is dropped.
@@ -455,22 +488,8 @@ def remake_by_replacing(
     ----------
     data : ak.Array
         The input ak.Array object to be updated.
-    jets : ak.Array, optional
-        The new jets array to replace the one in `data`. If not provided, the original
-        jets array in `data` is used.
-    clusters : ak.Array, optional
-        The new clusters array to replace the one in `data`. If not provided, the
-        original clusters array in `data` is used.
-    msegs : ak.Array, optional
-        The new msegs array to replace the one in `data`. If not provided, the original
-        msegs array in `data` is used.
-    tracks : ak.Array, optional
-        The new tracks array to replace the one in `data`. If not provided, the
-        original tracks array in `data` is used.
-    llps : ak.Array, optional
-        The new LLPs' list to replace the one in data.
-    hlt_jets: ak.Array, optional
-        Put the htl_jets in place.
+    arg: ak.Array
+        The replacement for the contents in `data`
 
     Returns
     -------
@@ -506,6 +525,19 @@ def remake_by_replacing(
 def load_divert_file(
     file_path: Path, branches: List[str], rename_branches: Optional[Dict[str, str]]
 ) -> Optional[ak.Array]:
+    """
+    Load a ROOT file containing DV data and convert it to an awkward array.
+
+    Args:
+        file_path (Path): The path to the ROOT file.
+        branches (List[str]): A list of branches to load from the file.
+        rename_branches (Optional[Dict[str, str]]): A dictionary mapping original
+        branch names to new names.
+
+    Returns:
+        Optional[ak.Array]: An awkward array containing the loaded data, or None if the
+        file has 0 events.
+    """
     with uproot.open(file_path) as in_file:  # type: ignore
         # Check that we don't have an empty file.
         tree = in_file["trees_DV_"]
@@ -590,6 +622,20 @@ def load_divert_file(
 
 
 def convert_divert(config: ConvertDiVertAnalysisConfig):
+    """
+    Convert DiVert analysis files to pickle format.
+
+    Args:
+        config (ConvertDiVertAnalysisConfig): Configuration object containing input and
+        output file paths,
+            data type information, and other processing parameters.
+
+    Raises:
+        ValueError: If no file matching the specified input file pattern is found.
+
+    Returns:
+        None
+    """
     assert config.input_files is not None
 
     for f_info in config.input_files:
@@ -650,14 +696,14 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                         assert f_info.llp_mH is not None
                         assert f_info.llp_mS is not None
                         result = signal_processing(
-                            data,
+                            data,  # type: ignore
                             f_info.llp_mH,
                             f_info.llp_mS,
                         )
                     elif f_info.data_type == "qcd":
-                        result = qcd_processing(data)
+                        result = qcd_processing(data)  # type: ignore
                     elif f_info.data_type == "bib":
-                        result = bib_processing(data)
+                        result = bib_processing(data)  # type: ignore
                     else:
                         raise ValueError(f"Unknown data type {f_info.data_type}")
 
