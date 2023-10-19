@@ -404,7 +404,7 @@ def test_sig_file(tmp_path, caplog):
         with_name="Momentum3D",
     )
 
-    dR = jets.deltaR(llps)
+    dR = jets.deltaR(llps)  # type: ignore
 
     assert not ak.any(dR > 0.4)
 
@@ -469,6 +469,3 @@ def test_cluster_pt(tmp_path):
     df = pd.read_pickle(output_file)
 
     assert len(df[df.clus_pt_0 > 0]) > 0
-
-
-# def test_pt_sorting(tmp_path):

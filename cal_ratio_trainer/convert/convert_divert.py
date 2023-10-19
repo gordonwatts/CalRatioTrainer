@@ -1,7 +1,7 @@
 import glob
 import logging
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional
 
 import awkward as ak
 import numpy as np
@@ -20,7 +20,8 @@ vector.register_awkward()
 
 def jets_masking(array: ak.Array) -> ak.Array:
     """
-    Returns an awkward array containing only good, central jets with pT between 40 and 500 GeV.
+    Returns an awkward array containing only good, central jets with pT between 40 and
+    500 GeV.
 
     Parameters:
     -----------
@@ -30,43 +31,14 @@ def jets_masking(array: ak.Array) -> ak.Array:
     Returns:
     --------
     ak.Array
-        An awkward array containing only good, central jets with pT between 40 and 500 GeV.
+        An awkward array containing only good, central jets with pT between 40 and 500
+        GeV.
     """
     # Only good, central, jets are considered.
     jet_pT_mask = (array.jets.pt >= 40) & (array.jets.pt < 500)  # type: ignore
     jet_eta_mask = np.abs(array.jets.eta) <= 2.5  # type: ignore
 
     return array.jets[jet_pT_mask & jet_eta_mask]  # type: ignore
-
-
-# def apply_good_jet_mask(arr, mindex_mask, min_index):
-#     """
-#     Creating the good jet indices mask and then searching through the clus/track/mseg
-#     jetIndex values to find which ones match
-#     This function serves to not need to do 'as much' copy/paste
-#     """
-#     good_jet_indices = ak.flatten(min_index[mindex_mask])
-
-#     correct_clusters = arr.cluster_jetIndex == good_jet_indices
-#     correct_track = ak.flatten(arr.track_jetIndex, axis=-1) == good_jet_indices
-#     correct_mseg = mseg_filter(arr.MSeg_jetIndex, good_jet_indices)
-
-#     return (correct_clusters, correct_track, correct_mseg)
-
-
-def mseg_filter(mseg, correct_jets):
-    """
-    function to return a mseg filter
-    creates a double nested array called output that contains information about whether
-    the mseg jet index matches with the 'good' jet index we've established
-    """
-    output = []
-    for i, x in enumerate(mseg):
-        nested_output = []
-        for j in x:
-            nested_output.append(correct_jets[i] in j)
-        output.append(ak.Array(nested_output))
-    return ak.Array(output)
 
 
 def applying_llp_cuts(llps):
@@ -182,74 +154,6 @@ def nearest(
     return out
 
 
-# def apply_dR_mask(arr, branches, event_type):
-#     """
-#     Applying the dR mask onto the array
-#     dR < 0.4
-#     event type should be either signal or BIB
-#     Additionally, removes MSeg/track/clus values that correspond to jets that are not
-#     of interest
-#     """
-#     if event_type == "BIB":
-#         phi = arr.HLT_jet_phi
-#         eta = arr.HLT_jet_eta
-#     else:
-#         phi = arr.llp_phi
-#         eta = arr.llp_eta
-#     dR = delta_R(arr, phi, eta)
-#     # finding the minimum dR values
-#     min_index = ak.argmin(dR, axis=1, keepdims=True)
-#     # filtering to only keep the jet with the smallest dR
-#     only_min = dR[min_index]
-#     # 0.4 mask - only want to keep dR < 0.4
-#     dRmask = only_min < 0.4
-#     #
-
-#     # applying the LLP cuts only if its a signal event
-#     # mindex = min-index
-#     if event_type == "signal":
-#         llp_mask = applying_llp_cuts(arr, branches)
-#         mindex_mask = ak.flatten(dRmask) & llp_mask
-#         # applying both the dR mask and the LLP cuts
-#         dR_masked = ak.Array(
-#             {
-#                 col: ak.flatten(arr[col][min_index])[mindex_mask]  # type: ignore
-#                 if col.startswith("jet")
-#                 else arr[col][mindex_mask]
-#                 for col in branches
-#             }
-#         )
-#     else:
-#         # applying only the dR mask - no LLP cuts for BIB
-#         dR_masked = ak.Array(
-#             {
-#                 col: ak.flatten(arr[col][min_index])[ak.flatten(dRmask)]  # type: ignore
-#                 if col.startswith("jet")
-#                 else arr[col][ak.flatten(dRmask)]
-#                 for col in branches
-#             }
-#         )
-#         # mindex_mask = ak.flatten(dRmask)
-
-#     # Return the list of good jets
-#     return dR_masked
-#     # correct_clus, correct_track, correct_mseg = apply_good_jet_mask(
-#     #     dR_masked, mindex_mask, min_index
-#     # )
-#     # return ak.Array(
-#     #     {
-#     #         col: dR_masked[col][correct_mseg]
-#     #         if col.startswith("MSeg")
-#     #         else dR_masked[col][correct_track]
-#     #         if col.startswith("track")
-#     #         else dR_masked[col][correct_clus]
-#     #         if col.startswith("clus")
-#     #         else dR_masked[col]
-#     #         for col in branches
-#     #     }
-#     # )
-
-
 def sort_by_pt(data: ak.Array) -> ak.Array:
     """
     Sorts the clusters and tracks in the input `data` object by their transverse
@@ -309,7 +213,10 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
     Returns: dataframe with all the new split columns
     (and preexisting old columns that didn't need to be split)
     """
+    # Sort everything (clusters, etc)
+    sorted_data = sort_by_pt(data)
 
+    # Next, expand them to fill all the input slots for the network training.
     def expand_and_jet_filter(
         jet_index_list: ak.Array,
         to_match_objects: ak.Array,
@@ -332,24 +239,26 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
         return matched_objects
 
     matched_clusters = expand_and_jet_filter(
-        data.jets.jetIndex,  # type: ignore
-        data.clusters,  # type: ignore
+        sorted_data.jets.jetIndex,  # type: ignore
+        sorted_data.clusters,  # type: ignore
         matched_object_nested_jet_index=False,
     )
     matched_tracks = expand_and_jet_filter(
-        data.jets.jetIndex,  # type: ignore
-        data.tracks,  # type: ignore
+        sorted_data.jets.jetIndex,  # type: ignore
+        sorted_data.tracks,  # type: ignore
         matched_object_nested_jet_index=True,
     )
     matched_msegs = expand_and_jet_filter(
-        data.jets.jetIndex,  # type: ignore
-        data.msegs,  # type: ignore
+        sorted_data.jets.jetIndex,  # type: ignore
+        sorted_data.msegs,  # type: ignore
         matched_object_nested_jet_index=True,
     )
 
     # Now we have all the bits. Switch to a per-jet view rather than a per-event view.
-    jet_list = ak.flatten(data.jets)
-    llp_list = None if "llps" not in data.fields else ak.flatten(data.llps)
+    jet_list = ak.flatten(sorted_data.jets)
+    llp_list = (
+        None if "llps" not in sorted_data.fields else ak.flatten(sorted_data.llps)
+    )
     cluster_list = ak.flatten(matched_clusters)
     track_list = ak.flatten(matched_tracks)
     mseg_list = ak.flatten(matched_msegs)
@@ -357,7 +266,7 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
     # We also have to deal with the per-event view. Each row has to be
     # duplicated the right number of times.
 
-    event_x_jet = ak.cartesian({"event": data.event, "jet": data.jets})
+    event_x_jet = ak.cartesian({"event": sorted_data.event, "jet": sorted_data.jets})
     event_list = ak.flatten(event_x_jet.event)  # type: ignore
 
     # We need to drop the jetIndex column next - because it sometimes is a list,
@@ -480,41 +389,8 @@ def bib_processing(data) -> pd.DataFrame:
     matched_bib_jets = nearest(bib_jets, jets_masked, axis=1)  # type: ignore
 
     rebuilt_data = remake_by_replacing(
-        data_with_bib, jets=matched_bib_jets, hlt_jets=None
+        data_with_bib, jets=matched_bib_jets, hlt_jets=None  # type: ignore
     )
-
-    # # The BIB trigger isn't actually that common - so lets peal that
-    # # off to make everything below a lot faster.
-    # is_bib_mask = data.hlt_jets.isBIB == 1
-    # bib_jets = data.hlt_jets[is_bib_mask]
-    # bib_events_mask = ak.num(bib_jets.pt, axis=-1) > 0  # type: ignore
-
-    # bib_data = data[bib_events_mask]
-
-    # bib_masked = ak.Array(
-    #     {
-    #         col: bib_data[col][is_bib_mask] if col.startswith("HLT") else bib_data[col]
-    #         for col in bib_data.fields
-    #     }
-    # )
-    # length_mask = ak.num(bib_masked.HLT_jet_isBIB, axis=-1) > 0  # type: ignore
-    # bib_masked = ak.Array(
-    #     {col: bib_masked[col][length_mask] for col in bib_data.fields}
-    # )
-
-    # jet_masked = jets_masking(bib_masked, bib_data.fields)
-
-    # # keeping only the 1st HLT jet - should be fixed later but fine for now
-    # jet_masked = ak.Array(
-    #     {
-    #         col: jet_masked[col][:, 0] if col.startswith("HLT") else jet_masked[col]
-    #         for col in bib_data.fields
-    #     }
-    # )
-
-    # dR_masked = apply_dR_mask(jet_masked, bib_data.fields, "BIB")
-    # sorted_tcm = sorting_by_pT(dR_masked, bib_data.fields)
-    # big_df = column_guillotine(sorted_tcm, bib_data.fields)
 
     big_df = column_guillotine(rebuilt_data)
 
@@ -532,7 +408,29 @@ def bib_processing(data) -> pd.DataFrame:
     return big_df
 
 
-_default_array = ak.Array([])
+def qcd_processing(qcd_data) -> pd.DataFrame:
+    # Get a list of all the jets we will consider.
+    good_jets = jets_masking(qcd_data)
+
+    # Next, for the jets we want to consider, sort everything
+    # by pt.
+    rebuilt = remake_by_replacing(qcd_data, jets=good_jets)
+
+    # Turn it into a dataframe.
+    big_df = column_guillotine(rebuilt)
+
+    # Add the extra columns in.
+    big_df.insert(0, "llp_Lz", 0.0)
+    big_df.insert(0, "llp_Lxy", 0.0)
+    big_df.insert(0, "llp_phi", 0.0)
+    big_df.insert(0, "llp_eta", 0.0)
+    big_df.insert(0, "llp_pT", 0.0)
+
+    big_df.insert(0, "llp_mH", 0.0)
+    big_df.insert(0, "llp_mS", 0.0)
+    big_df.insert(0, "label", 1)
+
+    return big_df
 
 
 def remake_by_replacing(
@@ -603,31 +501,6 @@ def remake_by_replacing(
         return new_data
 
     return new_data[ak.num(new_data.jets.pt, axis=-1) > 0]  # type: ignore
-
-
-def qcd_processing(qcd_data) -> pd.DataFrame:
-    # Get a list of all the jets we will consider.
-    good_jets = jets_masking(qcd_data)
-
-    # Next, for the jets we want to consider, sort everything
-    # by pt.
-    sorted = sort_by_pt(remake_by_replacing(qcd_data, jets=good_jets))
-
-    # Turn it into a dataframe.
-    big_df = column_guillotine(sorted)
-
-    # Add the extra columns in.
-    big_df.insert(0, "llp_Lz", 0.0)
-    big_df.insert(0, "llp_Lxy", 0.0)
-    big_df.insert(0, "llp_phi", 0.0)
-    big_df.insert(0, "llp_eta", 0.0)
-    big_df.insert(0, "llp_pT", 0.0)
-
-    big_df.insert(0, "llp_mH", 0.0)
-    big_df.insert(0, "llp_mS", 0.0)
-    big_df.insert(0, "label", 1)
-
-    return big_df
 
 
 def load_divert_file(
