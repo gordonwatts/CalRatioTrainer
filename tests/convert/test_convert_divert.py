@@ -428,7 +428,7 @@ def test_sig_eta(tmp_path):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
-        rename_branches={"nn_jet_index": "jet_index"},
+        rename_branches=default_branches.rename_branches,
     )
 
     convert_divert(config)
@@ -459,7 +459,7 @@ def test_cluster_pt(tmp_path):
         signal_branches=default_branches.signal_branches,
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
-        rename_branches={"nn_jet_index": "jet_index"},
+        rename_branches=default_branches.rename_branches,
     )
 
     convert_divert(config)
