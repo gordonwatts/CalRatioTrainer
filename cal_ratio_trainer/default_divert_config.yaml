@@ -7,6 +7,7 @@ rename_branches:
   llp_pT: llp_pt
   track_pT: track_pt
   cluster_jetIndex: clus_jetIndex
+  HLT_jet_pT: HLT_jet_pt
 signal_branches:
   - llp_pT
   - llp_eta
@@ -103,6 +104,10 @@ bib_branches:
   - MSeg_chiSquared
   - runNumber
   - eventNumber
+  - HLT_jet_pT
+  - HLT_jet_eta
+  - HLT_jet_phi
+  - HLT_jet_isBIB
 qcd_branches:
   - jet_pT
   - jet_eta
