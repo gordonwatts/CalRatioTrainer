@@ -465,33 +465,58 @@ def signal_processing(data, llp_mH: float, llp_mS: float) -> pd.DataFrame:
     return big_df
 
 
-def bib_processing(bib_data) -> pd.DataFrame:
-    # tracking if the HLT jet is BIB
-    is_bib_mask = bib_data.HLT_jet_isBIB == 1
-    bib_masked = ak.Array(
-        {
-            col: bib_data[col][is_bib_mask] if col.startswith("HLT") else bib_data[col]
-            for col in bib_data.fields
-        }
-    )
-    length_mask = ak.num(bib_masked.HLT_jet_isBIB, axis=-1) > 0  # type: ignore
-    bib_masked = ak.Array(
-        {col: bib_masked[col][length_mask] for col in bib_data.fields}
-    )
+def bib_processing(data) -> pd.DataFrame:
+    # Make sure we are only working with events with a BIB in them.
+    bib_events_mask = (
+        ak.num(data.hlt_jets[data.hlt_jets.isBIB == 1].pt, axis=-1) > 0
+    )  # type: ignore
+    data_with_bib = data[bib_events_mask]
 
-    jet_masked = jets_masking(bib_masked, bib_data.fields)
+    # Now, we care only about "interesting" jets.
+    jets_masked = jets_masking(data_with_bib)
 
-    # keeping only the 1st HLT jet - should be fixed later but fine for now
-    jet_masked = ak.Array(
-        {
-            col: jet_masked[col][:, 0] if col.startswith("HLT") else jet_masked[col]
-            for col in bib_data.fields
-        }
+    # and we want to match the BIB HLT jets with the actual jets.
+    bib_jets = data_with_bib.hlt_jets[data_with_bib.hlt_jets.isBIB == 1]  # type: ignore
+    matched_bib_jets = nearest(bib_jets, jets_masked, axis=1)  # type: ignore
+
+    rebuilt_data = remake_by_replacing(
+        data_with_bib, jets=matched_bib_jets, hlt_jets=None
     )
 
-    dR_masked = apply_dR_mask(jet_masked, bib_data.fields, "BIB")
-    sorted_tcm = sorting_by_pT(dR_masked, bib_data.fields)
-    big_df = column_guillotine(sorted_tcm, bib_data.fields)
+    # # The BIB trigger isn't actually that common - so lets peal that
+    # # off to make everything below a lot faster.
+    # is_bib_mask = data.hlt_jets.isBIB == 1
+    # bib_jets = data.hlt_jets[is_bib_mask]
+    # bib_events_mask = ak.num(bib_jets.pt, axis=-1) > 0  # type: ignore
+
+    # bib_data = data[bib_events_mask]
+
+    # bib_masked = ak.Array(
+    #     {
+    #         col: bib_data[col][is_bib_mask] if col.startswith("HLT") else bib_data[col]
+    #         for col in bib_data.fields
+    #     }
+    # )
+    # length_mask = ak.num(bib_masked.HLT_jet_isBIB, axis=-1) > 0  # type: ignore
+    # bib_masked = ak.Array(
+    #     {col: bib_masked[col][length_mask] for col in bib_data.fields}
+    # )
+
+    # jet_masked = jets_masking(bib_masked, bib_data.fields)
+
+    # # keeping only the 1st HLT jet - should be fixed later but fine for now
+    # jet_masked = ak.Array(
+    #     {
+    #         col: jet_masked[col][:, 0] if col.startswith("HLT") else jet_masked[col]
+    #         for col in bib_data.fields
+    #     }
+    # )
+
+    # dR_masked = apply_dR_mask(jet_masked, bib_data.fields, "BIB")
+    # sorted_tcm = sorting_by_pT(dR_masked, bib_data.fields)
+    # big_df = column_guillotine(sorted_tcm, bib_data.fields)
+
+    big_df = column_guillotine(rebuilt_data)
 
     big_df.insert(0, "llp_Lz", 0.0)
     big_df.insert(0, "llp_Lxy", 0.0)
@@ -507,17 +532,26 @@ def bib_processing(bib_data) -> pd.DataFrame:
     return big_df
 
 
+_default_array = ak.Array([])
+
+
 def remake_by_replacing(
     data: ak.Array,
-    jets: Optional[ak.Array] = None,
-    clusters: Optional[ak.Array] = None,
-    msegs: Optional[ak.Array] = None,
-    tracks: Optional[ak.Array] = None,
-    llps: Optional[ak.Array] = None,
+    **kwargs: Dict[str, ak.Array]
+    # jets: Optional[ak.Array] = _default_array,
+    # clusters: Optional[ak.Array] = _default_array,
+    # msegs: Optional[ak.Array] = _default_array,
+    # tracks: Optional[ak.Array] = _default_array,
+    # llps: Optional[ak.Array] = _default_array,
+    # hlt_jets: Optional[ak.Array] = _default_array,
 ) -> ak.Array:
     """
     Replaces the jets, clusters, tracks, and msegs arrays in the input data with new
     arrays if they are provided. Returns a new ak.Array object with the updated arrays.
+
+    If no argument is given, the original arrays in `data` are used.
+    If the argument is given as `None` then the original array is dropped.
+    If the argument is given as anything else, it is used in the new data.
 
     Parameters
     ----------
@@ -537,6 +571,8 @@ def remake_by_replacing(
         original tracks array in `data` is used.
     llps : ak.Array, optional
         The new LLPs' list to replace the one in data.
+    hlt_jets: ak.Array, optional
+        Put the htl_jets in place.
 
     Returns
     -------
@@ -545,29 +581,28 @@ def remake_by_replacing(
         updated arrays are applied to all events. If `jets` is provided, the updated
         arrays are applied only to events with at least one jet.
     """
-    new_jets = jets if jets is not None else data.jets
-    new_clusters = clusters if clusters is not None else data.clusters
-    new_tracks = tracks if tracks is not None else data.tracks
-    new_msegs = msegs if msegs is not None else data.msegs
-    new_llps = (
-        llps if llps is not None else data.llps if "llps" in data.fields else None
-    )
+    # Build a complete default.
+    replacement = {c: data[c] for c in data.fields}
 
-    new_data = ak.Array(
-        {
-            "event": data.event,
-            "jets": new_jets,
-            "clusters": new_clusters,
-            "tracks": new_tracks,
-            "msegs": new_msegs,
-            "llps": new_llps,
-        }
-    )
+    # Now replace the ones we want to replace from the arguments:
+    white_list = ["event", "jets", "clusters", "tracks", "msegs", "llps", "hlt_jets"]
+    for k, v in kwargs.items():
+        if k not in white_list:
+            raise ValueError(
+                f"Unknown key {k} in `remake_by_replacing`: use {white_list}"
+            )
+        if v is None:
+            if k in replacement:
+                del replacement[k]
+        else:
+            replacement[k] = v
 
-    if jets is None:
+    new_data = ak.Array(replacement)
+
+    if "jets" not in kwargs.keys():
         return new_data
 
-    return new_data[ak.num(jets.pt, axis=-1) > 0]  # type: ignore
+    return new_data[ak.num(new_data.jets.pt, axis=-1) > 0]  # type: ignore
 
 
 def qcd_processing(qcd_data) -> pd.DataFrame:
@@ -640,6 +675,9 @@ def load_divert_file(
         tracks = zip_common_columns("track_")
         msegs = zip_common_columns("MSeg_", with_name=None)
         llps = zip_common_columns("llp_") if "llp_pt" in data.fields else None
+        hlt_jets = (
+            zip_common_columns("HLT_jet_") if "HLT_jet_pt" in data.fields else None
+        )
 
         # Make sure jets are sorted. We will sort everything else later on
         # when we've eliminated potentially a lot of events we don't care
@@ -657,6 +695,7 @@ def load_divert_file(
                 and (not c.startswith("track_"))
                 and (not c.startswith("MSeg_"))
                 and (not c.startswith("llp_"))
+                and (not c.startswith("HLT_jet_"))
             },
         )
 
@@ -670,6 +709,7 @@ def load_divert_file(
                     ("tracks", tracks),
                     ("msegs", msegs),
                     ("llps", llps),
+                    ("hlt_jets", hlt_jets),
                 ]
                 if content is not None
             }
