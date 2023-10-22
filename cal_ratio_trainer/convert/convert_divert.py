@@ -428,7 +428,7 @@ def bib_processing(data: ak.Array) -> pd.DataFrame:
     big_df.insert(0, "llp_Lxy", 0.0)
     big_df.insert(0, "llp_phi", 0.0)
     big_df.insert(0, "llp_eta", 0.0)
-    big_df.insert(0, "llp_pt", 0.0)
+    big_df.insert(0, "llp_pT", 0.0)
 
     big_df.insert(0, "llp_mH", 0.0)
     big_df.insert(0, "llp_mS", 0.0)
@@ -464,7 +464,7 @@ def qcd_processing(qcd_data: ak.Array) -> pd.DataFrame:
     big_df.insert(0, "llp_Lxy", 0.0)
     big_df.insert(0, "llp_phi", 0.0)
     big_df.insert(0, "llp_eta", 0.0)
-    big_df.insert(0, "llp_pt", 0.0)
+    big_df.insert(0, "llp_pT", 0.0)
 
     big_df.insert(0, "llp_mH", 0.0)
     big_df.insert(0, "llp_mS", 0.0)
