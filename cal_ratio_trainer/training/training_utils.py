@@ -68,17 +68,17 @@ def prepare_training_datasets(
     # TODO: These following lines give a performance warning sometimes
     # due to fragmented memory. Considering we are selecting a list of
     # columns, there is almost surely a fast and optimized way to do this.
-    X = df.loc[:, "clus_pt_0":"nn_MSeg_t0_29"]
+    X = df.loc[:, "clus_pt_0":"MSeg_t0_29"]
     X = df.loc[:, "jet_pt":"jet_phi"].join(X)
     X["eventNumber"] = df["eventNumber"]
 
     X_adversary = df_adversary.loc[:, "clus_pt_0":"MSeg_t0_29"]
-    X_adversary = df_adversary.loc[:, "jet_pT":"jet_phi"].join(X_adversary)
+    X_adversary = df_adversary.loc[:, "jet_pt":"jet_phi"].join(X_adversary)
     X_adversary["eventNumber"] = df_adversary["eventNumber"]
 
     # Label Z as parametrized variables
     Z = df.loc[:, "llp_mH":"llp_mS"]
-    Z_adversary = df_adversary.loc[:, "jet_pT":"jet_eta"]
+    Z_adversary = df_adversary.loc[:, "jet_pt":"jet_eta"]
 
     return (
         X,
@@ -299,8 +299,8 @@ def prep_input_for_keras(
         Z_train,
         Z_val,
         Z_test,
-        "nn_track_pt_0",
-        "nn_track_SCTHits_",
+        "track_pt_0",
+        "track_SCTHits_",
     )
     logging.debug("Preparing track data (adversary)")
     (
@@ -326,8 +326,8 @@ def prep_input_for_keras(
         Z_train,
         Z_val,
         Z_test,
-        "nn_MSeg_etaPos_0",
-        "nn_MSeg_t0_",
+        "MSeg_etaPos_0",
+        "MSeg_t0_",
     )
     logging.debug("Preparing MSeg data (adversary)")
     (
@@ -360,7 +360,7 @@ def prep_input_for_keras(
         Z_train_adversary,
         Z_val_adversary,
         Z_test_adversary,
-        "jet_pT",
+        "jet_pt",
         "jet_phi",
     )
 

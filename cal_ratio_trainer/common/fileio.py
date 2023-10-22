@@ -44,8 +44,8 @@ def make_local(file_path: str, cache: Path) -> Path:
 def load_dataset(file_url: str, cache: Path) -> pd.DataFrame:
     """
     Loads a .pkl file from the given URL, replaces infs with nans and nans with 0s,
-    deletes some virtual variables only needed for pre-processing, and returns a Pandas
-    DataFrame.
+    deletes some virtual variables only needed for pre-processing, renames some others,
+    and returns a Pandas DataFrame.
 
     Args:
         file_url (str): The URL of the .pkl file to load.
@@ -63,6 +63,19 @@ def load_dataset(file_url: str, cache: Path) -> pd.DataFrame:
     # here.
     df = df.fillna(0)
 
+    # Rename all columns that end with "_pT" to "_pt", and remove any that start
+    # with "nn_".
+    df = df.rename(
+        columns={
+            col: col.replace("_pT", "_pt") for col in df.columns if col.endswith("_pT")
+        }
+    )
+    df = df.rename(
+        columns={
+            col: col.replace("nn_", "") for col in df.columns if col.startswith("nn_")
+        }
+    )
+
     # Delete some 'virtual' variables only needed for pre-processing.
     # Make sure they exist before deleting them.
     # These have been removed from the writing, however, if we need
@@ -76,9 +89,9 @@ def load_dataset(file_url: str, cache: Path) -> pd.DataFrame:
 
     # Delete track_vertex vars in tracks
     # TODO: this should be removed ahead of time.
-    vertex_delete = [col for col in df.columns if col.startswith("nn_track_vertex_x")]
-    vertex_delete += [col for col in df.columns if col.startswith("nn_track_vertex_y")]
-    vertex_delete += [col for col in df.columns if col.startswith("nn_track_vertex_z")]
+    vertex_delete = [col for col in df.columns if col.startswith("track_vertex_x")]
+    vertex_delete += [col for col in df.columns if col.startswith("track_vertex_y")]
+    vertex_delete += [col for col in df.columns if col.startswith("track_vertex_z")]
     for item in vertex_delete:
         del df[item]
 
