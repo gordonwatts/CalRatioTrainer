@@ -61,6 +61,10 @@ def plot_prediction_histograms(
 ) -> Optional[
     Tuple[Union[np.ndarray, int], Union[np.ndarray, int], Union[np.ndarray, int]]
 ]:
+    # Make sure there is something to predict here!
+    if len(prediction) == 0:
+        return None
+
     # Get the plots setup
     sig_rows = np.where(labels == 1)
     bkg_rows = np.where(labels == 0)
@@ -1550,27 +1554,34 @@ def significance_scan(
             break
         counter = counter + 1
 
-    plt.plot(1 - thresholds[: termination + 1], SoverB_array, label=str(label_string))
-    plt.xlabel("1-(signal weight threshold)")
-    plt.ylabel("S over Root B")
-    plt.xscale("log")
+    if len(SoverB_array) > 0:
+        plt.plot(
+            1 - thresholds[: termination + 1], SoverB_array, label=str(label_string)
+        )
+        plt.xlabel("1-(signal weight threshold)")
+        plt.ylabel("S over Root B")
+        plt.xscale("log")
 
-    plt.savefig(
-        destination
-        / ("SoverB_scan_" + str(label_string) + "_" + str(n_folds) + ".png"),
-        format="png",
-        transparent=True,
-    )
-    plt.clf()
+        plt.savefig(
+            destination
+            / ("SoverB_scan_" + str(label_string) + "_" + str(n_folds) + ".png"),
+            format="png",
+            transparent=True,
+        )
+        plt.clf()
 
-    area_under_significance = np.trapz(SoverB_array, thresholds[: termination + 1])
+        area_under_significance = np.trapz(SoverB_array, thresholds[: termination + 1])
 
-    f.write("AuS: %s, label: %s\n" % (str(area_under_significance), str(label_string)))
-    f.write(
-        "S over Root B: %s, label: %s\n"
-        % (str(np.amax(SoverB_array)), str(label_string))
-    )
-    eval_object.fillObject_sOverB(str(label_string), np.amax(SoverB_array))
-    eval_object.fillObject_aus(str(label_string), area_under_significance)
+        f.write(
+            "AuS: %s, label: %s\n" % (str(area_under_significance), str(label_string))
+        )
+        f.write(
+            "S over Root B: %s, label: %s\n"
+            % (str(np.amax(SoverB_array)), str(label_string))
+        )
+        eval_object.fillObject_sOverB(str(label_string), np.amax(SoverB_array))
+        eval_object.fillObject_aus(str(label_string), area_under_significance)
 
-    return cast(float, np.amax(SoverB_array))
+        return cast(float, np.amax(SoverB_array))
+    else:
+        return 0.0
