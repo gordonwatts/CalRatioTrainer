@@ -88,4 +88,6 @@ def load_dataset(file_url: str, cache: Path) -> pd.DataFrame:
     logging.info("  Length of QCD is: " + str(df[df.label == 0].shape[0]))
     logging.info("  Length of BIB is: " + str(df[df.label == 2].shape[0]))
 
+    logging.debug(f"  Column names for this data file: {', '.join(df.columns)}")
+
     return df
