@@ -72,6 +72,11 @@ def load_dataset(file_url: str, cache: Path) -> pd.DataFrame:
     )
     df = df.rename(
         columns={
+            col: col.replace("_pT_", "_pt_") for col in df.columns if "_pT_" in col
+        }
+    )
+    df = df.rename(
+        columns={
             col: col.replace("nn_", "") for col in df.columns if col.startswith("nn_")
         }
     )
