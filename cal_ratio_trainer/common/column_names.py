@@ -79,3 +79,9 @@ col_jet_names = ["jet_pt", "jet_eta", "jet_phi"]
 
 
 col_llp_mass_names = ["llp_mH", "llp_mS"]
+
+event_level_names = [
+    "eventNumber",
+    "mcEventWeight",
+    "label",
+]

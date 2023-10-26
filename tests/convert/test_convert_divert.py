@@ -12,6 +12,28 @@ from cal_ratio_trainer.config import (
     load_config,
 )
 from cal_ratio_trainer.convert.convert_divert import convert_divert
+from cal_ratio_trainer.common.column_names import (
+    col_cluster_track_mseg_names,
+    col_jet_names,
+    col_llp_mass_names,
+    event_level_names,
+)
+
+
+def assert_columns(df: pd.DataFrame):
+    "Make sure all the columns are in the DataFrame that we expect"
+
+    # Build a list of all columns
+    all_column_names = (
+        col_cluster_track_mseg_names
+        + col_jet_names
+        + col_llp_mass_names
+        + event_level_names
+    )
+
+    # Build a list of those column names not in the DataFrame.
+    missing_columns = [name for name in all_column_names if name not in df.columns]
+    assert len(missing_columns) == 0, f"Missing columns {missing_columns}"
 
 
 def test_empty_root_files(caplog, tmp_path):
@@ -136,6 +158,8 @@ def test_qcd_file(caplog, tmp_path):
     assert df.dtypes["llp_mS"] == "float64"
     assert df.dtypes["llp_mH"] == "float64"
     assert df.dtypes["label"] == "int64"
+
+    assert_columns(df)
 
 
 def test_sig_as_qcd_file(caplog, tmp_path):
@@ -306,6 +330,8 @@ def test_bib_file(tmp_path, caplog):
 
     assert "HLT_jet_isBIB" not in df.columns
 
+    assert_columns(df)
+
 
 def test_lock_file(tmp_path, caplog):
     "Lock file causes skip"
@@ -407,6 +433,8 @@ def test_sig_file(tmp_path, caplog):
     dR = jets.deltaR(llps)  # type: ignore
 
     assert not ak.any(dR > 0.4)
+
+    assert_columns(df)
 
 
 def test_sig_eta(tmp_path):
