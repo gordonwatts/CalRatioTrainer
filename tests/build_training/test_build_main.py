@@ -25,8 +25,30 @@ def test_build_main_one_file(tmp_path, caplog):
     assert len(df) == 76
 
     assert any(
-        "old input files" not in line for line in caplog.text.splitlines()
+        "old input file" in line for line in caplog.text.splitlines()
     ), f"Failed: {caplog.text}"
+
+
+def test_build_main_one_file_new(tmp_path, caplog):
+    out_file = tmp_path / "test_output.pkl"
+    c = BuildMainTrainingConfig(
+        input_files=[
+            training_input_file(
+                input_file=Path("tests/data/sig_311421_600_50.pkl"), num_events=None
+            )
+        ],
+        output_file=out_file,
+        min_jet_pT=30,
+        max_jet_pT=400,
+    )
+
+    build_main_training(c)
+
+    assert out_file.exists()
+    df = pd.read_pickle(out_file)
+    assert len(df) == 342
+
+    assert len(caplog.text) == 0
 
 
 def test_build_clus_pt_0(tmp_path, caplog):
