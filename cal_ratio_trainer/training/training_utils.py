@@ -69,22 +69,15 @@ def prepare_training_datasets(
     # TODO: Why not rescale BIB so it also has the same weight?
     # Perhaps because it is data?
 
-    # Hard code start and end of names of variables
-    # TODO: These following lines give a performance warning sometimes
-    # due to fragmented memory. Considering we are selecting a list of
-    # columns, there is almost surely a fast and optimized way to do this.
-    X = df.loc[:, col_cluster_track_mseg_names]
-    X = df.loc[:, col_jet_names].join(X)
-    X["eventNumber"] = df["eventNumber"]
-
-    X_adversary = df_adversary.loc[:, col_cluster_track_mseg_names]
-    X_adversary = df_adversary.loc[:, col_jet_names].join(X_adversary)
-    X_adversary["eventNumber"] = df_adversary["eventNumber"]
-
-    # Label Z as parametrized variables
+    # Build the arrays from an explicit list of columns
+    X = df.loc[:, col_cluster_track_mseg_names + col_jet_names + ["eventNumber"]]
+    X_adversary = df_adversary.loc[
+        :, col_cluster_track_mseg_names + col_jet_names + ["eventNumber"]
+    ]
     Z = df.loc[:, col_llp_mass_names]
     Z_adversary = df_adversary.loc[:, ["jet_pt", "jet_eta"]]
 
+    # Pack it up and return it all!
     return (
         X,
         X_adversary,
