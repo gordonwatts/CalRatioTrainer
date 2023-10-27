@@ -355,6 +355,9 @@ def build_train_evaluate_model(
         low_mass,
         high_mass,
     )
+    assert (
+        len(X_val) > 0 and len(y_val) > 0
+    ), "low/high pt selection has eliminated all data"
 
     (
         X_test_MSeg,
