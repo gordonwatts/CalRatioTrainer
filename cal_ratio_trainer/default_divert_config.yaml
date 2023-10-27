@@ -43,6 +43,8 @@ signal_branches:
   - track_phi
   - track_chiSquared
   - track_d0
+  - track_PixelShared
+  - track_PixelHoles
   - track_PixelHits
   - track_SCTHits
   - track_SCTHoles
@@ -89,6 +91,8 @@ bib_branches:
   - track_phi
   - track_chiSquared
   - track_d0
+  - track_PixelShared
+  - track_PixelHoles
   - track_PixelHits
   - track_SCTHits
   - track_SCTHoles
@@ -138,6 +142,8 @@ qcd_branches:
   - track_phi
   - track_chiSquared
   - track_d0
+  - track_PixelShared
+  - track_PixelHoles
   - track_PixelHits
   - track_SCTHits
   - track_SCTHoles

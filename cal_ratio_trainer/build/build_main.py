@@ -47,8 +47,8 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
     logging.debug(f"Pre-processing jets for {min_pT} GeV < pT < {max_pT} GeV")
 
     # SCALE JET PT
-    df.loc[:, "jet_pT"] = df["jet_pT"].sub(float(min_pT), axis="index")  # type: ignore
-    df.loc[:, "jet_pT"] = df["jet_pT"].divide(  # type: ignore
+    df.loc[:, "jet_pt"] = df["jet_pt"].sub(float(min_pT), axis="index")  # type: ignore
+    df.loc[:, "jet_pt"] = df["jet_pt"].divide(  # type: ignore
         (float(max_pT) - float(min_pT)), axis="index"
     )
 
@@ -142,7 +142,7 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
         col for col in df if col.startswith("track_phi")  # type: ignore
     ]
     # Get all pT columns
-    filter_track_pt = [col for col in df if col.startswith("track_pT")]  # type: ignore
+    filter_track_pt = [col for col in df if col.startswith("track_pt")]  # type: ignore
     # Get all z vertex columns
     # filter_track_vertex_z = [
     #     col for col in df if col.startswith("track_vertex_z")  # type: ignore
@@ -224,7 +224,7 @@ def pickle_loader(drop_branches: Optional[List[str]]) -> Callable[[Path], pd.Dat
         Returns:
             pd.DataFrame: Sanitized DataFrame
         """
-        df = pd.read_pickle(f)
+        df = pd.read_pickle(f)  # type: pd.DataFrame
 
         # Rename any columns
         # TODO: Remove this code once understand how this happened upstream.
@@ -239,6 +239,21 @@ def pickle_loader(drop_branches: Optional[List[str]]) -> Callable[[Path], pd.Dat
                 "Renaming mS to llp_mS - should not need to happen - old input file?"
             )
             df.rename(columns={"mS": "llp_mS"}, inplace=True)
+
+        df.rename(
+            columns={
+                col: col.replace("_pT", "_pt")
+                for col in df.columns
+                if col.endswith("_pT")
+            },
+            inplace=True,
+        )
+        df.rename(
+            columns={
+                col: col.replace("_pT_", "_pt_") for col in df.columns if "_pT_" in col
+            },
+            inplace=True,
+        )
 
         # Get rid of branches that should not, perhaps, have been
         # written out in the first place!

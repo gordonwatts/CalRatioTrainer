@@ -105,7 +105,9 @@ def train_llp(
     # be different each run.
     df_adversary = df_adversary.sample(frac=training_params.frac_list)
 
-    logging.info(f"Loading up dataset {training_params.main_training_file}...")
+    logging.info(
+        f"Loading main training data from {training_params.main_training_file}..."
+    )
     df = load_dataset(training_params.main_training_file, cache)
     df = df.sample(frac=training_params.frac_list)
 
@@ -353,6 +355,9 @@ def build_train_evaluate_model(
         low_mass,
         high_mass,
     )
+    assert (
+        len(X_val) > 0 and len(y_val) > 0
+    ), "low/high pt selection has eliminated all data"
 
     (
         X_test_MSeg,

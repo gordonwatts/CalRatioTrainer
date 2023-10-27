@@ -15,6 +15,11 @@ from tensorflow import Tensor
 from cal_ratio_trainer.config import TrainingConfig
 from cal_ratio_trainer.training.model_input.jet_input import JetInput
 from cal_ratio_trainer.training.model_input.model_input import ModelInput
+from cal_ratio_trainer.common.column_names import (
+    col_cluster_track_mseg_names,
+    col_jet_names,
+    col_llp_mass_names,
+)
 
 
 def prepare_training_datasets(
@@ -64,22 +69,15 @@ def prepare_training_datasets(
     # TODO: Why not rescale BIB so it also has the same weight?
     # Perhaps because it is data?
 
-    # Hard code start and end of names of variables
-    # TODO: These following lines give a performance warning sometimes
-    # due to fragmented memory. Considering we are selecting a list of
-    # columns, there is almost surely a fast and optimized way to do this.
-    X = df.loc[:, "clus_pt_0":"nn_MSeg_t0_29"]
-    X = df.loc[:, "jet_pt":"jet_phi"].join(X)
-    X["eventNumber"] = df["eventNumber"]
+    # Build the arrays from an explicit list of columns
+    X = df.loc[:, col_cluster_track_mseg_names + col_jet_names + ["eventNumber"]]
+    X_adversary = df_adversary.loc[
+        :, col_cluster_track_mseg_names + col_jet_names + ["eventNumber"]
+    ]
+    Z = df.loc[:, col_llp_mass_names]
+    Z_adversary = df_adversary.loc[:, ["jet_pt", "jet_eta"]]
 
-    X_adversary = df_adversary.loc[:, "clus_pt_0":"MSeg_t0_29"]
-    X_adversary = df_adversary.loc[:, "jet_pT":"jet_phi"].join(X_adversary)
-    X_adversary["eventNumber"] = df_adversary["eventNumber"]
-
-    # Label Z as parametrized variables
-    Z = df.loc[:, "llp_mH":"llp_mS"]
-    Z_adversary = df_adversary.loc[:, "jet_pT":"jet_eta"]
-
+    # Pack it up and return it all!
     return (
         X,
         X_adversary,
@@ -299,8 +297,8 @@ def prep_input_for_keras(
         Z_train,
         Z_val,
         Z_test,
-        "nn_track_pt_0",
-        "nn_track_SCTHits_",
+        "track_pt_0",
+        "track_SCTHits_",
     )
     logging.debug("Preparing track data (adversary)")
     (
@@ -314,7 +312,7 @@ def prep_input_for_keras(
         Z_train_adversary,
         Z_val_adversary,
         Z_test_adversary,
-        "track_pT_0",
+        "track_pt_0",
         "track_SCTHits_",
     )
 
@@ -326,8 +324,8 @@ def prep_input_for_keras(
         Z_train,
         Z_val,
         Z_test,
-        "nn_MSeg_etaPos_0",
-        "nn_MSeg_t0_",
+        "MSeg_etaPos_0",
+        "MSeg_t0_",
     )
     logging.debug("Preparing MSeg data (adversary)")
     (
@@ -360,7 +358,7 @@ def prep_input_for_keras(
         Z_train_adversary,
         Z_val_adversary,
         Z_test_adversary,
-        "jet_pT",
+        "jet_pt",
         "jet_phi",
     )
 

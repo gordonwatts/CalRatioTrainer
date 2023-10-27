@@ -164,7 +164,8 @@ def plot_roc_curve(
     axes.set_xlim([0, 1])
 
     plt.legend()
-    plt.yscale("log")
+    if np.any(bkg_eff > 0) and np.any(tag_eff > 0):
+        plt.yscale("log")
     y_label = "BIB Rejection" if third_label == 2 else "QCD Rejection"
     plt.ylabel(y_label)
 
@@ -235,7 +236,9 @@ def make_multi_roc_curve(
     # or qcd or bib left after BIB cut vs how many there were originally
     num_signal_original = y[y == 1].size
     num_signal_leftover = y_left[y_left == 1].size
-    signal_ratio = num_signal_leftover / num_signal_original
+    signal_ratio = (
+        num_signal_leftover / num_signal_original if num_signal_original > 0 else 0.0
+    )
 
     num_qcd_original = np.sum(weight[y == 0])
     num_qcd_leftover = np.sum(weight_left[y_left == 0])
