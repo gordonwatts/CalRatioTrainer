@@ -1,6 +1,6 @@
 name: ci
 
-on: [workflow_dispatch, push, pull_request]
+on: [workflow_dispatch, push, pull_request_target]
 
 jobs:
     flake8:
