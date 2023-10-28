@@ -54,6 +54,8 @@ def test_empty_root_files(caplog, tmp_path):
         bib_branches=["three", "four"],
         qcd_branches=["five", "six"],
         rename_branches={"nn_jet_index": "jet_index"},
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     convert_divert(config)
@@ -81,6 +83,8 @@ def test_missing_root_files(caplog, tmp_path):
         bib_branches=["one"],
         qcd_branches=["one"],
         rename_branches={"nn_jet_index": "jet_index"},
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     convert_divert(config)
@@ -110,6 +114,8 @@ def test_no_redo_existing_file(caplog, tmp_path):
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
         rename_branches=default_branches.rename_branches,
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     convert_divert(config)
@@ -147,6 +153,8 @@ def test_qcd_file(caplog, tmp_path):
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
         rename_branches=default_branches.rename_branches,
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     convert_divert(config)
@@ -160,6 +168,38 @@ def test_qcd_file(caplog, tmp_path):
     assert df.dtypes["label"] == "int64"
 
     assert_columns(df)
+
+
+def test_jet_cuts(caplog, tmp_path):
+    default_branches = load_config(ConvertDiVertAnalysisConfig)
+
+    config = ConvertDiVertAnalysisConfig(
+        input_files=[
+            DiVertAnalysisInputFile(
+                input_file=Path("tests/data/short_divert_analysis_file.root"),
+                data_type=DiVertFileType.qcd,
+                output_dir=None,
+                llp_mH=0,
+                llp_mS=0,
+            )
+        ],
+        output_path=tmp_path,
+        signal_branches=default_branches.signal_branches,
+        bib_branches=default_branches.bib_branches,
+        qcd_branches=default_branches.qcd_branches,
+        rename_branches=default_branches.rename_branches,
+        min_jet_pt=25,
+        max_jet_pt=100,
+    )
+
+    convert_divert(config)
+
+    # Find the output file
+    output_file = tmp_path / "short_divert_analysis_file.pkl"
+    df = pd.read_pickle(output_file)
+
+    assert not any(df.jet_pt < 25)
+    assert not any(df.jet_pt >= 100)
 
 
 def test_sig_as_qcd_file(caplog, tmp_path):
@@ -180,6 +220,8 @@ def test_sig_as_qcd_file(caplog, tmp_path):
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
         rename_branches=default_branches.rename_branches,
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     convert_divert(config)
@@ -207,6 +249,8 @@ def test_qcd_multi_jets(caplog, tmp_path):
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
         rename_branches=default_branches.rename_branches,
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     convert_divert(config)
@@ -311,6 +355,8 @@ def test_bib_file(tmp_path, caplog):
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
         rename_branches=default_branches.rename_branches,
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     convert_divert(config)
@@ -353,6 +399,8 @@ def test_lock_file(tmp_path, caplog):
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
         rename_branches={"nn_jet_index": "jet_index"},
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     # Create lock file.
@@ -390,6 +438,8 @@ def test_sig_file(tmp_path, caplog):
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
         rename_branches=default_branches.rename_branches,
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     convert_divert(config)
@@ -457,6 +507,8 @@ def test_sig_eta(tmp_path):
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
         rename_branches=default_branches.rename_branches,
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     convert_divert(config)
@@ -488,6 +540,8 @@ def test_cluster_pt(tmp_path):
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
         rename_branches=default_branches.rename_branches,
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     convert_divert(config)

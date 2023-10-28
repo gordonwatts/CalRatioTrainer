@@ -18,7 +18,7 @@ from cal_ratio_trainer.config import ConvertDiVertAnalysisConfig
 vector.register_awkward()
 
 
-def jets_masking(array: ak.Array) -> ak.Array:
+def jets_masking(array: ak.Array, min_jet_pt: float, max_jet_pt: float) -> ak.Array:
     """
     Returns an awkward array containing only good, central jets with pT between 40 and
     500 GeV.
@@ -35,7 +35,9 @@ def jets_masking(array: ak.Array) -> ak.Array:
         GeV.
     """
     # Only good, central, jets are considered.
-    jet_pT_mask = (array.jets.pt >= 40) & (array.jets.pt < 500)  # type: ignore
+    jet_pT_mask = (array.jets.pt >= min_jet_pt) & (  # type: ignore
+        array.jets.pt < max_jet_pt  # type: ignore
+    )
     jet_eta_mask = np.abs(array.jets.eta) <= 2.5  # type: ignore
 
     return array.jets[jet_pT_mask & jet_eta_mask]  # type: ignore
@@ -344,7 +346,9 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
     return df_zeroed
 
 
-def signal_processing(data: ak.Array, llp_mH: float, llp_mS: float) -> pd.DataFrame:
+def signal_processing(
+    data: ak.Array, llp_mH: float, llp_mS: float, min_jet_pt: float, max_jet_pt: float
+) -> pd.DataFrame:
     """
     Processes the input data to create a pandas DataFrame with relevant columns
     for signal training data.
@@ -359,7 +363,7 @@ def signal_processing(data: ak.Array, llp_mH: float, llp_mS: float) -> pd.DataFr
         and a label column.
     """
     # Only look at "good" jets.
-    jets_masked = jets_masking(data)
+    jets_masked = jets_masking(data, min_jet_pt, max_jet_pt)
 
     # Get the LLP's that are "interesting" for us:
     llp_info = applying_llp_cuts(data.llps)  # type: ignore
@@ -395,7 +399,9 @@ def signal_processing(data: ak.Array, llp_mH: float, llp_mS: float) -> pd.DataFr
     return big_df
 
 
-def bib_processing(data: ak.Array) -> pd.DataFrame:
+def bib_processing(
+    data: ak.Array, min_jet_pt: float, max_jet_pt: float
+) -> pd.DataFrame:
     """
     Process data to match BIB HLT jets with actual jets and create a pandas DataFrame.
 
@@ -412,7 +418,7 @@ def bib_processing(data: ak.Array) -> pd.DataFrame:
     data_with_bib = data[bib_events_mask]
 
     # Now, we care only about "interesting" jets.
-    jets_masked = jets_masking(data_with_bib)  # type: ignore
+    jets_masked = jets_masking(data_with_bib, min_jet_pt, max_jet_pt)  # type: ignore
 
     # and we want to match the BIB HLT jets with the actual jets.
     bib_jets = data_with_bib.hlt_jets[data_with_bib.hlt_jets.isBIB == 1]  # type: ignore
@@ -438,7 +444,9 @@ def bib_processing(data: ak.Array) -> pd.DataFrame:
     return big_df
 
 
-def qcd_processing(qcd_data: ak.Array) -> pd.DataFrame:
+def qcd_processing(
+    qcd_data: ak.Array, min_jet_pt: float, max_jet_pt: float
+) -> pd.DataFrame:
     """
     Process the given QCD data to prepare it for training a model.
 
@@ -450,7 +458,7 @@ def qcd_processing(qcd_data: ak.Array) -> pd.DataFrame:
         jets sorted by pt.
     """
     # Get a list of all the jets we will consider.
-    good_jets = jets_masking(qcd_data)
+    good_jets = jets_masking(qcd_data, min_jet_pt, max_jet_pt)
 
     # Next, for the jets we want to consider, sort everything
     # by pt.
@@ -692,6 +700,9 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                     output_dir_path.mkdir(parents=True, exist_ok=True)
 
                     # Process according to the data type.
+                    assert (
+                        config.min_jet_pt is not None and config.max_jet_pt is not None
+                    )
                     if f_info.data_type == "sig":
                         assert f_info.llp_mH is not None
                         assert f_info.llp_mS is not None
@@ -699,17 +710,20 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                             data,  # type: ignore
                             f_info.llp_mH,
                             f_info.llp_mS,
+                            config.min_jet_pt,
+                            config.max_jet_pt,
                         )
                     elif f_info.data_type == "qcd":
-                        result = qcd_processing(data)  # type: ignore
+                        result = qcd_processing(
+                            data, config.min_jet_pt, config.max_jet_pt  # type: ignore
+                        )
                     elif f_info.data_type == "bib":
-                        result = bib_processing(data)  # type: ignore
+                        result = bib_processing(
+                            data, config.min_jet_pt, config.max_jet_pt  # type: ignore
+                        )
                     else:
                         raise ValueError(f"Unknown data type {f_info.data_type}")
 
-                    # Write the output file
-                    # if len(extra_branches) > 0:
-                    #     result = result.drop(columns=extra_branches)
                     result.to_pickle(output_file)
 
                 except uproot.exceptions.KeyInFileError as e:  # type:ignore
