@@ -40,9 +40,7 @@ class TrainedModel:
 
 def _load_model_only(run_dir: Path) -> Model:
     # Load the model that was written out
-    model = load_keras_model(
-        run_dir / "keras" / "final_model.keras"
-    )  # type: Optional[Model]
+    model = load_keras_model(run_dir / "keras" / "final_model.keras")
     assert model is not None, "Failed to load model"
     return model
 
