@@ -44,7 +44,7 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
         df["jet_phi"], axis="index"
     )
 
-    logging.debug(f"Pre-processing jets for {min_pT} GeV < pT < {max_pT} GeV")
+    logging.debug(f"Rescaling jets for {min_pT} GeV < pT < {max_pT} GeV")
 
     # SCALE JET PT
     df.loc[:, "jet_pt"] = df["jet_pt"].sub(float(min_pT), axis="index")  # type: ignore
