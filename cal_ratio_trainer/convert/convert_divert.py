@@ -293,9 +293,9 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
     # awkward alters the type in such a way that `track_list_padded.fields` is
     # an empty type (due to a Union type)
 
-    track_list_padded = ak.pad_none(track_list, 20, axis=1)
-    cluster_list_padded = ak.pad_none(cluster_list, 30, axis=1)
-    mseg_list_padded = ak.pad_none(mseg_list, 30, axis=1)
+    track_list_padded = ak.pad_none(track_list[:, 0:20], 20, axis=1)
+    cluster_list_padded = ak.pad_none(cluster_list[:, 0:30], 30, axis=1)
+    mseg_list_padded = ak.pad_none(mseg_list[:, 0:30], 30, axis=1)  # type: ignore
 
     # Next task is to split the padded arrays into their constituent columns.
     def split_array(array: ak.Array, name_prefix: str) -> pd.DataFrame:
