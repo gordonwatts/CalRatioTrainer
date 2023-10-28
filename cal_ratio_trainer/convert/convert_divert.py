@@ -645,6 +645,7 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
         None
     """
     assert config.input_files is not None
+    assert config.min_jet_pt is not None and config.max_jet_pt is not None
 
     for f_info in config.input_files:
         found_file = False
@@ -702,9 +703,6 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                     output_dir_path.mkdir(parents=True, exist_ok=True)
 
                     # Process according to the data type.
-                    assert (
-                        config.min_jet_pt is not None and config.max_jet_pt is not None
-                    )
                     if f_info.data_type == "sig":
                         assert f_info.llp_mH is not None
                         assert f_info.llp_mS is not None
