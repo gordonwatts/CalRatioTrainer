@@ -41,8 +41,19 @@ wsl2 = [
 [project.scripts]
 cr_trainer = "cal_ratio_trainer.trainer:main"
 
-[tool.setuptools.packages.find]
-include = ["cal_ratio_trainer"]
+[tool.setuptools]
+packages = [
+    "cal_ratio_trainer",
+    "cal_ratio_trainer.build",
+    "cal_ratio_trainer.common",
+    "cal_ratio_trainer.convert",
+    "cal_ratio_trainer.reporting",
+    "cal_ratio_trainer.training",
+    "cal_ratio_trainer.training.model_input",
+]
+
+[tool.setuptools.package-data]
+cal_ratio_trainer = ["*.yaml"]
 
 [tool.flake8]
 max-line-length = 99
