@@ -695,6 +695,8 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                     assert branches is not None
 
                     data = load_divert_file(file_path, branches, config.rename_branches)
+                    if data is None:
+                        continue
 
                     # Create output directory
                     output_dir_path.mkdir(parents=True, exist_ok=True)
