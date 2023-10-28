@@ -170,6 +170,37 @@ def test_qcd_file(caplog, tmp_path):
     assert_columns(df)
 
 
+def test_qcd_bad_slice(caplog, tmp_path):
+    default_branches = load_config(ConvertDiVertAnalysisConfig)
+
+    config = ConvertDiVertAnalysisConfig(
+        input_files=[
+            DiVertAnalysisInputFile(
+                input_file=Path("tests/data/qcd_slice_error.root"),
+                data_type=DiVertFileType.qcd,
+                output_dir=None,
+                llp_mH=0,
+                llp_mS=0,
+            )
+        ],
+        output_path=tmp_path,
+        signal_branches=default_branches.signal_branches,
+        bib_branches=default_branches.bib_branches,
+        qcd_branches=default_branches.qcd_branches,
+        rename_branches=default_branches.rename_branches,
+        min_jet_pt=40,
+        max_jet_pt=500,
+    )
+
+    convert_divert(config)
+
+    # Find the output file
+    output_file = tmp_path / "qcd_slice_error.pkl"
+    df = pd.read_pickle(output_file)
+
+    assert len(df) > 0
+
+
 def test_jet_cuts(caplog, tmp_path):
     default_branches = load_config(ConvertDiVertAnalysisConfig)
 
