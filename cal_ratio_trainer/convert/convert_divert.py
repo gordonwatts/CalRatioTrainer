@@ -644,8 +644,10 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
     Returns:
         None
     """
-    assert config.input_files is not None
-    assert config.min_jet_pt is not None and config.max_jet_pt is not None
+    assert config.input_files is not None, "Must specify an input file for conversion"
+    assert (
+        config.min_jet_pt is not None and config.max_jet_pt is not None
+    ), "Must specify min and max jet pt to convert."
 
     for f_info in config.input_files:
         found_file = False
