@@ -52,6 +52,9 @@ packages = [
     "cal_ratio_trainer.training.model_input",
 ]
 
+[tool.setuptools.package-data]
+myModule = ["*.yaml"]
+
 [tool.flake8]
 max-line-length = 99
 include = "./cal_ratio_trainer/*"
