@@ -240,6 +240,14 @@ class ConvertDiVertAnalysisConfig(BaseModel):
         "value is the new name."
     )
 
+    min_jet_pt: Optional[float] = Field(
+        description="The minimum jet pT to use for the training [GeV]."
+    )
+
+    max_jet_pt: Optional[float] = Field(
+        description="The maximum jet pT to use for the training [GeV]."
+    )
+
 
 class training_input_file(BaseModel):
     "Specs for a single input file for training"

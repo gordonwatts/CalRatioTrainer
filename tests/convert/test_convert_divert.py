@@ -54,6 +54,8 @@ def test_empty_root_files(caplog, tmp_path):
         bib_branches=["three", "four"],
         qcd_branches=["five", "six"],
         rename_branches={"nn_jet_index": "jet_index"},
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     convert_divert(config)
@@ -81,6 +83,8 @@ def test_missing_root_files(caplog, tmp_path):
         bib_branches=["one"],
         qcd_branches=["one"],
         rename_branches={"nn_jet_index": "jet_index"},
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     convert_divert(config)
@@ -110,6 +114,8 @@ def test_no_redo_existing_file(caplog, tmp_path):
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
         rename_branches=default_branches.rename_branches,
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     convert_divert(config)
@@ -147,6 +153,8 @@ def test_qcd_file(caplog, tmp_path):
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
         rename_branches=default_branches.rename_branches,
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     convert_divert(config)
@@ -180,6 +188,8 @@ def test_sig_as_qcd_file(caplog, tmp_path):
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
         rename_branches=default_branches.rename_branches,
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     convert_divert(config)
@@ -207,6 +217,8 @@ def test_qcd_multi_jets(caplog, tmp_path):
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
         rename_branches=default_branches.rename_branches,
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     convert_divert(config)
@@ -311,6 +323,8 @@ def test_bib_file(tmp_path, caplog):
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
         rename_branches=default_branches.rename_branches,
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     convert_divert(config)
@@ -353,6 +367,8 @@ def test_lock_file(tmp_path, caplog):
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
         rename_branches={"nn_jet_index": "jet_index"},
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     # Create lock file.
@@ -390,6 +406,8 @@ def test_sig_file(tmp_path, caplog):
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
         rename_branches=default_branches.rename_branches,
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     convert_divert(config)
@@ -457,6 +475,8 @@ def test_sig_eta(tmp_path):
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
         rename_branches=default_branches.rename_branches,
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     convert_divert(config)
@@ -488,6 +508,8 @@ def test_cluster_pt(tmp_path):
         bib_branches=default_branches.bib_branches,
         qcd_branches=default_branches.qcd_branches,
         rename_branches=default_branches.rename_branches,
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     convert_divert(config)
