@@ -49,6 +49,7 @@ packages = [
     "cal_ratio_trainer.convert",
     "cal_ratio_trainer.reporting",
     "cal_ratio_trainer.training",
+    "cal_ratio_trainer.training.model_input",
 ]
 
 [tool.flake8]
