@@ -108,7 +108,13 @@ def train_llp(
     logging.info(
         f"Loading main training data from {training_params.main_training_file}..."
     )
+    logging.warning("Loading from {training_params.main_training_file}")
+    import os
+
+    os.system("ls -lrth tests/data")
+    os.system("ls -lrth calratio_training")
     df = load_dataset(training_params.main_training_file, cache)
+    os.system("ls -lrth calratio_training")
     logging.warning(f"Length of dataset: {len(df)}")
     df = df.sample(frac=training_params.frac_list)
 
