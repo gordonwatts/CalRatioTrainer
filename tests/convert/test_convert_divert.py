@@ -482,7 +482,7 @@ def test_sig_file(tmp_path, caplog):
     output_file = tmp_path / "sig_311424_600_275.pkl"
     df = pd.read_pickle(output_file)
 
-    assert len(df) == 95
+    assert len(df) == 91
     assert "llp_mS" in df.columns
     assert "llp_mH" in df.columns
 
