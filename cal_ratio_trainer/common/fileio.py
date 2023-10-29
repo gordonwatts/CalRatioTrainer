@@ -56,7 +56,6 @@ def load_dataset(file_url: str, cache: Path) -> pd.DataFrame:
     # Load dataset
     filename = make_local(file_url, cache)
     df = pd.read_pickle(filename)
-    logging.warning(f"Loaded dataset from {filename} - len is {len(df)}")
     # Replace infs with nan's
     df = df.replace([np.inf, -np.inf], np.nan)
     # Replace nan's with 0
@@ -102,10 +101,10 @@ def load_dataset(file_url: str, cache: Path) -> pd.DataFrame:
         del df[item]
 
     # Print sizes of inputs for signal, qcd, and bib
-    logging.warning(df.head())
-    logging.warning("  Length of Signal is: " + str(df[df.label == 1].shape[0]))
-    logging.warning("  Length of QCD is: " + str(df[df.label == 0].shape[0]))
-    logging.warning("  Length of BIB is: " + str(df[df.label == 2].shape[0]))
+    logging.debug(df.head())
+    logging.info("  Length of Signal is: " + str(df[df.label == 1].shape[0]))
+    logging.info("  Length of QCD is: " + str(df[df.label == 0].shape[0]))
+    logging.info("  Length of BIB is: " + str(df[df.label == 2].shape[0]))
 
     logging.debug(f"  Column names for this data file: {', '.join(df.columns)}")
 

@@ -108,14 +108,7 @@ def train_llp(
     logging.info(
         f"Loading main training data from {training_params.main_training_file}..."
     )
-    logging.warning("Loading from {training_params.main_training_file}")
-    import os
-
-    os.system("ls -lrth tests/data")
-    os.system("ls -lrth calratio_training")
     df = load_dataset(training_params.main_training_file, cache)
-    os.system("ls -lrth calratio_training")
-    logging.warning(f"Length of dataset: {len(df)}")
     df = df.sample(frac=training_params.frac_list)
 
     # Extract labels
@@ -287,7 +280,6 @@ def build_train_evaluate_model(
 
     # Divide testing set into epoch-by-epoch validation and final evaluation sets
     # for the main data and the adversary.
-    logging.warning(set(y_test_df))
     (
         X_test,
         X_val,
@@ -354,7 +346,6 @@ def build_train_evaluate_model(
         high_mass,
     )
 
-    logging.warning(y_val.shape)
     X_val, y_val, Z_val, weights_val, mcWeights_val = low_or_high_pt_selection_train(
         X_val,
         y_val,
@@ -368,7 +359,6 @@ def build_train_evaluate_model(
         len(X_val) > 0 and len(y_val) > 0
     ), "low/high pt selection has eliminated all data"
 
-    logging.warning(y_val.shape)
     (
         X_test_MSeg,
         X_test_MSeg_adversary,
@@ -416,7 +406,6 @@ def build_train_evaluate_model(
         y_train_1,
         y_val,
     )
-    logging.warning(f"After prep_input_for_keras: {y_val.shape}")
 
     logging.debug("Done preparing data for model")
 
@@ -447,7 +436,6 @@ def build_train_evaluate_model(
         X_val_MSeg_adversary,
         X_val_jet_adversary.values,
     ]
-    logging.warning(y_val.shape)
     y_to_validate = [y_val, y_val, y_val, y_val, y_val, y_val]
     y_to_validate_adv = [y_val_adversary]
     weights_to_validate = [
@@ -548,7 +536,6 @@ def build_train_evaluate_model(
         y_to_validate_adv,
         training_params,
     )
-    logging.warning(y_to_validate[0].shape)
 
     # Summarize the two models
     logging.debug("Summary of the original model:")
@@ -682,10 +669,6 @@ def build_train_evaluate_model(
         logging.debug("End of Epoch Training")
 
         # Do test on small batch
-        logging.warning(original_model.summary())
-        logging.warning(
-            f"{y_to_validate_0[0].shape} - {y_to_validate_adv_squeeze[0].shape}"
-        )
         original_val_hist = original_model.test_on_batch(
             [*(x_to_validate_split[0]), *(x_to_validate_adv_split[0])],
             [y_to_validate_0[0], y_to_validate_adv_squeeze[0]],

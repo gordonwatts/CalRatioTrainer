@@ -1,4 +1,3 @@
-import logging
 from pathlib import Path
 from cal_ratio_trainer.config import TrainingConfig, load_config
 from cal_ratio_trainer.training.runner_utils import training_runner_util
@@ -26,8 +25,6 @@ def test_small_run_cr_trainer_files():
 
     * For now, use the felix control region until our build does that too.
     """
-
-    logging.basicConfig(level=logging.DEBUG)
 
     config = load_config(TrainingConfig)
     assert isinstance(config, TrainingConfig)
