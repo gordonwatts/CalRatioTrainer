@@ -280,6 +280,7 @@ def build_train_evaluate_model(
 
     # Divide testing set into epoch-by-epoch validation and final evaluation sets
     # for the main data and the adversary.
+    print(set(y_test_df))
     (
         X_test,
         X_val,
@@ -346,6 +347,7 @@ def build_train_evaluate_model(
         high_mass,
     )
 
+    logging.warning(y_val.shape)
     X_val, y_val, Z_val, weights_val, mcWeights_val = low_or_high_pt_selection_train(
         X_val,
         y_val,
@@ -359,6 +361,7 @@ def build_train_evaluate_model(
         len(X_val) > 0 and len(y_val) > 0
     ), "low/high pt selection has eliminated all data"
 
+    logging.warning(y_val.shape)
     (
         X_test_MSeg,
         X_test_MSeg_adversary,
@@ -406,6 +409,7 @@ def build_train_evaluate_model(
         y_train_1,
         y_val,
     )
+    logging.warning(f"After prep_input_for_keras: {y_val.shape}")
 
     logging.debug("Done preparing data for model")
 
@@ -436,6 +440,7 @@ def build_train_evaluate_model(
         X_val_MSeg_adversary,
         X_val_jet_adversary.values,
     ]
+    logging.warning(y_val.shape)
     y_to_validate = [y_val, y_val, y_val, y_val, y_val, y_val]
     y_to_validate_adv = [y_val_adversary]
     weights_to_validate = [
@@ -536,6 +541,7 @@ def build_train_evaluate_model(
         y_to_validate_adv,
         training_params,
     )
+    logging.warning(y_to_validate[0].shape)
 
     # Summarize the two models
     logging.debug("Summary of the original model:")
