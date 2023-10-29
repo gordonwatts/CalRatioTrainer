@@ -291,11 +291,11 @@ class BuildMainTrainingConfig(BaseModel):
         description="The path to the output training file. Must not already exist."
     )
 
-    min_jet_pT: Optional[float] = Field(
+    min_jet_pt: Optional[float] = Field(
         description="The minimum pT to use for the training [GeV]. Applied to jets, "
         "tracks, etc."
     )
-    max_jet_pT: Optional[float] = Field(
+    max_jet_pt: Optional[float] = Field(
         description="The maximum jet pT to use for the training [GeV]."
     )
     remove_branches: Optional[List[str]] = Field(

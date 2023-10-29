@@ -14,8 +14,8 @@ def test_build_main_one_file(tmp_path, caplog):
             )
         ],
         output_file=out_file,
-        min_jet_pT=30,
-        max_jet_pT=400,
+        min_jet_pt=30,
+        max_jet_pt=400,
     )
 
     build_main_training(c)
@@ -38,8 +38,8 @@ def test_build_main_one_file_new(tmp_path, caplog):
             )
         ],
         output_file=out_file,
-        min_jet_pT=30,
-        max_jet_pT=400,
+        min_jet_pt=30,
+        max_jet_pt=400,
     )
 
     build_main_training(c)
@@ -60,8 +60,8 @@ def test_build_clus_pt_0(tmp_path, caplog):
             )
         ],
         output_file=out_file,
-        min_jet_pT=30,
-        max_jet_pT=400,
+        min_jet_pt=30,
+        max_jet_pt=400,
     )
 
     build_main_training(c)
@@ -81,8 +81,8 @@ def test_build_sig_has_llp_columns(tmp_path, caplog):
             )
         ],
         output_file=out_file,
-        min_jet_pT=30,
-        max_jet_pT=400,
+        min_jet_pt=30,
+        max_jet_pt=400,
     )
 
     build_main_training(c)
@@ -105,8 +105,8 @@ def test_build_zero_length_file(tmp_path, caplog):
             ),
         ],
         output_file=out_file,
-        min_jet_pT=30,
-        max_jet_pT=400,
+        min_jet_pt=30,
+        max_jet_pt=400,
     )
 
     build_main_training(c)
@@ -125,8 +125,8 @@ def test_build_main_one_file_ask_for_too_much(tmp_path, caplog):
             )
         ],
         output_file=out_file,
-        min_jet_pT=30,
-        max_jet_pT=400,
+        min_jet_pt=30,
+        max_jet_pt=400,
     )
 
     build_main_training(c)
@@ -146,8 +146,8 @@ def test_build_main_one_file_twice(tmp_path):
             ),
         ],
         output_file=out_file,
-        min_jet_pT=30,
-        max_jet_pT=400,
+        min_jet_pt=30,
+        max_jet_pt=400,
     )
 
     build_main_training(c)
@@ -166,8 +166,8 @@ def test_build_main_one_file_length(tmp_path):
             )
         ],
         output_file=out_file,
-        min_jet_pT=30,
-        max_jet_pT=400,
+        min_jet_pt=30,
+        max_jet_pt=400,
     )
 
     build_main_training(c)
@@ -201,8 +201,8 @@ def test_build_via_wildcard(tmp_path):
             training_input_file(input_file=Path(f"{in_dir}/sig*.pkl"), num_events=None)
         ],
         output_file=out_file,
-        min_jet_pT=30,
-        max_jet_pT=400,
+        min_jet_pt=30,
+        max_jet_pt=400,
     )
 
     build_main_training(c)
@@ -228,8 +228,8 @@ def test_build_good_warning_if_no_files(tmp_path):
                 )
             ],
             output_file=out_file,
-            min_jet_pT=30,
-            max_jet_pT=400,
+            min_jet_pt=30,
+            max_jet_pt=400,
         )
         build_main_training(c)
 
@@ -263,8 +263,8 @@ def test_build_via_wildcard_with_limit(tmp_path):
             training_input_file(input_file=Path(f"{in_dir}/sig*.pkl"), num_events=100)
         ],
         output_file=out_file,
-        min_jet_pT=30,
-        max_jet_pT=400,
+        min_jet_pt=30,
+        max_jet_pt=400,
     )
 
     build_main_training(c)
@@ -296,8 +296,8 @@ def test_build_via_nested_wildcard(tmp_path):
             )
         ],
         output_file=out_file,
-        min_jet_pT=30,
-        max_jet_pT=400,
+        min_jet_pt=30,
+        max_jet_pt=400,
     )
 
     build_main_training(c)
@@ -332,8 +332,8 @@ def test_include_only_odd_events(tmp_path):
             )
         ],
         output_file=out_file,
-        min_jet_pT=30,
-        max_jet_pT=400,
+        min_jet_pt=30,
+        max_jet_pt=400,
     )
 
     build_main_training(c)
@@ -356,8 +356,8 @@ def test_include_bib_file_with_expression(tmp_path):
             )
         ],
         output_file=out_file,
-        min_jet_pT=40,
-        max_jet_pT=500,
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     build_main_training(c)
@@ -380,8 +380,8 @@ def test_drop_columns(tmp_path):
             )
         ],
         output_file=out_file,
-        min_jet_pT=40,
-        max_jet_pT=500,
+        min_jet_pt=40,
+        max_jet_pt=500,
         remove_branches=["HLT_jet_eta", "bogus_no_problem"],
     )
 
@@ -402,8 +402,8 @@ def test_include_bib_file(tmp_path):
             )
         ],
         output_file=out_file,
-        min_jet_pT=40,
-        max_jet_pT=500,
+        min_jet_pt=40,
+        max_jet_pt=500,
     )
 
     build_main_training(c)
@@ -427,8 +427,8 @@ def test_build_no_copy_view_errors(tmp_path, caplog):
             )
         ],
         output_file=out_file,
-        min_jet_pT=30,
-        max_jet_pT=400,
+        min_jet_pt=30,
+        max_jet_pt=400,
     )
 
     build_main_training(c)
