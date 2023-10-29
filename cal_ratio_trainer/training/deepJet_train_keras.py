@@ -109,6 +109,7 @@ def train_llp(
         f"Loading main training data from {training_params.main_training_file}..."
     )
     df = load_dataset(training_params.main_training_file, cache)
+    logging.warning(f"Length of dataset: {len(df)}")
     df = df.sample(frac=training_params.frac_list)
 
     # Extract labels
