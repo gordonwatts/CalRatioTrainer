@@ -419,14 +419,16 @@ def bib_processing(
     Returns:
         pd.DataFrame: A pandas DataFrame containing processed data.
     """
-    # Make sure we are only working with events with a BIB in them.
+    # Make sure we are only working with events with a BIB in them and
+    # that we have good jets.
     bib_events_mask = (
         ak.num(data.hlt_jets[data.hlt_jets.isBIB == 1].pt, axis=-1) > 0  # type: ignore
     )
-    data_with_bib = data[bib_events_mask]
+    all_jets_masked = jets_masking(data, min_jet_pt, max_jet_pt)  # type: ignore
+    good_event_mask = bib_events_mask & (ak.num(all_jets_masked, axis=1) > 0)  # type: ignore
 
-    # Now, we care only about "interesting" jets.
-    jets_masked = jets_masking(data_with_bib, min_jet_pt, max_jet_pt)  # type: ignore
+    data_with_bib = data[good_event_mask]
+    jets_masked = all_jets_masked[good_event_mask]
 
     # and we want to match the BIB HLT jets with the actual jets.
     bib_jets = data_with_bib.hlt_jets[data_with_bib.hlt_jets.isBIB == 1]  # type: ignore
