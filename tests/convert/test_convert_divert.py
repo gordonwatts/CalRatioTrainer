@@ -548,7 +548,7 @@ def test_sig_file_bomb(tmp_path, caplog):
     assert "WARNING" not in caplog.text
 
     # Check what was written out.
-    output_file = tmp_path / "sig_311314_bad_object.pkl"
+    output_file = tmp_path / "sig_311314_bad_object_small.pkl"
     df = pd.read_pickle(output_file)
 
     assert len(df) > 0

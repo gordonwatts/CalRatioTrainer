@@ -368,19 +368,27 @@ def signal_processing(
     # Get the LLP's that are "interesting" for us:
     llp_info = applying_llp_cuts(data.llps)  # type: ignore
 
+    # Now, discard any events that have nothing interesting.
+    good_event_mask = (ak.num(llp_info, axis=1) > 0) & (  # type: ignore
+        ak.num(jets_masked, axis=1) > 0
+    )  # type: ignore
+    good_data = data[good_event_mask]
+    good_jets_masked = jets_masked[good_event_mask]
+    good_llp_info = llp_info[good_event_mask]
+
     # Find the closest jet index to each LLP, return a list per event.
     # TODO: turn this into dr2
     matches, metric = nearest(
-        llp_info, jets_masked, axis=1, return_metric=True  # type: ignore
+        good_llp_info, good_jets_masked, axis=1, return_metric=True  # type: ignore
     )
     close_matches = metric <= 0.4  # type: ignore
 
     matched_jets = matches[close_matches]  # type: ignore
-    matched_llps = llp_info[close_matches]
+    matched_llps = good_llp_info[close_matches]
 
     # Rebuild the awkward array with these LLP's and jets.
     rebuilt_data = remake_by_replacing(
-        data, jets=matched_jets, llps=matched_llps  # type: ignore
+        good_data, jets=matched_jets, llps=matched_llps  # type: ignore
     )
 
     # build the pandas df:
