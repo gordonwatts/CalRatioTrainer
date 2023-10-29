@@ -19,8 +19,15 @@ def resample_training_file(
     # Read input file
     input_df = pd.read_pickle(input_file_path)
 
-    # Resample by fraction
-    resampled_df = input_df.sample(frac=fraction)
+    # Split by label
+    labels = input_df["label"].unique()
+    label_dfs = [input_df[input_df["label"] == label] for label in labels]
+
+    # Now resample each one by the fraction
+    resampled_dfs = [label_df.sample(frac=fraction) for label_df in label_dfs]
+
+    # Finally, combine them, and then resample to randomize the order
+    resampled_df = pd.concat(resampled_dfs).sample(frac=1)
 
     # Write out resulting pkl file. Make sure the filetype is `.pkl`
     resampled_df.to_pickle(output_file_path.with_suffix(".pkl"))
