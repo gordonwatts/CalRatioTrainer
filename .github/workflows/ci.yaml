@@ -42,4 +42,5 @@ jobs:
               pip list
         - name: Test with pytest
           run: |
+            ls -Rlh
             pytest
