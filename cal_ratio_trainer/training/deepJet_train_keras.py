@@ -280,7 +280,7 @@ def build_train_evaluate_model(
 
     # Divide testing set into epoch-by-epoch validation and final evaluation sets
     # for the main data and the adversary.
-    print(set(y_test_df))
+    logging.warning(set(y_test_df))
     (
         X_test,
         X_val,
