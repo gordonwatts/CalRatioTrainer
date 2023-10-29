@@ -669,6 +669,10 @@ def build_train_evaluate_model(
         logging.debug("End of Epoch Training")
 
         # Do test on small batch
+        logging.warning(original_model.summary())
+        logging.warning(
+            f"{y_to_validate_0[0].shape} - {y_to_validate_adv_squeeze[0].shape}"
+        )
         original_val_hist = original_model.test_on_batch(
             [*(x_to_validate_split[0]), *(x_to_validate_adv_split[0])],
             [y_to_validate_0[0], y_to_validate_adv_squeeze[0]],
