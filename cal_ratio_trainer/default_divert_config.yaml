@@ -1,8 +1,8 @@
 output_path: "."
 llp_mH: 0.0
 llp_mS: 0.0
-min_jet_pT: 40
-max_jet_pT: 500
+min_jet_pt: 40
+max_jet_pt: 500
 rename_branches:
   nn_jet_index: jet_jetIndex
   jet_pT: jet_pt

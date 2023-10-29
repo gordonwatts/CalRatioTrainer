@@ -275,8 +275,8 @@ def build_main_training(config: BuildMainTrainingConfig):
     """Build main training file."""
     # Load up all the DataFrames and concat them into a single dataframe.
 
-    assert config.min_jet_pT is not None, "No min jet pT specified"
-    assert config.max_jet_pT is not None, "No max jet pT specified"
+    assert config.min_jet_pt is not None, "No min jet pT specified"
+    assert config.max_jet_pt is not None, "No max jet pT specified"
 
     df: Optional[pd.DataFrame] = None
     assert config.input_files is not None, "No input files specified"
@@ -314,7 +314,7 @@ def build_main_training(config: BuildMainTrainingConfig):
         # Do the preprocessing
         processed_ddf = ddf.map_partitions(  # type: ignore
             lambda df: pre_process(
-                df, config.min_jet_pT, config.max_jet_pT  # type: ignore
+                df, config.min_jet_pt, config.max_jet_pt  # type: ignore
             )
         )  # type: List
 

@@ -1,6 +1,6 @@
 output_file: "main_training_file.pkl"
-min_jet_pT: 0
-max_jet_pT: 500
+min_jet_pt: 0
+max_jet_pt: 500
 remove_branches:
   - HLT_jet_eta
   - HLT_jet_isBIB
