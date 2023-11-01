@@ -291,7 +291,8 @@ def build_main_training(config: BuildMainTrainingConfig):
         # `baz*/*.pkl` to `glob`.
         stable, wild = split_path_by_wild(f_info.input_file)
         logging.debug(f'Found stable path "{stable}" and wildcard "{wild}"')
-        files_found = [stable] if wild is None else list(stable.glob(str(wild)))
+        files_found_all = [stable] if wild is None else list(stable.glob(str(wild)))
+        files_found = [f for f in files_found_all if f.is_file() and f.suffix == ".pkl"]
 
         if len(files_found) == 0:
             raise ValueError(
