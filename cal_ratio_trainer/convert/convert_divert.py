@@ -58,7 +58,11 @@ def applying_llp_cuts(llps: ak.Array):
     endcap_llp_eta_mask = abs(llps.eta) > 1.4  # type: ignore
 
     llp_Lxy_mask = (llps.Lxy > 1200) & (llps.Lxy < 4000)  # type: ignore
-    llp_Lz_mask = (llps.Lz > 3500) & (llps.Lz < 6000)  # type: ignore
+    llp_Lz_mask = (llps.Lz > 3500) & (llps.Lz < 6000) | (  # type: ignore
+        llps.Lz < -3500
+    ) & (
+        llps.Lz > -6000
+    )  # type: ignore
 
     llp_mask = (central_llp_eta_mask & llp_Lxy_mask) | (
         endcap_llp_eta_mask & llp_Lz_mask

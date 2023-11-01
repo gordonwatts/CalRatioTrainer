@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import awkward as ak
+import numpy
 import pandas as pd
 import uproot
 
@@ -516,7 +517,7 @@ def test_sig_file(tmp_path, caplog):
     output_file = tmp_path / "sig_311424_600_275.pkl"
     df = pd.read_pickle(output_file)
 
-    assert len(df) == 91
+    assert len(df) == 101
     assert "llp_mS" in df.columns
     assert "llp_mH" in df.columns
 
@@ -548,6 +549,9 @@ def test_sig_file(tmp_path, caplog):
     dR = jets.deltaR(llps)  # type: ignore
 
     assert not ak.any(dR > 0.4)
+
+    # Make sure we have some real negative eta's
+    assert numpy.any(df.jet_eta < -1.5)
 
     assert_columns(df)
 
