@@ -410,6 +410,40 @@ def test_bib_file(tmp_path, caplog):
     assert_columns(df)
 
 
+def test_bib_slice_error(tmp_path, caplog):
+    "A slice error crash found in the wild"
+
+    default_branches = load_config(ConvertDiVertAnalysisConfig)
+
+    config = ConvertDiVertAnalysisConfig(
+        input_files=[
+            DiVertAnalysisInputFile(
+                input_file=Path("tests/data/bib_25563461_slice_error.root"),
+                data_type=DiVertFileType.bib,
+                output_dir=None,
+                llp_mH=0,
+                llp_mS=0,
+            )
+        ],
+        output_path=tmp_path,
+        signal_branches=default_branches.signal_branches,
+        bib_branches=default_branches.bib_branches,
+        qcd_branches=default_branches.qcd_branches,
+        rename_branches=default_branches.rename_branches,
+        min_jet_pt=40,
+        max_jet_pt=500,
+    )
+
+    convert_divert(config)
+
+    assert "ERROR" not in caplog.text
+    assert "0 events" in caplog.text
+
+    # Check what was written out.
+    output_file = tmp_path / "bib_25563461_slice_error.pkl"
+    assert not output_file.exists()
+
+
 def test_lock_file(tmp_path, caplog):
     "Lock file causes skip"
 

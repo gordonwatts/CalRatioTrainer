@@ -409,7 +409,7 @@ def signal_processing(
 
 def bib_processing(
     data: ak.Array, min_jet_pt: float, max_jet_pt: float
-) -> pd.DataFrame:
+) -> Optional[pd.DataFrame]:
     """
     Process data to match BIB HLT jets with actual jets and create a pandas DataFrame.
 
@@ -417,7 +417,8 @@ def bib_processing(
         data (ak.Array): An Awkward Array containing event data.
 
     Returns:
-        pd.DataFrame: A pandas DataFrame containing processed data.
+        pd.DataFrame: A pandas DataFrame containing processed data. Null if nothing was
+        found.
     """
     # Make sure we are only working with events with a BIB in them and
     # that we have good jets.
@@ -429,6 +430,9 @@ def bib_processing(
 
     data_with_bib = data[good_event_mask]
     jets_masked = all_jets_masked[good_event_mask]
+
+    if len(data_with_bib) == 0:  # type: ignore
+        return None
 
     # and we want to match the BIB HLT jets with the actual jets.
     bib_jets = data_with_bib.hlt_jets[data_with_bib.hlt_jets.isBIB == 1]  # type: ignore
@@ -735,6 +739,12 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                         )
                     else:
                         raise ValueError(f"Unknown data type {f_info.data_type}")
+
+                    if result is None:
+                        logging.warning(
+                            f"File {file_path} has 0 events after cuts. Skipped."
+                        )
+                        continue
 
                     result.to_pickle(output_file)
 
