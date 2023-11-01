@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+import shutil
 import pandas as pd
 from cal_ratio_trainer.build.build_main import build_main_training, split_path_by_wild
 from cal_ratio_trainer.config import BuildMainTrainingConfig, training_input_file
@@ -23,6 +24,37 @@ def test_build_main_one_file(tmp_path, caplog):
     assert out_file.exists()
     df = pd.read_pickle(out_file)
     assert len(df) == 76
+
+    assert any(
+        "old input file" in line for line in caplog.text.splitlines()
+    ), f"Failed: {caplog.text}"
+
+
+def test_bad_build_file(tmp_path, caplog):
+    out_file = tmp_path / "test_output.pkl"
+    bad_file = tmp_path / "files_to_get" / "bad.pkl.lock"
+    bad_file.parent.mkdir()
+    bad_file.touch()
+    shutil.copyfile("tests/data/sig_311424_600_275.pkl", bad_file.parent / "signal.pkl")
+    c = BuildMainTrainingConfig(
+        input_files=[
+            training_input_file(
+                input_file=Path("tests/data/sig_311424_600_275.pkl"), num_events=None
+            ),
+            training_input_file(
+                input_file=Path(f"{bad_file.parent}/*"), num_events=None
+            ),
+        ],
+        output_file=out_file,
+        min_jet_pt=30,
+        max_jet_pt=400,
+    )
+
+    build_main_training(c)
+
+    assert out_file.exists()
+    df = pd.read_pickle(out_file)
+    assert len(df) == 76 * 2
 
     assert any(
         "old input file" in line for line in caplog.text.splitlines()
