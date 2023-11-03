@@ -4,10 +4,14 @@ common_plots:
   - jet_phi
   - mcEventWeight
   - [MSeg_t0_1, nn_MSeg_t0_1]
+  - [MSeg_etaPos_0, nn_MSeg_etaPos_0]
   - clus_time_0
   - clus_pt_0
-  - clus_phi_0
   - clus_phi_1
+  - clus_eta_1
+  - track_pt_0
+  - track_phi_1
+  - track_eta_1
 
 data_labels_adversary:
   0: Multijet MC
