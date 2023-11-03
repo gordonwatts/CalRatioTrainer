@@ -29,6 +29,10 @@ def test_build_main_one_file(tmp_path, caplog):
         "old input file" in line for line in caplog.text.splitlines()
     ), f"Failed: {caplog.text}"
 
+    # Check for bogus delta phi's
+    assert len(df[abs(df.clus_phi_1) > 3.14]) == 0
+    assert len(df[abs(df.track_phi_1) > 3.14]) == 0
+
 
 def test_bad_build_file(tmp_path, caplog):
     out_file = tmp_path / "test_output.pkl"
