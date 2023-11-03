@@ -69,6 +69,18 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
     # TODO: This is a phi wrap-around bug!
     df.loc[:, filter_clus_phi] = df[filter_clus_phi].sub(df["clus_phi_0"], axis="index")
 
+    def fix_phi_wrap(row):
+        """Any items in the row outside of +/- pi need to be add/subtracted to bring back
+        inside. This algorithm isn't perfect, if things wrap twice, for example, but
+        we shouldn't see that here."""
+        big_mask = row > np.pi
+        row[big_mask] -= 2 * np.pi
+        small_mask = row < -np.pi
+        row[small_mask] += 2 * np.pi
+        return row
+
+    df.loc[:, filter_clus_phi] = df[filter_clus_phi].apply(fix_phi_wrap, axis=1)
+
     # Do eta, phi FLIP
 
     # Add all etas weighted by pT, then make column that is 1 if positive, -1 if
@@ -162,6 +174,7 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
 
     # Subtract the phi of the jet from all tracks
     df.loc[:, filter_track_phi] = df[filter_track_phi].sub(df["jet_phi"], axis="index")
+    df.loc[:, filter_track_phi] = df[filter_track_phi].apply(fix_phi_wrap, axis=1)
 
     # Do eta, phi FLIP
 
