@@ -88,10 +88,19 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
     )
 
     # Scale cluster pT by the total cluster pT's
-    def rescale_row_by_sum(row):
-        return row / row.sum()
+    # TODO: use row / row.sum(), which rescaled each guy, or
+    # rescale by the upper limit (which is what is currently being done)?
+    # Note that we need to rescale here because we are in MeV, not GeV like
+    # everything else here. However, as far as I can tell, we never
+    # correct for this unit problem in the DiVertAnalysis code.
+    # def rescale_row_by_sum(row):
+    #     return row / row.sum()
 
-    df.loc[:, filter_clus_pT] = df[filter_clus_pT].apply(rescale_row_by_sum, axis=1)
+    # df.loc[:, filter_clus_pT] = df[filter_clus_pT].apply(rescale_row_by_sum, axis=1)
+    df.loc[:, filter_clus_pT] = df[filter_clus_pT].sub(min_pT, axis="index")
+    df.loc[:, filter_clus_pT] = df[filter_clus_pT].divide(
+        (max_pT - min_pT) * 1000.0, axis="index"
+    )
 
     logging.debug("Pre-processing cluster energy fraction")
 
