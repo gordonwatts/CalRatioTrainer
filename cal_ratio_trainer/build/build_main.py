@@ -70,9 +70,9 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
     df.loc[:, filter_clus_phi] = df[filter_clus_phi].sub(df["clus_phi_0"], axis="index")
 
     def fix_phi_wrap(row):
-        """Any items in the row outside of +/- pi need to be add/subtracted to bring back
-        inside. This algorithm isn't perfect, if things wrap twice, for example, but
-        we shouldn't see that here."""
+        """Any items in the row outside of +/- pi need to be add/subtracted to bring
+        back inside. This algorithm isn't perfect, if things wrap twice, for
+        example, but we shouldn't see that here."""
         big_mask = row > np.pi
         row[big_mask] -= 2 * np.pi
         small_mask = row < -np.pi
