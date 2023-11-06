@@ -80,6 +80,11 @@ def load_dataset(file_url: str, cache: Path) -> pd.DataFrame:
             col: col.replace("nn_", "") for col in df.columns if col.startswith("nn_")
         }
     )
+    df = df.rename(
+        columns={
+            col: col.replace("aux_", "") for col in df.columns if col.startswith("aux_")
+        }
+    )
 
     # Delete some 'virtual' variables only needed for pre-processing.
     # Make sure they exist before deleting them.
