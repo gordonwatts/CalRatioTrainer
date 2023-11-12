@@ -57,7 +57,7 @@ def load_dataset(file_url: str, cache: Path) -> pd.DataFrame:
     filename = make_local(file_url, cache)
     df = pd.read_pickle(filename)
     # Replace infs with nan's
-    df = df.replace([np.inf, -np.inf], np.nan)
+    df.replace([np.inf, -np.inf], np.nan, inplace=True)
     # Replace nan's with 0
     # TODO: this should be moved to writing the file out so we don't have to do this
     # here.
@@ -65,25 +65,29 @@ def load_dataset(file_url: str, cache: Path) -> pd.DataFrame:
 
     # Rename all columns that end with "_pT" to "_pt", and remove any that start
     # with "nn_".
-    df = df.rename(
+    df.rename(
         columns={
             col: col.replace("_pT", "_pt") for col in df.columns if col.endswith("_pT")
-        }
+        },
+        inplace=True,
     )
-    df = df.rename(
+    df.rename(
         columns={
             col: col.replace("_pT_", "_pt_") for col in df.columns if "_pT_" in col
-        }
+        },
+        inplace=True,
     )
-    df = df.rename(
+    df.rename(
         columns={
             col: col.replace("nn_", "") for col in df.columns if col.startswith("nn_")
-        }
+        },
+        inplace=True,
     )
-    df = df.rename(
+    df.rename(
         columns={
             col: col.replace("aux_", "") for col in df.columns if col.startswith("aux_")
-        }
+        },
+        inplace=True,
     )
 
     # Delete some 'virtual' variables only needed for pre-processing.
