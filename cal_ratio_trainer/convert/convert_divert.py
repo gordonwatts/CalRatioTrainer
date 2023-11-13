@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import uproot
 import vector
+from cal_ratio_trainer.common.column_names import EventType
 
 from cal_ratio_trainer.common.file_lock import FileLock
 from cal_ratio_trainer.config import ConvertDiVertAnalysisConfig
@@ -403,7 +404,7 @@ def signal_processing(
     big_df.insert(0, "llp_mS", float(llp_mS))
 
     # creating the label column, filled with 0s because we're working with signal
-    big_df.insert(0, "label", int(0))
+    big_df.insert(0, "label", EventType.signal.value)
 
     # changing the mcEVentWeight to be all 1, matching what Felix does
     big_df["mcEventWeight"] = 1
@@ -456,7 +457,7 @@ def bib_processing(
 
     big_df.insert(0, "llp_mH", 0.0)
     big_df.insert(0, "llp_mS", 0.0)
-    big_df.insert(0, "label", 2)
+    big_df.insert(0, "label", EventType.BIB.value)
     big_df["mcEventWeight"] = 1
 
     return big_df
@@ -494,7 +495,7 @@ def qcd_processing(
 
     big_df.insert(0, "llp_mH", 0.0)
     big_df.insert(0, "llp_mS", 0.0)
-    big_df.insert(0, "label", 1)
+    big_df.insert(0, "label", EventType.QCD.value)
 
     return big_df
 

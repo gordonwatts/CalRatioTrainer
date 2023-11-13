@@ -39,8 +39,8 @@ The following training datasets are used:
 
 Dataset Name | Description |
 | --- | --- |
-| `main_training_file` | This training file contains the three types of jets the NN is to discriminate against - ones from decays in the calorimeter, ones from QCD, and ones from BIB (labeled with 0, 1, or 2). |
-| `cr_training_file` | This training input file contains MC and Data for the multi-jets (labeled 0 and 1). They adversary uses these to punish the network from telling the difference between data and MC. |
+| `main_training_file` | This training file contains the three types of jets the NN is to discriminate against - ones from decays in the calorimeter, ones from QCD, and ones from BIB (labeled with 1, 0, or 2). |
+| `cr_training_file` | This training input file contains MC and Data for the multi-jets (labeled 0 and 2). They adversary uses these to punish the network from telling the difference between data and MC. |
 
 The following dataflow diagram attempts to follow the flow of training and control input data through the algorithm. This was made by scanning the code. Red items are output plots.
 

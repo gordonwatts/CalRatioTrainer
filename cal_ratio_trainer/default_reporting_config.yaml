@@ -18,8 +18,8 @@ data_labels_adversary:
   2: Multijet Data
 
 data_labels_main:
-  0: Signal MC
-  1: Multijet MC
+  0: Multijet MC
+  1: Signal MC
   2: BIB Data
 
 # This is pretty expensive, so turn this off by default.

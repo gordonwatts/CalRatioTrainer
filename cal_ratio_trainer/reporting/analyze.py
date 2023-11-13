@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Tuple
 from attr import dataclass
 from matplotlib import pyplot as plt
 import yaml
+from cal_ratio_trainer.common.column_names import EventType
 from cal_ratio_trainer.common.evaluation import (
     normalize_to_one,
     plot_roc_curve,
@@ -121,7 +122,7 @@ def _analyze_auc(
         None,
         normalized_weights,
         predictions,
-        third_label=2,
+        third_label=EventType.BIB.value,
         threshold=0,
         y_test=data.y.values,  # type: ignore
         label_string="my foot",

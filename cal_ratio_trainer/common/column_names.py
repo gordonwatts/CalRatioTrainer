@@ -2,6 +2,7 @@
 # NOTE: The ordering is important, as are the numbers (that are hardwired)!
 # Then network is built expecting this - so not change them!!!
 from typing import List
+from enum import Enum
 
 
 col_cluster_names_raw = [
@@ -85,3 +86,10 @@ event_level_names = [
     "mcEventWeight",
     "label",
 ]
+
+
+class EventType(Enum):
+    "The magic numbers for data labeling"
+    QCD = 0
+    signal = 1
+    BIB = 2
