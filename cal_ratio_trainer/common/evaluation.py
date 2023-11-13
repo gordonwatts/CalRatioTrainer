@@ -273,6 +273,8 @@ def make_multi_roc_curve(
 
     # If we are looking at QCD cut, then signal vs BIB roc curve
     # Use roc_curve function from scikit-learn
+    # TODO: do we need this? When we fixed the labels, this did not change
+    #  And QCD is the right cut, so I suspect it needs to stay.
     if label == 0:
         # TODO: Understand why this is called here, but not above
         y_roc = label_binarize(y_left, classes=[0, 1, 2])
