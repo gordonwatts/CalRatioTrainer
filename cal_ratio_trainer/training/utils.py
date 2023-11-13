@@ -4,6 +4,7 @@ from typing import Any, Optional, Tuple, TypeVar
 import numpy as np
 import pandas as pd
 from sklearn.utils import shuffle
+from cal_ratio_trainer.common.column_names import EventType
 
 from cal_ratio_trainer.utils import find_training_result
 
@@ -57,8 +58,8 @@ def match_adversary_weights(df):
     # TODO: could we speed this up by modifying things in place rather than
     # splitting the two out into two different dataframes? Or just copying the one
     # column?
-    qcd = df.loc[(df["label"] == 0)].copy()
-    data = df.loc[(df["label"] == 2)].copy()
+    qcd = df.loc[(df["label"] == EventType.QCD.value)].copy()
+    data = df.loc[(df["label"] == EventType.BIB.value)].copy()
 
     qcd_weight_sum = np.sum(qcd["mcEventWeight"])
     data_weight_sum = np.sum(data["mcEventWeight"])

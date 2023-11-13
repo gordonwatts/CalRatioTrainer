@@ -14,6 +14,7 @@ from typing import (
 
 import matplotlib.pyplot as plt
 import pandas as pd
+from cal_ratio_trainer.common.column_names import EventType
 
 from cal_ratio_trainer.common.fileio import load_dataset
 from cal_ratio_trainer.config import ReportingConfig
@@ -138,12 +139,12 @@ def make_report_plots(cache: Path, config: ReportingConfig):
                 "name": f.legend_name,
                 "file": f.source_name,
                 "Jets": len(f.data),
-                "Signal (0)": f'{len(f.data[f.data["label"] == 0])} '
-                f'({len(f.data[f.data["label"] == 0])/len(f.data):.1%})',
-                "Multijet (1)": f'{len(f.data[f.data["label"] == 1])} '
-                f'({len(f.data[f.data["label"] == 1])/len(f.data):.1%})',
-                "BIB (2)": f'{len(f.data[f.data["label"] == 2])} '
-                f'({len(f.data[f.data["label"] == 2])/len(f.data):.1%})',
+                "Signal (0)": f'{len(f.data[f.data["label"] == EventType.signal.value])} '
+                f'({len(f.data[f.data["label"] == EventType.signal.value])/len(f.data):.1%})',
+                "Multijet (1)": f'{len(f.data[f.data["label"] == EventType.QCD.value])} '
+                f'({len(f.data[f.data["label"] == EventType.QCD.value])/len(f.data):.1%})',
+                "BIB (2)": f'{len(f.data[f.data["label"] == EventType.BIB.value])} '
+                f'({len(f.data[f.data["label"] == EventType.BIB.value])/len(f.data):.1%})',
             }
             for f in files
         ]
@@ -265,7 +266,7 @@ def make_report_plots(cache: Path, config: ReportingConfig):
             # that is found in the file.
             if f.is_main_training_data:
                 mass_counts = (
-                    f.data[f.data.label == 0]
+                    f.data[f.data.label == EventType.signal.value]
                     .groupby(["llp_mH", "llp_mS"])
                     .size()
                     .reset_index(name="count")

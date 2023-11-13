@@ -11,6 +11,7 @@ import pandas as pd
 from keras import Model
 from keras.src.utils import np_utils
 from matplotlib import pyplot as plt
+from cal_ratio_trainer.common.column_names import EventType
 from cal_ratio_trainer.common.evaluation import (
     normalize_to_one,
     plot_roc_curve,
@@ -66,9 +67,9 @@ def plot_prediction_histograms(
         return None
 
     # Get the plots setup
-    sig_rows = np.where(labels == 1)
-    bkg_rows = np.where(labels == 0)
-    bib_rows = np.where(labels == 2)
+    sig_rows = np.where(labels == EventType.signal.value)
+    bkg_rows = np.where(labels == EventType.QCD.value)
+    bib_rows = np.where(labels == EventType.BIB.value)
 
     plt.clf()
     extra_string = (extra_string + "_") if len(extra_string) > 0 else ""
@@ -330,9 +331,9 @@ def plot_prediction_histograms_linear(
 ):
     # TODO: This looks like identical (almost) code to other plot
     # prediction histogram methods, could we combine with a minor change?
-    sig_rows = np.where(labels == 1)
-    bkg_rows = np.where(labels == 0)
-    bib_rows = np.where(labels == 2)
+    sig_rows = np.where(labels == EventType.signal.value)
+    bkg_rows = np.where(labels == EventType.QCD.value)
+    bib_rows = np.where(labels == EventType.BIB.value)
     plt.clf()
     extra_string = (extra_string + "_") if len(extra_string) > 0 else ""
     sig_string = "Signal"
@@ -588,9 +589,9 @@ def plot_prediction_histograms_halfLinear(
     :param do_ks: if we should calculate KS divergence (for CR jets only)
     :return:
     """
-    sig_rows = np.where(labels == 1)
-    bkg_rows = np.where(labels == 0)
-    bib_rows = np.where(labels == 2)
+    sig_rows = np.where(labels == EventType.signal.value)
+    bkg_rows = np.where(labels == EventType.QCD.value)
+    bib_rows = np.where(labels == EventType.BIB.value)
     plt.clf()
     extra_string = (extra_string + "_") if len(extra_string) > 0 else ""
     sig_string = "Signal"
@@ -1307,7 +1308,7 @@ def evaluate_model(
     threshold = 0
     # Third label: the label of the class we are doing a 'family' of. Other two
     # classes will make the ROC curve
-    third_label = 2
+    third_label = EventType.BIB.value
     # We'll be writing the stats to training_details.txt
     with (dir_name / "training_details.txt").open("a") as f:
         if n_folds:
@@ -1384,7 +1385,9 @@ def setup_separate_evaluations(
     result = (max_SoverB, roc_auc)
     eval_object.fillObject_auc("", roc_auc)
     plot_name_stub = (
-        "roc_curve_atlas_rej_bib_" if third_label == 2 else "roc_curve_atlas_rej_qcd_"
+        "roc_curve_atlas_rej_bib_"
+        if third_label == EventType.BIB.value
+        else "roc_curve_atlas_rej_qcd_"
     )
     fig.savefig(
         str(destination / f"{plot_name_stub}_{n_folds}.png"),
@@ -1482,7 +1485,7 @@ def setup_separate_evaluations(
         eval_object.fillObject_auc(label_string, roc_auc)
         plot_name_stub = (
             "roc_curve_atlas_rej_bib_"
-            if third_label == 2
+            if third_label == EventType.BIB.value
             else "roc_curve_atlas_rej_qcd_"
         )
         fig.savefig(

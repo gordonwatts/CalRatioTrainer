@@ -96,7 +96,7 @@ def normalize_to_one(weights: TArray, labels: np.ndarray) -> TArray:
     """
     result = weights.copy()
 
-    for label in range(0, 3):
+    for label in range(0, len(EventType)):
         total_weight = np.sum(result[labels == label])
         total_len = len(result[labels == label])
 
@@ -168,7 +168,7 @@ def plot_roc_curve(
     plt.legend()
     if np.any(bkg_eff > 0) and np.any(tag_eff > 0):
         plt.yscale("log")
-    y_label = "BIB Rejection" if third_label == 2 else "QCD Rejection"
+    y_label = "BIB Rejection" if third_label == EventType.BIB.value else "QCD Rejection"
     plt.ylabel(y_label)
 
     return roc_auc, fig
@@ -257,7 +257,7 @@ def make_multi_roc_curve(
 
     # If we are looking at BIB cut, then signal vs QCD roc curve
     # Use roc_curve function from scikit-learn
-    if label == 2:
+    if label == EventType.BIB.value:
         (fpr, tpr, _) = roc_curve(
             y_left, prediction_left_signal, sample_weight=weight_left, pos_label=1
         )
@@ -279,7 +279,10 @@ def make_multi_roc_curve(
     #  And QCD is the right cut, so I suspect it needs to stay.
     if label == EventType.QCD.value:
         # TODO: Understand why this is called here, but not above
-        y_roc = label_binarize(y_left, classes=[0, 1, 2])
+        y_roc = label_binarize(
+            y_left,
+            classes=[EventType.signal.value, EventType.QCD.value, EventType.BIB.value],
+        )
         (fpr, tpr, _) = roc_curve(
             y_roc[:, 1],  # type: ignore
             prediction_left_signal,
