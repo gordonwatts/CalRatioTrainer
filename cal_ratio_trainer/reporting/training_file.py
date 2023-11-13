@@ -293,6 +293,7 @@ def make_report_plots(cache: Path, config: ReportingConfig):
                             f.data[
                                 (f.data["llp_mH"] == d["llp_mH"])
                                 & (f.data["llp_mS"] == d["llp_mS"])
+                                & (f.data["label"] == EventType.signal.value)
                             ],
                             f"{d['llp_mH']}-{d['llp_mS']}",
                         )
