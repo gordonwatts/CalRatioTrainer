@@ -61,7 +61,7 @@ def load_dataset(file_url: str, cache: Path) -> pd.DataFrame:
     # Replace nan's with 0
     # TODO: this should be moved to writing the file out so we don't have to do this
     # here.
-    df = df.fillna(0)
+    df.fillna(0, inplace=True)
 
     # Rename all columns that end with "_pT" to "_pt", and remove any that start
     # with "nn_".
