@@ -217,6 +217,7 @@ def make_report_plots(cache: Path, config: ReportingConfig):
                             f.data[
                                 (f.data["llp_mH"] == c_m[0])
                                 & (f.data["llp_mS"] == c_m[1])
+                                & (f.data["label"] == EventType.signal.value)
                             ],
                             f.legend_name,
                         )
@@ -234,7 +235,7 @@ def make_report_plots(cache: Path, config: ReportingConfig):
         report.write("")
 
         # Plot some info per file:
-        report.header("Some file specific information:")
+        report.header("## Some file specific information:")
         for f in files:
             file_type = (
                 "adversary training data"
@@ -293,6 +294,7 @@ def make_report_plots(cache: Path, config: ReportingConfig):
                             f.data[
                                 (f.data["llp_mH"] == d["llp_mH"])
                                 & (f.data["llp_mS"] == d["llp_mS"])
+                                & (f.data["label"] == EventType.signal.value)
                             ],
                             f"{d['llp_mH']}-{d['llp_mS']}",
                         )
