@@ -553,6 +553,16 @@ def test_sig_file(tmp_path, caplog):
     # Make sure we have some real negative eta's
     assert numpy.any(df.jet_eta < -1.5)
 
+    # Finally, make sure that cluster phi and eta are all
+    # between -pi and pi (they should be oriented around the
+    # central cluster)
+    assert numpy.any(df.clus_phi_0 > numpy.pi)
+    assert numpy.any(df.clus_phi_0 < -numpy.pi)
+    assert numpy.any(df.clus_phi_1 > numpy.pi)
+    assert numpy.any(df.clus_phi_1 < -numpy.pi)
+    assert numpy.any(df.clus_phi_10 > numpy.pi)
+    assert numpy.any(df.clus_phi_10 < -numpy.pi)
+
     assert_columns(df)
 
 
