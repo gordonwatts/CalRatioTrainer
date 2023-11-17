@@ -8,8 +8,9 @@ import numpy as np
 import pandas as pd
 import uproot
 import vector
-from cal_ratio_trainer.common.column_names import EventType
+from vector._compute.planar.deltaphi import rectify
 
+from cal_ratio_trainer.common.column_names import EventType
 from cal_ratio_trainer.common.file_lock import FileLock
 from cal_ratio_trainer.config import ConvertDiVertAnalysisConfig
 
@@ -301,6 +302,13 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
 
     relative_angle(jet_list, cluster_list)
     relative_angle(jet_list, track_list)
+
+    mseg_deta_pos = mseg_list.etaPos - jet_list.eta  # type: ignore
+    mseg_list["etaPos"] = mseg_deta_pos  # type: ignore
+    mseg_dphi_pos = rectify(np, mseg_list.phiPos - jet_list.phi)  # type: ignore
+    mseg_list["phiPos"] = mseg_dphi_pos  # type: ignore
+    mseg_dphi_dir = rectify(np, mseg_list.phiDir - jet_list.phi)  # type: ignore
+    mseg_list["phiDir"] = mseg_dphi_dir  # type: ignore
 
     # Next, lets pad, with zeros, the cluster, track, and mseg to the length we are
     # going to allow for training.

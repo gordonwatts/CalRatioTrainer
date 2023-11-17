@@ -560,6 +560,9 @@ def test_sig_file(tmp_path, caplog):
     assert numpy.all(abs(df.track_phi_0) <= 0.4)
     assert numpy.all(abs(df.track_eta_0) <= 0.4)
     assert numpy.all(abs(df.clus_eta_0) <= 0.4)
+    # assert numpy.all(abs(df.MSeg_etaPos_0) <= 0.4)
+    assert numpy.all(abs(df.MSeg_phiPos_0) <= 0.4)
+    # assert numpy.all(abs(df.MSeg_phiDir_0) <= 0.4)
 
     assert_columns(df)
 
