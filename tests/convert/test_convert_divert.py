@@ -556,12 +556,10 @@ def test_sig_file(tmp_path, caplog):
     # Finally, make sure that cluster phi and eta are all
     # between -pi and pi (they should be oriented around the
     # central cluster)
-    assert numpy.any(df.clus_phi_0 > numpy.pi)
-    assert numpy.any(df.clus_phi_0 < -numpy.pi)
-    assert numpy.any(df.clus_phi_1 > numpy.pi)
-    assert numpy.any(df.clus_phi_1 < -numpy.pi)
-    assert numpy.any(df.clus_phi_10 > numpy.pi)
-    assert numpy.any(df.clus_phi_10 < -numpy.pi)
+    assert numpy.all(abs(df.clus_phi_0) <= 0.4)
+    assert numpy.all(abs(df.track_phi_0) <= 0.4)
+    assert numpy.all(abs(df.track_eta_0) <= 0.4)
+    assert numpy.all(abs(df.clus_eta_0) <= 0.4)
 
     assert_columns(df)
 
