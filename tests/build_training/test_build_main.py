@@ -6,7 +6,7 @@ from cal_ratio_trainer.build.build_main import build_main_training, split_path_b
 from cal_ratio_trainer.config import BuildMainTrainingConfig, training_input_file
 
 
-def test_build_main_one_file(tmp_path, caplog):
+def test_build_main_one_file_old(tmp_path, caplog):
     out_file = tmp_path / "test_output.pkl"
     c = BuildMainTrainingConfig(
         input_files=[
@@ -70,7 +70,7 @@ def test_build_main_one_file_new(tmp_path, caplog):
     c = BuildMainTrainingConfig(
         input_files=[
             training_input_file(
-                input_file=Path("tests/data/sig_311421_600_50.pkl"), num_events=None
+                input_file=Path("tests/data/sig_311421_600_50_new.pkl"), num_events=None
             )
         ],
         output_file=out_file,
@@ -82,9 +82,13 @@ def test_build_main_one_file_new(tmp_path, caplog):
 
     assert out_file.exists()
     df = pd.read_pickle(out_file)
-    assert len(df) == 342
+    assert len(df) == 800
 
     assert len(caplog.text) == 0
+
+    # And make sure they aren't too large
+    assert len(df[abs(df.clus_phi_1) > 0.4]) == 0
+    assert len(df[abs(df.track_phi_1) > 0.4]) == 0
 
 
 def test_build_clus_pt_0(tmp_path, caplog):
