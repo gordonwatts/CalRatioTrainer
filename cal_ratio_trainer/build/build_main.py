@@ -17,33 +17,6 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
     if len(df) == 0:
         return df
 
-    # Now For Muon Segments
-    logging.debug("Pre-processing Muon Segments")
-
-    # Get all eta Position columns
-    filter_MSeg_eta = [
-        col for col in df if col.startswith("MSeg_etaPos")  # type: ignore
-    ]
-    # Get all phi Position columns
-    filter_MSeg_phi = [
-        col for col in df if col.startswith("MSeg_phiPos")  # type: ignore
-    ]
-    # Get all phi Direction  columns
-    filter_MSeg_phiDir = [
-        col for col in df if col.startswith("MSeg_phiDir")  # type: ignore
-    ]
-
-    # Subtract the eta of the jet from all MSegs
-    df.loc[:, filter_MSeg_eta] = df[filter_MSeg_eta].sub(df["jet_eta"], axis="index")
-
-    # Subtract the phi of the jet from all MSegs
-    df.loc[:, filter_MSeg_phi] = df[filter_MSeg_phi].sub(df["jet_phi"], axis="index")
-
-    # Subtract the phi of the jet from all MSegs Dir
-    df.loc[:, filter_MSeg_phiDir] = df[filter_MSeg_phiDir].sub(
-        df["jet_phi"], axis="index"
-    )
-
     logging.debug(f"Rescaling jets for {min_pT} GeV < pT < {max_pT} GeV")
 
     # SCALE JET PT
@@ -57,31 +30,9 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
 
     # Get all eta columns
     filter_clus_eta = [col for col in df if col.startswith("clus_eta")]  # type: ignore
-    # Get all phi columns
-    filter_clus_phi = [col for col in df if col.startswith("clus_phi")]  # type: ignore
+
     # Get all pT columns
     filter_clus_pT = [col for col in df if col.startswith("clus_pt")]  # type: ignore
-
-    # Subtract the eta of first cluster(largest pT) from all other
-    df.loc[:, filter_clus_eta] = df[filter_clus_eta].sub(df["clus_eta_0"], axis="index")
-
-    # Subtract the phi of first cluster(largest pT) from all other
-    # TODO: This is a phi wrap-around bug!
-    df.loc[:, filter_clus_phi] = df[filter_clus_phi].sub(df["clus_phi_0"], axis="index")
-
-    def fix_phi_wrap(row):
-        """Any items in the row outside of +/- pi need to be add/subtracted to bring
-        back inside. This algorithm isn't perfect, if things wrap twice, for
-        example, but we shouldn't see that here."""
-        big_mask = row > np.pi
-        row[big_mask] -= 2 * np.pi
-        small_mask = row < -np.pi
-        row[small_mask] += 2 * np.pi
-        return row
-
-    df.loc[:, filter_clus_phi] = df[filter_clus_phi].apply(fix_phi_wrap, axis=1)
-
-    # Do eta, phi FLIP
 
     # Add all etas weighted by pT, then make column that is 1 if positive, -1 if
     # negative
@@ -158,23 +109,9 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
     filter_track_eta = [
         col for col in df if col.startswith("track_eta")  # type: ignore
     ]
-    # Get all phi columns
-    filter_track_phi = [
-        col for col in df if col.startswith("track_phi")  # type: ignore
-    ]
+
     # Get all pT columns
     filter_track_pt = [col for col in df if col.startswith("track_pt")]  # type: ignore
-    # Get all z vertex columns
-    # filter_track_vertex_z = [
-    #     col for col in df if col.startswith("track_vertex_z")  # type: ignore
-    # ]
-
-    # Subtract the eta of the jet from all tracks
-    df.loc[:, filter_track_eta] = df[filter_track_eta].sub(df["jet_eta"], axis="index")
-
-    # Subtract the phi of the jet from all tracks
-    df.loc[:, filter_track_phi] = df[filter_track_phi].sub(df["jet_phi"], axis="index")
-    df.loc[:, filter_track_phi] = df[filter_track_phi].apply(fix_phi_wrap, axis=1)
 
     # Do eta, phi FLIP
 
