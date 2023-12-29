@@ -295,14 +295,16 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
     cluster_list = drop_columns(cluster_list, ["jetIndex"])  # type: ignore
     track_list = drop_columns(track_list, ["jetIndex"])  # type: ignore
 
-    # We need cluster and track eta/phi to be relative to their matched jets.
+    # Reorient objects by some central eta/phi (subtrack them).
     def relative_angle(jets: ak.Array, objects: ak.Array):
         # Modify in-place the eta and phi to be relative to the jet axis.
         # Note the ordering of these is important and must be matched in DiVertAnalysis.
         objects["eta"] = objects.deltaeta(jets)  # type: ignore
         objects["phi"] = objects.deltaphi(jets)  # type: ignore
 
-    relative_angle(jet_list, cluster_list)
+    # Clusters are done w.r.t. the cluster axis.
+    relative_angle(cluster_list[:, 0], cluster_list)  # type: ignore
+    # Tracks are done w.r.t. the jet axis
     relative_angle(jet_list, track_list)
 
     mseg_deta_pos = mseg_list.etaPos - jet_list.eta  # type: ignore
