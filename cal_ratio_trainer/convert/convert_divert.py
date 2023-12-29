@@ -153,10 +153,12 @@ def nearest(
             If set, any objects with ``metric > threshold`` will be masked from the
             result
     """
-    mval, (a, b) = metric_table(first, other, axis, metric, return_combinations=True)
+    mval, (_, b) = metric_table(  # type: ignore
+        first, other, axis, metric, return_combinations=True
+    )
     if axis is None:
         # NotImplementedError: awkward.firsts with axis=-1
-        axis = other.layout.purelist_depth - 2
+        axis = other.layout.purelist_depth - 2  # type: ignore
     assert axis is not None
     mmin = ak.argmin(mval, axis=axis + 1, keepdims=True)
     out = ak.firsts(b[mmin], axis=axis + 1)  # type: ignore
@@ -190,14 +192,14 @@ def sort_by_pt(data: ak.Array) -> ak.Array:
         axis=1,
         ascending=False,
     )
-    new_clusters = data.clusters[new_clusters_index]
+    new_clusters = data.clusters[new_clusters_index]  # type: ignore
 
     new_track_index = ak.argsort(
         data.tracks.pt,  # type: ignore
         axis=1,
         ascending=False,
     )
-    new_tracks = data.tracks[new_track_index]
+    new_tracks = data.tracks[new_track_index]  # type: ignore
 
     # Apparently this is not stable between C++ and python, so have to leave it in
     # the order we found it. The current C++ code does not do ordering either.
@@ -293,14 +295,16 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
     cluster_list = drop_columns(cluster_list, ["jetIndex"])  # type: ignore
     track_list = drop_columns(track_list, ["jetIndex"])  # type: ignore
 
-    # We need cluster and track eta/phi to be relative to their matched jets.
+    # Reorient objects by some central eta/phi (subtrack them).
     def relative_angle(jets: ak.Array, objects: ak.Array):
         # Modify in-place the eta and phi to be relative to the jet axis.
         # Note the ordering of these is important and must be matched in DiVertAnalysis.
         objects["eta"] = objects.deltaeta(jets)  # type: ignore
         objects["phi"] = objects.deltaphi(jets)  # type: ignore
 
-    relative_angle(jet_list, cluster_list)
+    # Clusters are done w.r.t. the cluster axis.
+    relative_angle(cluster_list[:, 0], cluster_list)  # type: ignore
+    # Tracks are done w.r.t. the jet axis
     relative_angle(jet_list, track_list)
 
     mseg_deta_pos = mseg_list.etaPos - jet_list.eta  # type: ignore
@@ -328,7 +332,7 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
 
         split_array = ak.Array(
             {
-                f"{name_prefix}_{col}_{i_col}": array[col][:, i_col]
+                f"{name_prefix}_{col}_{i_col}": array[col][:, i_col]  # type: ignore
                 for i_col in range(0, col_elements)
                 for col in array.fields
                 if col not in ignore_columns
