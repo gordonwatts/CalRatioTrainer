@@ -71,6 +71,7 @@ def make_comparison_plots(
     for data, name in ds_generator:
         ax.hist(
             data[find_column(col_names, data)],
+            weights=data["mcEventWeight"],
             bins=100,
             histtype="step",
             label=name,
