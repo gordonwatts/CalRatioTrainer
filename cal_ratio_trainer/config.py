@@ -249,6 +249,19 @@ class ConvertDiVertAnalysisConfig(BaseModel):
     )
 
 
+class ConvertxAODConfig(BaseModel):
+    "Configuration for converting an xAOD file"
+
+    input_files: Optional[List[Path]] = Field(
+        description="The list of input files to convert."
+    )
+
+    output_path: Optional[Path] = Field(
+        description="The path to the directory where the converted pd.DataFrame pickle"
+        "files will be written.",
+    )
+
+
 class training_input_file(BaseModel):
     "Specs for a single input file for training"
 
@@ -312,4 +325,5 @@ config_default_file = {
     ConvertTrainingConfig: "default_convert_config",
     ConvertDiVertAnalysisConfig: "default_divert_config",
     BuildMainTrainingConfig: "default_build_main_training_config",
+    ConvertxAODConfig: "default_xaod_config",
 }
