@@ -69,10 +69,11 @@ def dir_exists(directory: str) -> bool:
     return r.returncode == 0
 
 
-def do_checkout(default_directory: str):
+def do_checkout(default_directory: str) -> bool:
     """Will check out the HEAD version of the DiVertAnalysis repo
     from GitHub, using the wsl2 `atlas_centos7` instance.
     """
+    result = False
     if dir_exists(default_directory):
         logging.debug("Directory already exists, only doing git update.")
         commands = [
@@ -80,6 +81,7 @@ def do_checkout(default_directory: str):
             "git pull",
             "git submodule update --init --recursive",
         ]
+        result = False
     else:
         commands = [
             "cd ~",
@@ -87,9 +89,48 @@ def do_checkout(default_directory: str):
             "cd cr_trainer_DiVertAnalysis",
             "mkdir build run",
             "git clone --recursive ssh://git@gitlab.cern.ch:7999/atlas-phys-exotics-llp-mscrid/fullrun2analysis/DiVertAnalysisR21.git src",
+            "cd src/FactoryTools",
+            "source util/dependencyHacks.sh",
         ]
+        result = True
 
     execute_commands(commands)
+    return result
+
+
+def do_build(dir: str, already_setup: bool):
+    """Execute the build commands - and how we setup depends if we have already
+    run.
+
+    Args:
+        dir (str): Working directory for the build.
+        already_setup (bool): True if this was already configured and compiled.
+    """
+    # Make sure we are setup.
+
+    config_atlas_commands = [
+        "export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase",
+        "alias setupATLAS='source ${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh'",
+    ]
+
+    if already_setup:
+        raise NotImplementedError()
+    else:
+        setup_commands = [
+            f"cd {dir}/src/FactoryTools",
+            "source util/setup.sh",
+        ]
+
+    # Now do the build.
+    commands = [
+        f"cd {dir}/src",
+        "export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:$PWD/DiVertAnalysis/externals/include/",
+        "cd ../build/",
+        "cmake ../src/",
+        "cmake --build .",
+    ]
+
+    execute_commands(config_atlas_commands + setup_commands + commands)
 
 
 def delete_directory(dir: str):
@@ -121,8 +162,9 @@ def convert_xaod(config: ConvertxAODConfig):
 
     # Do check out
     logging.info(f"Checking out DiVertAnalysis git package to {default_directory}")
-    do_checkout(default_directory)
+    did_checkout = do_checkout(default_directory)
 
     # Do build
+    do_build(default_directory, already_setup=not did_checkout)
 
     # Do run
