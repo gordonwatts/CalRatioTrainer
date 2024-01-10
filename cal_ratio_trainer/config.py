@@ -261,7 +261,7 @@ class ConvertxAODConfig(BaseModel):
         "files will be written.",
     )
 
-    clean: bool = Field(
+    clean: Optional[bool] = Field(
         description="If true, will remove all compiled source code first.",
         default=False,
     )
