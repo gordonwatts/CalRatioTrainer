@@ -261,6 +261,17 @@ class ConvertxAODConfig(BaseModel):
         "files will be written.",
     )
 
+    clean: bool = Field(
+        description="If true, will remove all compiled source code first.",
+        default=False,
+    )
+
+    working_directory: str = Field(
+        description="The working directory to use for the compilation. If not specified,"
+        " will use ~/cr_trainer_DiVertAnalysis.",
+        default="~/cr_trainer_DiVertAnalysis",
+    )
+
 
 class training_input_file(BaseModel):
     "Specs for a single input file for training"
