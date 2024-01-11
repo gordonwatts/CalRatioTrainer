@@ -22,6 +22,7 @@ def execute_commands(commands: List[str]) -> str:
                 "atlas_centos7",
                 "-e",
                 "/bin/bash",
+                "-i",
                 "-c",
                 f"{full_command}",
             ],
@@ -110,8 +111,7 @@ def do_build(dir: str, already_setup: bool):
     # Make sure we are setup.
 
     config_atlas_commands = [
-        "export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase",
-        "alias setupATLAS='source ${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh'",
+        "setupATLAS -2",
     ]
 
     if already_setup:

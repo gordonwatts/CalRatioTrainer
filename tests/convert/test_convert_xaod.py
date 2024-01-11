@@ -40,3 +40,8 @@ def test_delete_directory():
     assert dir_exists(dir)
     delete_directory(dir)
     assert not dir_exists(dir)
+
+
+def test_execute_commands():
+    r = execute_commands(["echo 'hello world'"])
+    assert "hello world" in r
