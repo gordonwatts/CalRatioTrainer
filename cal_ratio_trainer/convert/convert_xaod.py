@@ -88,7 +88,8 @@ def do_checkout(default_directory: str) -> bool:
             "mkdir -p cr_trainer_DiVertAnalysis",
             "cd cr_trainer_DiVertAnalysis",
             "mkdir build run",
-            "git clone --recursive ssh://git@gitlab.cern.ch:7999/atlas-phys-exotics-llp-mscrid/fullrun2analysis/DiVertAnalysisR21.git src",
+            "git clone --recursive ssh://git@gitlab.cern.ch:7999"
+            "/atlas-phys-exotics-llp-mscrid/fullrun2analysis/DiVertAnalysisR21.git src",
             "cd src/FactoryTools",
             "source util/dependencyHacks.sh",
         ]
