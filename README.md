@@ -353,8 +353,7 @@ And click on the `url` that `snakeviz` prints out. This will give you a timing t
 
 ## Acknowledgements
 
-This is based on the work originally done by Felix in the CalRatio group in ATLAS. This RNN was published in xxx.
-The running and design has been improved since then.
+This is based on the work originally done by Felix Cormier in the CalRatio group in ATLAS. This RNN was published in xxx. Substantial work was further done by Alex Golub to improve the performance and design (which was checked-in wholesale by G. Watts).
 
 Changes from Felix's original code.
 
@@ -375,3 +374,5 @@ Algorithmic:
 * Removed cross-validation code
 
 Typical training takes about 40 minutes on the full dataset, 100 epochs.
+
+As further work has progressed, we've cataloged differences in issues with the tag [Changed 2019](https://github.com/gordonwatts/CalRatioTrainer/issues?q=is%3Aissue+label%3AChanged2019+is%3Aclosed)
