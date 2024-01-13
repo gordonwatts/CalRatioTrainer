@@ -115,7 +115,7 @@ def do_build(dir: str, already_setup: bool):
     ]
 
     if already_setup:
-        raise NotImplementedError()
+        setup_commands = []
     else:
         setup_commands = [
             f"cd {dir}/src/FactoryTools",
@@ -127,6 +127,14 @@ def do_build(dir: str, already_setup: bool):
         f"cd {dir}/src",
         "export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:$PWD/DiVertAnalysis/externals/include/",
         "cd ../build/",
+    ]
+
+    if already_setup:
+        commands += [
+            "asetup --restore",
+        ]
+
+    commands += [
         "cmake ../src/",
         "cmake --build .",
     ]
