@@ -272,6 +272,20 @@ class ConvertxAODConfig(BaseModel):
         default="~/cr_trainer_DiVertAnalysis",
     )
 
+    nevents: Optional[int] = Field(
+        description="The number of events to convert. If None, all events will be "
+        "converted. The "
+        "total number is applied to all files that match any wildcards. Events kept "
+        "are just the first events in the file. Defaults to None.",
+        default=None,
+    )
+
+    skip_build: Optional[bool] = Field(
+        description="If true, will skip the checkout and build step. This is useful if you have "
+        "already built the code and just want to run the conversion.",
+        default=False,
+    )
+
 
 class training_input_file(BaseModel):
     "Specs for a single input file for training"

@@ -1,7 +1,9 @@
-from typing import List
-from cal_ratio_trainer.config import ConvertxAODConfig
 import logging
 import subprocess
+from pathlib import Path
+from typing import List, Optional
+
+from cal_ratio_trainer.config import ConvertxAODConfig
 
 
 def execute_commands(commands: List[str]) -> str:
@@ -152,6 +154,52 @@ def delete_directory(dir: str):
     execute_commands(commands)
 
 
+def convert_to_wsl_path(local_path: Path) -> str:
+    """Convert a windows to a WSL path.
+
+    Args:
+        path (Path): Path to convert.
+
+    Returns:
+        str: WSL path.
+    """
+    return str(local_path)
+    # drive, path = os.path.splitdrive(str(local_path))
+    # path = path.replace("\\", "/")
+    # return f"/mnt/{drive.lower()[0]}{path}"
+
+
+def do_run(directory: str, files: List[Path], n_events: Optional[int]):
+    """Run the DiVertAnalysis executable.
+
+    Args:
+        directory (str): The directory containing the DiVertAnalysis executable.
+        files (List[str]): List of input files.
+    """
+    # Build the command line:
+    divert_command = (
+        f"produce_ntuple.py -c mc16e -t signal -a cr --nopileup"
+        f" --inputDS {convert_to_wsl_path(files[0])}"
+    )
+
+    if n_events is not None:
+        divert_command += f" --nevents {n_events}"
+
+    setup_commands = [
+        "setupATLAS -2",
+        f"cd {directory}/src",
+        "export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:$PWD/DiVertAnalysis/externals/include/",
+        "cd ../build/",
+        "asetup --restore",
+        "source */setup.sh",
+    ]
+
+    # Next, setup and run everything:
+    commands = [f"cd {directory}/run", divert_command]
+
+    execute_commands(setup_commands + commands)
+
+
 def convert_xaod(config: ConvertxAODConfig):
     """Will use the HEAD version of the DiVertAnalyusis repo to build
     and run the DiVertAnalysis executable. This will use `wsl2` to do
@@ -163,17 +211,27 @@ def convert_xaod(config: ConvertxAODConfig):
     """
 
     default_directory = config.working_directory
+    assert config.input_files is not None, "You must list input files to convert!"
+    assert config.output_path is not None, "You must specify an output path!"
+    assert (
+        not config.output_path.exists()
+    ), f"Output path {config.output_path} already exists. Please delete before running"
+    assert not (
+        config.skip_build and config.clean
+    ), "Cannot skip build and ask for a clean start!"
 
     # Do clean
-    if config.clean:
-        logging.info(f"Deleting directory {default_directory}")
-        delete_directory(default_directory)
+    if not config.skip_build:
+        if config.clean:
+            logging.info(f"Deleting directory {default_directory}")
+            delete_directory(default_directory)
 
-    # Do check out
-    logging.info(f"Checking out DiVertAnalysis git package to {default_directory}")
-    did_checkout = do_checkout(default_directory)
+        # Do check out
+        logging.info(f"Checking out DiVertAnalysis git package to {default_directory}")
+        did_checkout = do_checkout(default_directory)
 
-    # Do build
-    do_build(default_directory, already_setup=not did_checkout)
+        # Do build
+        do_build(default_directory, already_setup=not did_checkout)
 
     # Do run
+    do_run(default_directory, files=config.input_files, n_events=config.nevents)

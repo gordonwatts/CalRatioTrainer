@@ -72,6 +72,8 @@
         "nans",
         "ndarray",
         "ndim",
+        "nevents",
+        "nopileup",
         "npad",
         "ntuple",
         "numexpr",
