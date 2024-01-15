@@ -8,6 +8,7 @@ from cal_ratio_trainer.config import (
     BuildMainTrainingConfig,
     ConvertDiVertAnalysisConfig,
     ConvertTrainingConfig,
+    ConvertxAODConfig,
     DiVertAnalysisInputFile,
     DiVertFileType,
     ReportingConfig,
@@ -132,6 +133,25 @@ def do_divert_convert(args):
     from cal_ratio_trainer.convert.convert_divert import convert_divert
 
     convert_divert(a)
+
+
+def do_xaod_convert(args):
+    a_config = load_config(ConvertxAODConfig, args.config)
+    a = apply_config_args(ConvertxAODConfig, a_config, args)
+
+    if len(args.input_files) > 0:
+        a.input_files = args.input_files
+
+    # Check the output path does not yet exist.
+    if a.output_path.exists():
+        raise RuntimeError(
+            f"Output path {a.output_path} exists. Please remove before " f"running."
+        )
+
+    # And run the conversion.
+    from cal_ratio_trainer.convert.convert_xaod import convert_xaod
+
+    convert_xaod(a)
 
 
 def do_model_dump(args):
@@ -342,6 +362,32 @@ def main():
     )
     add_config_args(ConvertDiVertAnalysisConfig, parser_divertanalysis_convert)
     parser_divertanalysis_convert.set_defaults(func=do_divert_convert)
+
+    # And convert a xAOD file to a DiVertAnalysis ntuple
+    parser_xaod_convert = subparsers_convert.add_parser(
+        "xaod",
+        help="Convert a xAOD file to a DiVertAnalysis ntuple",
+        description="Convert a xAOD file to a DiVertAnalysis ntuple. This"
+        " will process all the files specified on the command line or in the yaml"
+        " config file. Please watch warning and error messages carefully to make sure"
+        " all the files expected are processed.",
+    )
+    parser_xaod_convert.add_argument(
+        "--config",
+        "-c",
+        type=Path,
+        help="Path to the config file to use for analysis",
+    )
+    parser_xaod_convert.add_argument(
+        "input_files",
+        nargs="*",
+        default=[],
+        help="The input files to convert. Can be repeated multiple times. Written to "
+        "the output directory",
+        type=Path,
+    )
+    add_config_args(ConvertxAODConfig, parser_xaod_convert)
+    parser_xaod_convert.set_defaults(func=do_xaod_convert)
 
     # The `model-dump` command will take a training ("name/number/epoch") and dump the
     # model to stdout.

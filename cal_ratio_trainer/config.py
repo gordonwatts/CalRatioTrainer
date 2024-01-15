@@ -249,6 +249,44 @@ class ConvertDiVertAnalysisConfig(BaseModel):
     )
 
 
+class ConvertxAODConfig(BaseModel):
+    "Configuration for converting an xAOD file"
+
+    input_files: Optional[List[Path]] = Field(
+        description="The list of input files to convert."
+    )
+
+    output_path: Optional[Path] = Field(
+        description="The path to the directory where the converted pd.DataFrame pickle"
+        "files will be written.",
+    )
+
+    clean: Optional[bool] = Field(
+        description="If true, will remove all compiled source code first.",
+        default=False,
+    )
+
+    working_directory: str = Field(
+        description="The working directory to use for the compilation. If not specified,"
+        " will use ~/cr_trainer_DiVertAnalysis.",
+        default="~/cr_trainer_DiVertAnalysis",
+    )
+
+    nevents: Optional[int] = Field(
+        description="The number of events to convert. If None, all events will be "
+        "converted. The "
+        "total number is applied to all files that match any wildcards. Events kept "
+        "are just the first events in the file. Defaults to None.",
+        default=None,
+    )
+
+    skip_build: Optional[bool] = Field(
+        description="If true, will skip the checkout and build step. This is useful if you have "
+        "already built the code and just want to run the conversion.",
+        default=False,
+    )
+
+
 class training_input_file(BaseModel):
     "Specs for a single input file for training"
 
@@ -312,4 +350,5 @@ config_default_file = {
     ConvertTrainingConfig: "default_convert_config",
     ConvertDiVertAnalysisConfig: "default_divert_config",
     BuildMainTrainingConfig: "default_build_main_training_config",
+    ConvertxAODConfig: "default_xaod_config",
 }

@@ -17,6 +17,7 @@ This isn't meant to be an exploratory thing as much as "easy-to-run". Use `--hel
 * `cr _trainer analyze` will compare several runs looking for a _best_ epoch, make a few plots, and run a few comparisons on the `test` dataset.
 * `cr_trainer convert training name/run/epoch` will convert that run's model with weights from that epoch to a `json` file that DiVertAnalysis's `fdeep` package can import and run.
 * `cr_trainer convert divertanalysis file_path -data_type qcd` will convert the `DiVertAnalysisR21` output at `file_path` to a pre-training file. This can then be used to build a full training sample. Wildcards are allowed. Use `yaml` config to build a complete set. Note that the conversion is designed to skip errors (and files previously converted). It is important to look at the log messages that result from this run to make sure all the files you want processed have been processed. It is possible to run multiple copies of this command at once - they shouldn't step on each other.
+* `cr_trainer convert xaod <file-path> <output-path>` will check out the head of DiVertAnalysis, build it, and run it, and copy the resulting root file to `<output-path>`. Use the `-vv` option in order to see log messages that come from running the executable. This only works on Windows currently as it is using `wsl2`, and expects an `atlas_centos7` instance installed (`cvmfs` based-instance). It shouldn't be too hard to make it possible to run natively as well.
 
 Some quick notes:
 
