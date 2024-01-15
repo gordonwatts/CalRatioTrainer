@@ -2,6 +2,7 @@ import logging
 import subprocess
 from pathlib import Path
 from typing import List, Optional
+import shutil
 
 from cal_ratio_trainer.config import ConvertxAODConfig
 
@@ -169,7 +170,27 @@ def convert_to_wsl_path(local_path: Path) -> str:
     # return f"/mnt/{drive.lower()[0]}{path}"
 
 
-def do_run(directory: str, files: List[Path], n_events: Optional[int]):
+def copy_file_locally(wsl_path: str, local_path: Path):
+    """Copy a file from the WSL instance to another WSL instance.
+
+    This code will need to be fixed depending on starting and ending
+    places!
+
+    Args:
+        wsl_path (str): Path to the file in the WSL instance.
+        local_path (Path): Path to the file locally.
+    """
+    source_file = Path(wsl_path)
+    commands = [f"cp {wsl_path} /mnt/wsl/{source_file.name}"]
+    execute_commands(commands)
+
+    temp_file = Path(f"/mnt/wsl/{source_file.name}")
+    shutil.move(temp_file, local_path)
+
+
+def do_run(
+    directory: str, files: List[Path], n_events: Optional[int], output_file: Path
+):
     """Run the DiVertAnalysis executable.
 
     Args:
@@ -195,9 +216,14 @@ def do_run(directory: str, files: List[Path], n_events: Optional[int]):
     ]
 
     # Next, setup and run everything:
-    commands = [f"cd {directory}/run", divert_command]
+    commands = [f"cd {directory}/run", "rm -rf submit_dir", divert_command]
 
     execute_commands(setup_commands + commands)
+
+    # Final thing is to copy the output file back locally.
+    copy_file_locally(
+        f"{directory}/run/submit_dir/data-trees/{files[0].name}.root", output_file
+    )
 
 
 def convert_xaod(config: ConvertxAODConfig):
@@ -234,4 +260,9 @@ def convert_xaod(config: ConvertxAODConfig):
         do_build(default_directory, already_setup=not did_checkout)
 
     # Do run
-    do_run(default_directory, files=config.input_files, n_events=config.nevents)
+    do_run(
+        default_directory,
+        files=config.input_files,
+        n_events=config.nevents,
+        output_file=config.output_path,
+    )
