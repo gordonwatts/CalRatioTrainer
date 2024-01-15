@@ -145,7 +145,7 @@ def do_xaod_convert(args):
     # Check the output path does not yet exist.
     if a.output_path.exists():
         raise RuntimeError(
-            f"Output path {a.output} exists. Please remove before " f"running."
+            f"Output path {a.output_path} exists. Please remove before " f"running."
         )
 
     # And run the conversion.
