@@ -225,6 +225,11 @@ def do_run(
 
     execute_commands(setup_commands + commands)
 
+    # TODO: capture the output from the `execute_commands`, and if the copy below fails,
+    # we should dump the output so the user can see how the thing ran (or didn't run).
+    # This is b.c. the above dose not throw an exception if the job fails b.c. it
+    # doesn't return a bad shell status.
+
     # Final thing is to copy the output file back locally.
     copy_file_locally(
         f"{directory}/run/submit_dir/data-trees/{files[0].name}.root", output_file
