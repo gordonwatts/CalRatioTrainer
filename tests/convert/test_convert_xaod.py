@@ -1,4 +1,5 @@
 from pathlib import Path
+import pytest
 
 from cal_ratio_trainer.convert.convert_xaod import (
     ConvertxAODConfig,
@@ -45,3 +46,8 @@ def test_delete_directory():
 def test_execute_commands():
     r = execute_commands(["echo 'hello world'"])
     assert "hello world" in r
+
+
+def test_execute_bad_command():
+    with pytest.raises(Exception):
+        execute_commands(["cp my_left_foot_is_not_here.root junk.root"])

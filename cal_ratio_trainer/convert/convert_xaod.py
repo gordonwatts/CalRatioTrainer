@@ -46,6 +46,11 @@ def execute_commands(commands: List[str]) -> str:
         logging.warning(e.output.strip())
         raise
 
+    if process.returncode != 0:
+        logging.warning(f"Error executing command: {full_command}")
+        logging.warning("\n".join(output))
+        raise Exception(f"Error executing command: {full_command}")
+
     return "\n".join(output)
 
 
