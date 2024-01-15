@@ -35,6 +35,7 @@
         "endcap",
         "errorbar",
         "errstate",
+        "EXOT",
         "fdeep",
         "figsize",
         "fillna",

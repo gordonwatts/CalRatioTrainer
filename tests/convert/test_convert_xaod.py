@@ -10,20 +10,26 @@ from cal_ratio_trainer.convert.convert_xaod import (
 )
 
 
-def default_config_xaod() -> ConvertxAODConfig:
+def default_config_xaod(tmp_path) -> ConvertxAODConfig:
     return ConvertxAODConfig(
-        input_files=[Path("tests/xaod/small_file.root")],
-        output_path=Path("tests/xaod/small_file.root"),
+        input_files=[Path("tests/data/small_xaod_EXOT15_file.root")],
+        output_path=Path(f"{tmp_path}/output.root"),
     )
 
 
+# TODO: Generate a small xAOD file for testing.
+@pytest.mark.skip(reason="Missing a small xAOD file for running the testing on.")
 def test_small_convert(tmp_path: Path):
     """Test the call to convert_xaod.
 
     NOTE: This is quite slow since it probably will download and compile the executable
     DiVertAnalysis!
     """
-    convert_xaod(default_config_xaod())
+    c = default_config_xaod(tmp_path)
+    convert_xaod(c)
+
+    assert c.output_path is not None
+    assert c.output_path.exists()
 
 
 def test_directory_test():
