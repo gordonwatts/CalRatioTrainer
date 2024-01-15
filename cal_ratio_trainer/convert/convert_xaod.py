@@ -17,6 +17,8 @@ def execute_commands(commands: List[str]) -> str:
     full_command = "; ".join(commands)
     output = []
 
+    # TODO: #204 Make xaod conversion work on regular linux and windows, etc.
+
     try:
         process = subprocess.Popen(
             [
