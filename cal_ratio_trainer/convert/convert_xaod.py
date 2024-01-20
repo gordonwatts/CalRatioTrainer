@@ -1,5 +1,4 @@
 import logging
-from math import log
 import subprocess
 from pathlib import Path
 from typing import List, Optional
@@ -371,7 +370,6 @@ def convert_xaod(config: ConvertxAODConfig):
                 f"{nn.name}_{nn.run}_{nn.epoch}",
                 f"/DiVertAnalysis/nn_config_{nn.name}_{nn.run}_{nn.epoch}.json",
             )
-        exit(1)
 
         # Do build
         do_build(default_directory, already_setup=not did_checkout)
