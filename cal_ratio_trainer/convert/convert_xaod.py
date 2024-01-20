@@ -316,7 +316,7 @@ def add_training(default_directory: str, name: str, path: str):
 
 
 def convert_xaod(config: ConvertxAODConfig):
-    """Will use the HEAD version of the DiVertAnalyusis repo to build
+    """Will use the HEAD version of the DiVertAnalysis repo to build
     and run the DiVertAnalysis executable. This will use `wsl2` to do
     the running (though one could easily configure this to be something
     else on Linux or a Mac!).
