@@ -361,7 +361,7 @@ def convert_xaod(config: ConvertxAODConfig):
             copy_local_file(
                 Path(output_file),
                 f"{default_directory}/src/DiVertAnalysis/data/"
-                "nn_config_{nn.name}_{nn.run}_{nn.epoch}.json",
+                f"nn_config_{nn.name}_{nn.run}_{nn.epoch}.json",
             )
 
             # Finally, add the config line to the C++ header file so it gets used.
