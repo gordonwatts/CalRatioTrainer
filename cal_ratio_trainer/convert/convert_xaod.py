@@ -1,10 +1,12 @@
 import logging
+from math import log
 import subprocess
 from pathlib import Path
 from typing import List, Optional
 import shutil
 
-from cal_ratio_trainer.config import ConvertxAODConfig
+from cal_ratio_trainer.config import ConvertTrainingConfig, ConvertxAODConfig
+from cal_ratio_trainer.convert.convert_json import convert_file
 
 
 def execute_commands(commands: List[str]) -> str:
@@ -16,6 +18,7 @@ def execute_commands(commands: List[str]) -> str:
 
     full_command = "; ".join(commands)
     output = []
+    logging.debug(f"Executing command: {full_command}")
 
     # TODO: #204 Make xaod conversion work on regular linux and windows, etc.
 
@@ -80,6 +83,31 @@ def dir_exists(directory: str) -> bool:
     return r.returncode == 0
 
 
+def text_exists_in_file(file: str, text: str) -> bool:
+    """Will check if a text exists in a file in the wsl2 instance.
+
+    Args:
+        file (str): File to check.
+        text (str): Text to check for.
+
+    Returns:
+        bool: True if the text exists, False otherwise.
+    """
+    r = subprocess.run(
+        [
+            "wsl.exe",
+            "-d",
+            "atlas_centos7",
+            "-e",
+            "/bin/bash",
+            "-c",
+            f"grep -q {text} {file}",
+        ],
+        check=False,
+    )
+    return r.returncode == 0
+
+
 def do_checkout(default_directory: str) -> bool:
     """Will check out the HEAD version of the DiVertAnalysis repo
     from GitHub, using the wsl2 `atlas_centos7` instance.
@@ -94,6 +122,7 @@ def do_checkout(default_directory: str) -> bool:
         ]
         result = False
     else:
+        logging.debug("Directory does not exist, doing full git clone.")
         commands = [
             "cd ~",
             "mkdir -p cr_trainer_DiVertAnalysis",
@@ -158,6 +187,7 @@ def delete_directory(dir: str):
     Args:
         dir (str): linux path to the directory
     """
+    logging.debug(f"Deleting directory {dir}")
     commands = [f"rm -rf {dir}"]
     execute_commands(commands)
 
@@ -180,19 +210,41 @@ def convert_to_wsl_path(local_path: Path) -> str:
 def copy_file_locally(wsl_path: str, local_path: Path):
     """Copy a file from the WSL instance to another WSL instance.
 
-    This code will need to be fixed depending on starting and ending
-    places!
+    NOTE: This code will need to be fixed depending on starting and ending
+    places! For now assume wsl2 as the starting target, and this
+    instance as the final one.
 
     Args:
         wsl_path (str): Path to the file in the WSL instance.
         local_path (Path): Path to the file locally.
     """
+    logging.debug(f"Copying wsl2:{wsl_path} to {local_path}")
     source_file = Path(wsl_path)
     commands = [f"cp {wsl_path} /mnt/wsl/{source_file.name}"]
     execute_commands(commands)
 
     temp_file = Path(f"/mnt/wsl/{source_file.name}")
     shutil.move(temp_file, local_path)
+
+
+def copy_local_file(local_path: Path, wsl_path: str):
+    """Copy a file from the local machine to the WSL instance.
+
+    This code will need to be fixed depending on starting and ending
+    places! For now assume this instance as the starting place,
+    and wsl2 as the remote one.
+
+    Args:
+        local_path (Path): Path to the file locally.
+        wsl_path (str): Path to the file in the WSL instance.
+    """
+    logging.debug(f"Copying {local_path} to wsl2:{wsl_path}")
+    # Put it in the common wsl location.
+    temp_file = Path(f"/mnt/wsl/{Path(local_path).name}")
+    shutil.copy(local_path, temp_file)
+
+    commands = [f"mv {temp_file} {wsl_path}"]
+    execute_commands(commands)
 
 
 def do_run(
@@ -238,6 +290,32 @@ def do_run(
     )
 
 
+def add_training(default_directory: str, name: str, path: str):
+    """Add a training to the DiVertAnalysis code.
+
+    Args:
+        default_directory (Path): Path to the DiVertAnalysis code.
+        name (str): Name of the training.
+        path (str): Path to the training.
+    """
+    # If the file has already been added, do not add again!
+    header_file = (
+        f"{default_directory}/src/DiVertAnalysis/DiVertAnalysis/"
+        "RegionVarCalculator_calRatio.h"
+    )
+    if text_exists_in_file(header_file, name):
+        logging.info(f"Training {name} already exists in {header_file}")
+    else:
+        logging.info(f"Adding training {name} to {header_file}")
+
+        new_line = f'    {{"{name}", initialize_fdeep_model("{path}")}},'
+
+        sed_command = (
+            f"sed -i '/keras_model_highMass_v3Adv_apr28/a {new_line}' {header_file}"
+        )
+        execute_commands([sed_command])
+
+
 def convert_xaod(config: ConvertxAODConfig):
     """Will use the HEAD version of the DiVertAnalyusis repo to build
     and run the DiVertAnalysis executable. This will use `wsl2` to do
@@ -267,6 +345,33 @@ def convert_xaod(config: ConvertxAODConfig):
         # Do check out
         logging.info(f"Checking out DiVertAnalysis git package to {default_directory}")
         did_checkout = do_checkout(default_directory)
+
+        # Next, lets see if we need to add a NN to the list of NN's that are there.
+        assert config.add_training is not None
+        for nn in config.add_training:
+            # we need to convert the training file to json that
+            # can be used by the DiVertAnalysis Code.
+            output_file = f"/tmp/nn_config_{nn.name}_{nn.run}_{nn.epoch}.json"
+            convert_config = ConvertTrainingConfig(
+                run_to_convert=nn, output_json=Path(output_file)
+            )
+            print("Doing conversion...")
+            convert_file(convert_config)
+
+            # Copy it from this machine to the WSL instance.
+            copy_local_file(
+                Path(output_file),
+                f"{default_directory}/src/DiVertAnalysis/data/"
+                "nn_config_{nn.name}_{nn.run}_{nn.epoch}.json",
+            )
+
+            # Finally, add the config line to the C++ header file so it gets used.
+            add_training(
+                default_directory,
+                f"{nn.name}_{nn.run}_{nn.epoch}",
+                f"/DiVertAnalysis/nn_config_{nn.name}_{nn.run}_{nn.epoch}.json",
+            )
+        exit(1)
 
         # Do build
         do_build(default_directory, already_setup=not did_checkout)
