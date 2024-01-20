@@ -148,6 +148,10 @@ def do_xaod_convert(args):
             f"Output path {a.output_path} exists. Please remove before " f"running."
         )
 
+    for t in args.add_trainings:
+        name, run, epoch = t.split("/")
+        a.add_training.append(epoch_spec(name=name, run=int(run), epoch=int(epoch)))
+
     # And run the conversion.
     from cal_ratio_trainer.convert.convert_xaod import convert_xaod
 
@@ -385,6 +389,14 @@ def main():
         help="The input files to convert. Can be repeated multiple times. Written to "
         "the output directory",
         type=Path,
+    )
+    parser_xaod_convert.add_argument(
+        "--add_trainings",
+        nargs="*",
+        default=[],
+        help="Additional trainings to use in the conversion. fForm is "
+        "name/number/epoch. Can be repeated multiple times.",
+        type=str,
     )
     add_config_args(ConvertxAODConfig, parser_xaod_convert)
     parser_xaod_convert.set_defaults(func=do_xaod_convert)
