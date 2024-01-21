@@ -117,7 +117,11 @@ def do_divert_convert(args):
     if len(args.input_files) > 0:
         a.input_files = [
             DiVertAnalysisInputFile(
-                input_file=f, data_type=args.data_type, output_dir=None
+                input_file=f,
+                data_type=args.data_type,
+                output_dir=None,
+                llp_mH=a.llp_mH,
+                llp_mS=a.llp_mS,
             )
             for f in args.input_files
         ]
