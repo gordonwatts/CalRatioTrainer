@@ -22,7 +22,7 @@ def convert_file(c: ConvertTrainingConfig):
     model.model.save(output_path.with_suffix(".keras"))
 
     # Next, convert it to f-deep format.
-    convert_file = Path(__file__).parent / "fdeep" / "keras_export" / "convert_model.py"
+    convert_file = Path(__file__).parent / "fdeep" / "frugally-deep" / "keras_export" / "convert_model.py"
     assert convert_file.exists(), f"Could not find convert_model.py at {convert_file}"
     os.system(
         f"python3 {convert_file} {output_path.with_suffix('.keras')} "
