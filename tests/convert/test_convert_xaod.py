@@ -32,11 +32,13 @@ def test_small_convert(tmp_path: Path):
     assert c.output_path.exists()
 
 
+@pytest.mark.skip(reason="Only run on WSL2")
 def test_directory_test():
     assert dir_exists("~")
     assert not dir_exists("~/bogus/dude")
 
 
+@pytest.mark.skip(reason="Only run on WSL2")
 def test_delete_directory():
     dir = "~/bogus/dude"
     assert not dir_exists(dir)
@@ -49,11 +51,13 @@ def test_delete_directory():
     assert not dir_exists(dir)
 
 
+@pytest.mark.skip(reason="Only run on WSL2")
 def test_execute_commands():
     r = execute_commands(["echo 'hello world'"])
     assert "hello world" in r
 
 
+@pytest.mark.skip(reason="Only run on WSL2")
 def test_execute_bad_command():
     with pytest.raises(Exception):
         execute_commands(["cp my_left_foot_is_not_here.root junk.root"])
