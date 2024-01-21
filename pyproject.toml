@@ -61,8 +61,3 @@ include = "./cal_ratio_trainer/*"
 
 [build-system]
 requires = ["setuptools", "wheel"]
-
-[tool.pytest.ini_options]
-markers = [
-    "wsl2_tests: tests protected by this marker will not run unless wsl2_tests is on the command line.",
-]
