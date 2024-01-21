@@ -214,7 +214,7 @@ class DiVertAnalysisInputFile(BaseModel):
 
 
 class ConvertDiVertAnalysisConfig(BaseModel):
-    "Configuration for converting a divertanalysis output file"
+    "Configuration for converting a divertanalysis output file to a pkl training input file."
 
     input_files: Optional[List[DiVertAnalysisInputFile]] = Field(
         description="The list of input files to convert."
@@ -247,6 +247,10 @@ class ConvertDiVertAnalysisConfig(BaseModel):
     max_jet_pt: Optional[float] = Field(
         description="The maximum jet pT to use for the training [GeV]."
     )
+
+
+class ScoreDiVertAnalysisConfig(BaseModel):
+    "Configuration to score a particular model on a divert analysis file"
 
 
 class ConvertxAODConfig(BaseModel):
@@ -349,6 +353,13 @@ class BuildMainTrainingConfig(BaseModel):
         description="The list of branches to exclude from the training file"
         " (if present).",
         default=None,
+    )
+
+
+class ScorePickleConfig(BaseModel):
+    "Configuration to score a particular model on a pickle file"
+    input_files: Optional[List[str]] = Field(
+        description="The list of input pickle to score."
     )
 
 

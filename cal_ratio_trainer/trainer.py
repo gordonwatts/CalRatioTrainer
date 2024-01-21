@@ -12,6 +12,7 @@ from cal_ratio_trainer.config import (
     DiVertAnalysisInputFile,
     DiVertFileType,
     ReportingConfig,
+    ScorePickleConfig,
     TrainingConfig,
     epoch_spec,
     load_config,
@@ -173,6 +174,12 @@ def do_model_dump(args):
     dump_model(args.training)
 
 
+def do_score_pkl(args):
+    a_config = load_config(ConvertxAODConfig, args.config)
+    a = apply_config_args(ConvertxAODConfig, a_config, args)
+    print(a)
+
+
 def do_build_main_training(args):
     a_config = load_config(BuildMainTrainingConfig, args.config)
     a = apply_config_args(BuildMainTrainingConfig, a_config, args)
@@ -209,7 +216,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Training and Utilities for the CalRatio RNN training"
     )
-    subparsers = parser.add_subparsers(help="sub-command help")
+    subparsers = parser.add_subparsers(help="cr_trainer commands")
     parser.set_defaults(func=lambda _: parser.print_help())
 
     # Add a top level verbose flag that will count the number of
@@ -311,7 +318,9 @@ def main():
     )
     # Create a sub-parser that will process two commands, "training" and
     # "divertanalysis".
-    subparsers_convert = parser_convert.add_subparsers(help="sub-command help")
+    subparsers_convert = parser_convert.add_subparsers(
+        help="Convert one file type to another"
+    )
     parser_convert.set_defaults(func=lambda _: parser_convert.print_help())
 
     # First, the training conversion command.
@@ -413,6 +422,27 @@ def main():
         "or a path to a JSON file.",
     )
     parser_model_dump.set_defaults(func=do_model_dump)
+
+    # Score a pkl training file.
+    parser_score_training_file = subparsers.add_parser(
+        "score",
+        help="Score a particular input file",
+        description="Sub-command that will help score a input file.",
+    )
+
+    # The Score command to "score" particular types of files.
+    score_subparsers = parser_score_training_file.add_subparsers(
+        help="Use a NN Model to score a input file"
+    )
+
+    # Score a pkl training file.
+    parser_pickle_score = score_subparsers.add_parser(
+        "pkl",
+        help="Score a pkl training file",
+        description="Score a pkl training file",
+    )
+    add_config_args(ScorePickleConfig, parser_pickle_score)
+    parser_pickle_score.set_defaults(func=do_score_pkl)
 
     # The build command, to build the main training file.
     parser_build = subparsers.add_parser(
