@@ -286,6 +286,15 @@ class ConvertxAODConfig(BaseModel):
         default=False,
     )
 
+    add_training: Optional[List[epoch_spec]] = Field(
+        description="Add a training file to the build. This will be used to add an extra NN "
+        "evaluation. "
+        "  The format is "
+        "`training_name/training_number/epoch`. Use the `analyze` sub-command to determine which"
+        " epoch.",
+        default=[],
+    )
+
 
 class training_input_file(BaseModel):
     "Specs for a single input file for training"
