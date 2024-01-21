@@ -36,6 +36,7 @@ def jets_masking(array: ak.Array, min_jet_pt: float, max_jet_pt: float) -> ak.Ar
         An awkward array containing only good, central jets with pT between 40 and 500
         GeV.
     """
+    logging.debug("Masking jets")
     # Only good, central, jets are considered.
     jet_pT_mask = (array.jets.pt >= min_jet_pt) & (  # type: ignore
         array.jets.pt < max_jet_pt  # type: ignore
@@ -56,6 +57,7 @@ def applying_llp_cuts(llps: ak.Array):
     Returns:
         ak.Array: An array of "good" LLPs that pass the cuts.
     """
+    logging.debug("Applying LLP fiducial cuts")
     central_llp_eta_mask = abs(llps.eta) < 1.4  # type: ignore
     endcap_llp_eta_mask = abs(llps.eta) > 1.4  # type: ignore
 
@@ -587,6 +589,7 @@ def load_divert_file(
         Optional[ak.Array]: An awkward array containing the loaded data, or None if the
         file has 0 events.
     """
+    logging.debug(f"Loading file {file_path}")
     with uproot.open(file_path) as in_file:  # type: ignore
         # Check that we don't have an empty file.
         tree = in_file["trees_DV_"]
@@ -598,6 +601,7 @@ def load_divert_file(
 
         # Rename any branches needed
         if rename_branches is not None:
+            logging.debug(f"Renaming branches: {rename_branches.keys()}")
             for b_orig, b_new in rename_branches.items():
                 if b_orig in data.fields:
                     data[b_new] = data[b_orig]
@@ -624,6 +628,7 @@ def load_divert_file(
                 with_name=with_name,
             )
 
+        logging.debug("Building the physics objects")
         jets = zip_common_columns("jet_", index_column="jetIndex")
         clusters = zip_common_columns("clus_")
         tracks = zip_common_columns("track_")
@@ -636,10 +641,12 @@ def load_divert_file(
         # Make sure jets are sorted. We will sort everything else later on
         # when we've eliminated potentially a lot of events we don't care
         # about.
+        logging.debug("Sorting the jets")
         sorted_jet_index = ak.argsort(jets.pt, axis=1, ascending=False)  # type: ignore
         sorted_jets = jets[sorted_jet_index]  # type: ignore
 
         # And build an array of all the columns that aren't part of anything.
+        logging.debug("Building the event level info")
         event_level_info = ak.zip(
             {
                 c: data[c]
@@ -701,7 +708,7 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
             output_dir_path = output_dir_path / f_info.output_dir
 
         for file_path in (Path(f) for f in glob.glob(str(f_info.input_file))):
-            assert file_path.exists()
+            assert file_path.exists(), f"File {file_path} does not exist."
             found_file = True
             logging.info(
                 f"Converting files {file_path.name} as a {f_info.data_type} file."
@@ -747,8 +754,12 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
 
                     # Process according to the data type.
                     if f_info.data_type == "sig":
-                        assert f_info.llp_mH is not None
-                        assert f_info.llp_mS is not None
+                        assert (
+                            f_info.llp_mH is not None
+                        ), "llp_mH must be set for signal"
+                        assert (
+                            f_info.llp_mS is not None
+                        ), "llp_mS must be set for signal"
                         result = signal_processing(
                             data,  # type: ignore
                             f_info.llp_mH,
@@ -765,6 +776,7 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                             data, config.min_jet_pt, config.max_jet_pt  # type: ignore
                         )
                     else:
+                        logging.debug("this is bad")
                         raise ValueError(f"Unknown data type {f_info.data_type}")
 
                     if result is None:

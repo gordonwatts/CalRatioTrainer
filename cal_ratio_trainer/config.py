@@ -248,6 +248,18 @@ class ConvertDiVertAnalysisConfig(BaseModel):
         description="The maximum jet pT to use for the training [GeV]."
     )
 
+    llp_mH: Optional[float] = Field(
+        description="The default mass of the heavy higgs like particle. Ignored if not a"
+        " signal file. Applied only to files on the command line.",
+        default=0.0,
+    )
+
+    llp_mS: Optional[float] = Field(
+        description="The default mass of the dark sector light LLP like particle. Ignored"
+        " if not a signal file. Applied only to files on the command line.",
+        default=0.0,
+    )
+
 
 class ScoreDiVertAnalysisConfig(BaseModel):
     "Configuration to score a particular model on a divert analysis file"
