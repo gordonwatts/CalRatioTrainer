@@ -1,12 +1,13 @@
 from pathlib import Path
-import pytest
+
+# import pytest
 
 from cal_ratio_trainer.convert.convert_xaod import (
     ConvertxAODConfig,
-    convert_xaod,
-    delete_directory,
-    dir_exists,
-    execute_commands,
+    # convert_xaod,
+    # delete_directory,
+    # dir_exists,
+    # execute_commands,
 )
 
 
