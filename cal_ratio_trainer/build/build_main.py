@@ -294,7 +294,7 @@ def build_main_training(config: BuildMainTrainingConfig):
         df = file_df if df is None else pd.concat([df, file_df])
         logging.debug(f"  Total events in cumulative dataframe is: {len(df)}")
 
-    assert df is not None
+    assert df is not None, "Failed to add any events to the overall DataFrame"
 
     # Write it out.
     assert config.output_file is not None, "No output file specified"

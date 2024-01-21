@@ -57,7 +57,7 @@ def do_plot(args):
     if len(args.input_files) > 0:
         input_files: List[plot_file] = []
         for i, f_name in enumerate(args.input_files):
-            assert isinstance(f_name, str)
+            assert isinstance(f_name, str), f"Input file {f_name} is not a string."
             if "=" in f_name:
                 name, f = f_name.split("=", 2)
             else:
