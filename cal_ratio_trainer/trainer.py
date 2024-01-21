@@ -179,8 +179,13 @@ def do_model_dump(args):
 
 
 def do_score_pkl(args):
-    a_config = load_config(ConvertxAODConfig, args.config)
-    a = apply_config_args(ConvertxAODConfig, a_config, args)
+    a_config = load_config(ScorePickleConfig, args.config)
+    a = apply_config_args(ScorePickleConfig, a_config, args)
+
+    if args.input_file is not None:
+        if a.input_files is None:
+            a.input_files = []
+        a.input_files.append(args.input_file)
     print(a)
 
 
@@ -444,6 +449,17 @@ def main():
         "pkl",
         help="Score a pkl training file",
         description="Score a pkl training file",
+    )
+    parser_pickle_score.add_argument(
+        "--config",
+        "-c",
+        type=Path,
+        help="Path to the config file to use for this scoring",
+    )
+    parser_pickle_score.add_argument(
+        "input_file",
+        help="The input file to score (a URI we can use to get at the file)",
+        type=str,
     )
     add_config_args(ScorePickleConfig, parser_pickle_score)
     parser_pickle_score.set_defaults(func=do_score_pkl)
