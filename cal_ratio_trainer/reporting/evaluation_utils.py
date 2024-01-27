@@ -11,6 +11,7 @@ from cal_ratio_trainer.common.column_names import (
     col_cluster_names,
     col_track_names,
     col_mseg_names,
+    col_jet_names,
 )
 
 
@@ -96,7 +97,7 @@ def load_test_data_from_df(data: pd.DataFrame) -> TrainedModelData:
     logging.debug(f"track_inputs: {track_inputs.shape}")
     mseg_inputs = pull_columns(data, col_mseg_names)
     logging.debug(f"mseg_inputs: {mseg_inputs.shape}")
-    jet_inputs = data.loc[:, ["jet_pt", "jet_eta", "jet_phi"]].values
+    jet_inputs = data.loc[:, col_jet_names].values
     logging.debug(f"jet_inputs: {jet_inputs.shape}")
 
     return TrainedModelData(
