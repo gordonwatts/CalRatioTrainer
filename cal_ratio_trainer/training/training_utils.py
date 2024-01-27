@@ -649,7 +649,7 @@ def _pad_arrays(
 
         # Fill in extra values
         npad = [(0, delta_length)] + [(0, 0) for _ in range(to_pad.ndim - 1)]
-        return np.pad(to_pad, pad_width=tuple(npad), mode="symmetric")
+        return np.pad(to_pad, pad_width=tuple(npad), mode="symmetric")  # type: ignore
 
     return [pad_one_array(adv, og) for adv, og in zip(array_to_pad, array_to_match)]
 
