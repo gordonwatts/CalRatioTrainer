@@ -25,6 +25,15 @@ Some quick notes:
 * The output directory contains a complete set of the options that were used in the run, so it is easy to see exactly how a run was configured.
 * test samples can run on a 16GB V100 if you do mini-match splitting of 15.
 
+### Secquence to Score a xAOD file
+
+If you want to score a xAOD file you need to do the following:
+
+1. `cr_trainer convert xaod /mnt/c/Users/gordo/Code/atlas/data/DAOD_EXOT15.26710496._000008.pool.root.1`
+1. `cr_trainer convert divertanalysis --data_type qcd  divert_analysis_ntuple.root`
+1. `cr_trainer build divert_analysis_ntuple.pkl`
+1. `cr_trainer -vv score pkl big_test/00000/97 main_training_file.pkl`
+
 ### Running Parameters
 
 This is always an issue of trying to keep the number of min batches small to improve performance and now overflow your memory. Recorded below are a few running configurations:
