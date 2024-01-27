@@ -67,6 +67,8 @@ def load_test_data_from_df(data: pd.DataFrame) -> TrainedModelData:
         train = df_train.values
 
         # Find the largest value of the integer in column names ending with "_<integer>"
+        # and reshape the inputs so they look like features x depth. If we don't find anything
+        # like that, leave this as a simple array of features.
         max_index = max(
             [
                 int(c_name.split("_")[-1])
