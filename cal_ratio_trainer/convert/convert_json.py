@@ -1,15 +1,15 @@
 import os
 from pathlib import Path
-from cal_ratio_trainer.common.trained_model import load_trained_model_from_training
+from cal_ratio_trainer.common.trained_model import (
+    load_model_from_spec,
+)
 from cal_ratio_trainer.config import ConvertTrainingConfig
-from cal_ratio_trainer.utils import find_training_result
 
 
 def convert_file(c: ConvertTrainingConfig):
     # Load up the model and weights for the run.
     assert c.run_to_convert is not None
-    model_path = find_training_result(c.run_to_convert.name, c.run_to_convert.run)
-    model = load_trained_model_from_training(model_path, c.run_to_convert.epoch)
+    model = load_model_from_spec(c.run_to_convert)
 
     # Now write it out!
     assert c.output_json is not None
