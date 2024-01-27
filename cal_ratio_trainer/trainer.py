@@ -88,6 +88,20 @@ def do_analyze(args):
     analyze_training_runs(cache, a)
 
 
+def parse_epoch_spec(spec: str) -> epoch_spec:
+    """Parse the training + epoch spec. The accepted format
+    is "name/run/epoch".
+
+    Args:
+        spec (str): The string specification to be parsed
+
+    Returns:
+        epoch_spec: The parsed specification
+    """
+    name, run, epoch = spec.split("/")
+    return epoch_spec(name=name, run=int(run), epoch=int(epoch))
+
+
 def do_cpp_convert(args):
     """
     Converts a training file to a frugally-deep JSON file.
@@ -103,8 +117,7 @@ def do_cpp_convert(args):
 
     # The training epochs are special. Analyze is specified.
     if len(args.training) > 0:
-        name, run, epoch = args.training.split("/")
-        a.run_to_convert = epoch_spec(name=name, run=int(run), epoch=int(epoch))
+        a.run_to_convert = parse_epoch_spec(args.training)
 
     from cal_ratio_trainer.convert.convert_json import convert_file
 
@@ -154,8 +167,7 @@ def do_xaod_convert(args):
         )
 
     for t in args.add_trainings:
-        name, run, epoch = t.split("/")
-        a.add_training.append(epoch_spec(name=name, run=int(run), epoch=int(epoch)))
+        a.add_training.append(parse_epoch_spec(t))
 
     # And run the conversion.
     from cal_ratio_trainer.convert.convert_xaod import convert_xaod
@@ -185,8 +197,13 @@ def do_score_pkl(args):
     if args.input_file is not None:
         if a.input_files is None:
             a.input_files = []
-        a.input_files.append(args.input_file)
-    print(a)
+        a.input_files.append(Path(args.input_file))
+
+    a.training = parse_epoch_spec(args.training)
+
+    from cal_ratio_trainer.score.score_pickle import score_pkl_files
+
+    score_pkl_files(a)
 
 
 def do_build_main_training(args):
@@ -455,6 +472,10 @@ def main():
         "-c",
         type=Path,
         help="Path to the config file to use for this scoring",
+    )
+    parser_pickle_score.add_argument(
+        "training",
+        help="Teh training run to use for scoring. Form is <training-name>/<number>/<epoch>.",
     )
     parser_pickle_score.add_argument(
         "input_file",

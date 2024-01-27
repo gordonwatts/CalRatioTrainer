@@ -370,12 +370,17 @@ class BuildMainTrainingConfig(BaseModel):
 
 class ScorePickleConfig(BaseModel):
     "Configuration to score a particular model on a pickle file"
-    input_files: Optional[List[str]] = Field(
+    input_files: Optional[List[Path]] = Field(
         description="The list of input pickle to score."
     )
 
     output_path: Optional[Path] = Field(
-        description="The path to the directory where the output score pickle files will be written. By default current working directory"
+        description="The path to the directory where the output score pickle files will be "
+        "written. By default current working directory"
+    )
+
+    training: Optional[epoch_spec] = Field(
+        description="The training to use to score the pickle file."
     )
 
 

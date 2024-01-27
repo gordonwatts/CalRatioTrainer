@@ -50,6 +50,7 @@ packages = [
     "cal_ratio_trainer.reporting",
     "cal_ratio_trainer.training",
     "cal_ratio_trainer.training.model_input",
+    "cal_ratio_trainer.score",
 ]
 
 [tool.setuptools.package-data]
