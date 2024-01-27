@@ -1,9 +1,17 @@
+import logging
 from pathlib import Path
+from typing import List
 
 import numpy as np
 import pandas as pd
 
 from cal_ratio_trainer.common.trained_model import TrainedModelData
+from cal_ratio_trainer.common.column_names import (
+    col_llp_mass_names,
+    col_cluster_names,
+    col_track_names,
+    col_mseg_names,
+)
 
 
 def load_test_data(run_dir: Path) -> TrainedModelData:
@@ -29,4 +37,74 @@ def load_test_data(run_dir: Path) -> TrainedModelData:
         y=y_data,
         z=z_data,
         weights=list(weights.values()),
+    )
+
+
+def load_test_data_from_df(data: pd.DataFrame) -> TrainedModelData:
+    """
+    Loads test data from a DataFrame and prepares it for model evaluation.
+
+    Args:
+        data (pd.DataFrame): The DataFrame containing the test data.
+
+    Returns:
+        TrainedModelData: The prepared test data in the form of TrainedModelData object.
+    """
+
+    def pull_columns(df: pd.DataFrame, col_list: List[str]) -> np.ndarray:
+        """
+        Extracts the specified columns from a DataFrame and reshapes the resulting array.
+
+        Args:
+            df (pd.DataFrame): The DataFrame from which to extract columns.
+            col_list (List[str]): The list of column names to extract.
+
+        Returns:
+            np.ndarray: The reshaped array containing the extracted columns.
+        """
+        df_train = df.loc[:, col_list]
+        logging.debug(f"df_train: {df_train.shape}: {df_train.columns}")
+        train = df_train.values
+
+        # Find the largest value of the integer in column names ending with "_<integer>"
+        max_index = max(
+            [
+                int(c_name.split("_")[-1])
+                for c_name in col_list
+                if len(c_name.split("_")) > 1 and c_name.split("_")[-1].isdigit()
+            ],
+            default=-1,
+        )
+
+        if max_index > 0:
+            rows = int(len(col_list) / (max_index + 1))
+            assert len(col_list) == rows * (
+                max_index + 1
+            ), f"Found {rows} rows, expected {max_index + 1}"
+
+            return train.reshape(train.shape[0], max_index + 1, rows)
+        else:
+            return train
+
+    cluster_inputs = pull_columns(data, col_cluster_names)
+    logging.debug(f"cluster_inputs: {cluster_inputs.shape}")
+    track_inputs = pull_columns(
+        data, [t for t in col_track_names if "track_Pixel" not in t]
+    )
+    logging.debug(f"track_inputs: {track_inputs.shape}")
+    mseg_inputs = pull_columns(data, col_mseg_names)
+    logging.debug(f"mseg_inputs: {mseg_inputs.shape}")
+    jet_inputs = data.loc[:, ["jet_pt", "jet_eta", "jet_phi"]].values
+    logging.debug(f"jet_inputs: {jet_inputs.shape}")
+
+    return TrainedModelData(
+        x=[
+            cluster_inputs,
+            track_inputs,
+            mseg_inputs,
+            jet_inputs,
+        ],
+        y=data["label"],
+        z=data[col_llp_mass_names],
+        weights=[data["mcEventWeight"].values],  # type: ignore
     )
