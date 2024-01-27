@@ -23,8 +23,6 @@ test = [
     "snakeviz",
 ]
 
-# If you are running on windows and need a complete environment,
-# include this. May work in other similar bare environments as well.
 wsl2 = [
     "nvidia-cudnn-cu11==8.6.0.163",
     "tensorrt",
@@ -33,10 +31,12 @@ wsl2 = [
     "scikit-learn==1.3.0",
     "matplotlib",
     "awkward",
+    "pyarrow",
     "vector",
     "uproot",
     "dask",
-]
+] # If you are running on windows and need a complete environment,
+# include this. May work in other similar bare environments as well.
 
 [project.scripts]
 cr_trainer = "cal_ratio_trainer.trainer:main"

@@ -92,3 +92,4 @@ temp_stateless.keras
 prof/
 /*.root
 /*.pkl
+/*.parquet

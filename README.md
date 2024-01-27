@@ -32,7 +32,9 @@ If you want to score a xAOD file you need to do the following:
 1. `cr_trainer convert xaod /mnt/c/Users/gordo/Code/atlas/data/DAOD_EXOT15.26710496._000008.pool.root.1`
 1. `cr_trainer convert divertanalysis --data_type qcd  divert_analysis_ntuple.root`
 1. `cr_trainer build divert_analysis_ntuple.pkl`
-1. `cr_trainer -vv score pkl big_test/00000/97 main_training_file.pkl`
+1. `cr_trainer score training-file big_test/00000/97 main_training_file.pkl`
+
+Output can be found in `main_training_file-score.parquet` as a simple awkward array.
 
 ### Running Parameters
 

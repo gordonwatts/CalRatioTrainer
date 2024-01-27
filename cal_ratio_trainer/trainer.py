@@ -463,7 +463,7 @@ def main():
 
     # Score a pkl training file.
     parser_pickle_score = score_subparsers.add_parser(
-        "pkl",
+        "training-file",
         help="Score a pkl training file",
         description="Score a pkl training file",
     )
