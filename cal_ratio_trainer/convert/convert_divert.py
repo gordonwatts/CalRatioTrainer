@@ -40,7 +40,6 @@ def jets_masking(array: ak.Array, min_jet_pt: float, max_jet_pt: float) -> ak.Ar
         An awkward array containing only good, central jets with pT between 40 and 500
         GeV.
     """
-    st = time.time()
     logging.debug("Masking jets")
     # Only good, central, jets are considered.
     jet_pT_mask = (array.jets.pt >= min_jet_pt) & (  # type: ignore
@@ -48,8 +47,6 @@ def jets_masking(array: ak.Array, min_jet_pt: float, max_jet_pt: float) -> ak.Ar
     )
     jet_eta_mask = np.abs(array.jets.eta) <= 2.5  # type: ignore
 
-    et = time.time()
-    print("time in jets_masking (s): {:.4}".format(et-st))
     return array.jets[jet_pT_mask & jet_eta_mask]  # type: ignore
 
 
@@ -397,7 +394,6 @@ def signal_processing(
         pd.DataFrame: A pandas DataFrame with columns for LLP masses, jet information,
         and a label column.
     """
-    print("Doing signal processing")
     # Only look at "good" jets.
 
     jets_masked = jets_masking(data, min_jet_pt, max_jet_pt)
@@ -595,22 +591,14 @@ def load_divert_file(
         Optional[ak.Array]: An awkward array containing the loaded data, or None if the
         file has 0 events.
     """
-    st = time.time()
     logging.debug(f"Loading file {file_path}")
     
     with uproot.open(file_path) as in_file:  # type: ignore
         # Check that we don't have an empty file.
-        st2 = time.time()
-        tree = in_file["trees_DV_"]
-        et2 = time.time()
-        print("tree line:", et2-st2)
         if len(tree) == 0:
             logging.warning(f"File {file_path} has 0 events. Skipped.")
             return None
-        st3 = time.time()
         data = tree.arrays(branches)  # type: ignore
-        et3 = time.time()
-        print("data line:", et3-st3)
         # Rename any branches needed
         if rename_branches is not None:
             logging.debug(f"Renaming branches: {rename_branches.keys()}")
@@ -671,8 +659,6 @@ def load_divert_file(
                 and (not c.startswith("HLT_jet_"))
             },
         )
-        et = time.time()
-        print("total time for load_divert_file (s): {:.4}".format(et-st))
         return ak.Array(
             {
                 label: content
@@ -705,12 +691,10 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
     Returns:
         None
     """
-    st = time.time()
     assert config.input_files is not None, "Must specify an input file for conversion"
     assert (
         config.min_jet_pt is not None and config.max_jet_pt is not None
     ), "Must specify min and max jet pt to convert."
-    st = time.time()
     for f_info in config.input_files:
         found_file = False
 
@@ -752,7 +736,6 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                     # Check if the file is a parquet file:
                     if os.path.splitext(file_path.name)[1] == '.parquet':
                         data = ak.from_parquet(file_path)
-                        print(data.type.show())
                     
                     # Load up the trees with the proper branches.
                     # Assumed to be a root file
@@ -767,13 +750,6 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                             )
                         )
                         assert branches is not None
-
-                        profiler = cProfile.Profile()
-                        profiler.enable()
-                        data = load_divert_file(file_path, branches, config.rename_branches)
-                        profiler.disable()
-                        profiler.dump_stats("load_divert_profile.prof")
-
                         # Saving array as a parquet file for future work
                         
                         ak.to_parquet(data, output_parquet)
@@ -833,5 +809,3 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
 
         if not found_file:
             raise ValueError(f"Could not find file matching {f_info.input_file}")
-    et = time.time()
-    print("total time for convert_divert (s): {:.4}".format(et-st))
