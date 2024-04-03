@@ -1,5 +1,6 @@
 import glob
 import logging
+import os
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
@@ -14,8 +15,11 @@ from cal_ratio_trainer.common.column_names import EventType
 from cal_ratio_trainer.common.file_lock import FileLock
 from cal_ratio_trainer.config import ConvertDiVertAnalysisConfig
 
+import time
+import cProfile
+
 # Much of the code was copied directly from Alex Golub's code on gitlab.
-# Many thanks to their work fro this!
+# Many thanks to their work for this!
 
 vector.register_awkward()
 
@@ -36,6 +40,7 @@ def jets_masking(array: ak.Array, min_jet_pt: float, max_jet_pt: float) -> ak.Ar
         An awkward array containing only good, central jets with pT between 40 and 500
         GeV.
     """
+    st = time.time()
     logging.debug("Masking jets")
     # Only good, central, jets are considered.
     jet_pT_mask = (array.jets.pt >= min_jet_pt) & (  # type: ignore
@@ -43,6 +48,8 @@ def jets_masking(array: ak.Array, min_jet_pt: float, max_jet_pt: float) -> ak.Ar
     )
     jet_eta_mask = np.abs(array.jets.eta) <= 2.5  # type: ignore
 
+    et = time.time()
+    print("time in jets_masking (s): {:.4}".format(et-st))
     return array.jets[jet_pT_mask & jet_eta_mask]  # type: ignore
 
 
@@ -71,7 +78,6 @@ def applying_llp_cuts(llps: ak.Array):
     llp_mask = (central_llp_eta_mask & llp_Lxy_mask) | (
         endcap_llp_eta_mask & llp_Lz_mask
     )
-
     return llps[llp_mask]
 
 
@@ -372,7 +378,7 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
     # Do the combination and some minor clean up.
     df = pd.concat(df_combine, axis=1)
     df_zeroed = df.replace(np.nan, 0.0)
-    return df_zeroed
+    return df_zeroed 
 
 
 def signal_processing(
@@ -391,7 +397,9 @@ def signal_processing(
         pd.DataFrame: A pandas DataFrame with columns for LLP masses, jet information,
         and a label column.
     """
+    print("Doing signal processing")
     # Only look at "good" jets.
+
     jets_masked = jets_masking(data, min_jet_pt, max_jet_pt)
 
     # Get the LLP's that are "interesting" for us:
@@ -432,7 +440,6 @@ def signal_processing(
 
     # changing the mcEVentWeight to be all 1, matching what Felix does
     big_df["mcEventWeight"] = 1
-
     return big_df
 
 
@@ -572,7 +579,6 @@ def remake_by_replacing(data: ak.Array, **kwargs: Dict[str, ak.Array]) -> ak.Arr
 
     return new_data[ak.num(new_data.jets.pt, axis=-1) > 0]  # type: ignore
 
-
 def load_divert_file(
     file_path: Path, branches: List[str], rename_branches: Optional[Dict[str, str]]
 ) -> Optional[ak.Array]:
@@ -589,16 +595,22 @@ def load_divert_file(
         Optional[ak.Array]: An awkward array containing the loaded data, or None if the
         file has 0 events.
     """
+    st = time.time()
     logging.debug(f"Loading file {file_path}")
+    
     with uproot.open(file_path) as in_file:  # type: ignore
         # Check that we don't have an empty file.
+        st2 = time.time()
         tree = in_file["trees_DV_"]
+        et2 = time.time()
+        print("tree line:", et2-st2)
         if len(tree) == 0:
             logging.warning(f"File {file_path} has 0 events. Skipped.")
             return None
-
+        st3 = time.time()
         data = tree.arrays(branches)  # type: ignore
-
+        et3 = time.time()
+        print("data line:", et3-st3)
         # Rename any branches needed
         if rename_branches is not None:
             logging.debug(f"Renaming branches: {rename_branches.keys()}")
@@ -659,7 +671,8 @@ def load_divert_file(
                 and (not c.startswith("HLT_jet_"))
             },
         )
-
+        et = time.time()
+        print("total time for load_divert_file (s): {:.4}".format(et-st))
         return ak.Array(
             {
                 label: content
@@ -692,11 +705,12 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
     Returns:
         None
     """
+    st = time.time()
     assert config.input_files is not None, "Must specify an input file for conversion"
     assert (
         config.min_jet_pt is not None and config.max_jet_pt is not None
     ), "Must specify min and max jet pt to convert."
-
+    st = time.time()
     for f_info in config.input_files:
         found_file = False
 
@@ -717,6 +731,8 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
             # The output file is with pkl on it, and in the output directory.
             assert config.output_path is not None
             output_file = output_dir_path / file_path.with_suffix(".pkl").name
+            output_parquet = Path('parquet') / output_dir_path / file_path.with_suffix(".parquet").name
+            output_parquet.parent.mkdir(parents=True, exist_ok=True)
 
             if output_file.exists():
                 logging.info(f"File {output_file} already exists. Skipping.")
@@ -730,24 +746,40 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                         f"File {output_file} already being processed. Skipping."
                     )
                     continue
-
+                
                 # Now run the requested processing
                 try:
+                    # Check if the file is a parquet file:
+                    if os.path.splitext(file_path.name)[1] == '.parquet':
+                        data = ak.from_parquet(file_path)
+                        print(data.type.show())
+                    
                     # Load up the trees with the proper branches.
-                    branches = (
-                        config.signal_branches
-                        if f_info.data_type == "sig"
-                        else (
-                            config.qcd_branches
-                            if f_info.data_type == "qcd"
-                            else config.bib_branches
+                    # Assumed to be a root file
+                    else:
+                        branches = (
+                            config.signal_branches
+                            if f_info.data_type == "sig"
+                            else (
+                                config.qcd_branches
+                                if f_info.data_type == "qcd"
+                                else config.bib_branches
+                            )
                         )
-                    )
-                    assert branches is not None
+                        assert branches is not None
 
-                    data = load_divert_file(file_path, branches, config.rename_branches)
+                        profiler = cProfile.Profile()
+                        profiler.enable()
+                        data = load_divert_file(file_path, branches, config.rename_branches)
+                        profiler.disable()
+                        profiler.dump_stats("load_divert_profile.prof")
+
+                        # Saving array as a parquet file for future work
+                        
+                        ak.to_parquet(data, output_parquet)
                     if data is None:
                         continue
+                    
 
                     # Create output directory
                     output_dir_path.mkdir(parents=True, exist_ok=True)
@@ -801,3 +833,5 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
 
         if not found_file:
             raise ValueError(f"Could not find file matching {f_info.input_file}")
+    et = time.time()
+    print("total time for convert_divert (s): {:.4}".format(et-st))
