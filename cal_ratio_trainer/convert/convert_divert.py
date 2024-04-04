@@ -15,8 +15,6 @@ from cal_ratio_trainer.common.column_names import EventType
 from cal_ratio_trainer.common.file_lock import FileLock
 from cal_ratio_trainer.config import ConvertDiVertAnalysisConfig
 
-import time
-import cProfile
 
 # Much of the code was copied directly from Alex Golub's code on gitlab.
 # Many thanks to their work for this!
@@ -595,6 +593,7 @@ def load_divert_file(
     
     with uproot.open(file_path) as in_file:  # type: ignore
         # Check that we don't have an empty file.
+        tree = in_file["trees_DV_"]
         if len(tree) == 0:
             logging.warning(f"File {file_path} has 0 events. Skipped.")
             return None
@@ -695,6 +694,7 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
     assert (
         config.min_jet_pt is not None and config.max_jet_pt is not None
     ), "Must specify min and max jet pt to convert."
+
     for f_info in config.input_files:
         found_file = False
 
@@ -715,8 +715,15 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
             # The output file is with pkl on it, and in the output directory.
             assert config.output_path is not None
             output_file = output_dir_path / file_path.with_suffix(".pkl").name
-            output_parquet = Path('parquet') / output_dir_path / file_path.with_suffix(".parquet").name
-            output_parquet.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Construct the path to the output Parquet file by combining the 'parquet' directory,
+            # the output directory path, and the filename with the '.parquet' extension
+            output_parquet_directory = output_dir_path / Path('parquet') 
+            
+            # Create the parent directory for the output_parquet file if it doesn't exist already 
+            output_parquet_directory.mkdir(parents=True, exist_ok=True)
+
+            output_parquet = output_parquet_directory / file_path.with_suffix(".parquet").name
 
             if output_file.exists():
                 logging.info(f"File {output_file} already exists. Skipping.")
@@ -733,7 +740,7 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                 
                 # Now run the requested processing
                 try:
-                    # Check if the file is a parquet file:
+                    # Check if the file is a parquet file, load that if so:
                     if os.path.splitext(file_path.name)[1] == '.parquet':
                         data = ak.from_parquet(file_path)
                     
@@ -750,12 +757,12 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                             )
                         )
                         assert branches is not None
+                        data = load_divert_file(file_path, branches, config.rename_branches)
                         # Saving array as a parquet file for future work
-                        
-                        ak.to_parquet(data, output_parquet)
+                        if data is not None:
+                            ak.to_parquet(data, output_parquet)
                     if data is None:
                         continue
-                    
 
                     # Create output directory
                     output_dir_path.mkdir(parents=True, exist_ok=True)
