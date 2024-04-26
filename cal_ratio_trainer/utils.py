@@ -80,6 +80,10 @@ def add_config_args(config_class, args: argparse.ArgumentParser) -> None:
                 default=None,
                 help=help_str,
             )
+    # Add flags for including high mass and low mass
+    args.add_argument("--high_mass", action="store_true", help="Include high mass")
+    args.add_argument("--low_mass", action="store_true", help="Include low mass")
+
 
 
 def apply_config_args(config_class: type, config, args):
@@ -105,7 +109,16 @@ def apply_config_args(config_class: type, config, args):
         if getattr(args, prop) is not None:
             setattr(r, prop, getattr(args, prop))
 
+    # Update include_high_mass and include_low_mass based on flags
+    if args.include_high_mass:
+        r.include_high_mass = True
+        r.include_low_mass = False
+    elif args.include_low_mass:
+        r.include_high_mass = False
+        r.include_low_mass = True
+
     return r
+
 
 
 def find_training_result(
