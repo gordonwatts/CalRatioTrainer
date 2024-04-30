@@ -1,5 +1,6 @@
 import glob
 import logging
+import os
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
@@ -14,8 +15,9 @@ from cal_ratio_trainer.common.column_names import EventType
 from cal_ratio_trainer.common.file_lock import FileLock
 from cal_ratio_trainer.config import ConvertDiVertAnalysisConfig
 
+
 # Much of the code was copied directly from Alex Golub's code on gitlab.
-# Many thanks to their work fro this!
+# Many thanks to their work for this!
 
 vector.register_awkward()
 
@@ -71,7 +73,6 @@ def applying_llp_cuts(llps: ak.Array):
     llp_mask = (central_llp_eta_mask & llp_Lxy_mask) | (
         endcap_llp_eta_mask & llp_Lz_mask
     )
-
     return llps[llp_mask]
 
 
@@ -372,7 +373,7 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
     # Do the combination and some minor clean up.
     df = pd.concat(df_combine, axis=1)
     df_zeroed = df.replace(np.nan, 0.0)
-    return df_zeroed
+    return df_zeroed 
 
 
 def signal_processing(
@@ -392,6 +393,7 @@ def signal_processing(
         and a label column.
     """
     # Only look at "good" jets.
+
     jets_masked = jets_masking(data, min_jet_pt, max_jet_pt)
 
     # Get the LLP's that are "interesting" for us:
@@ -432,7 +434,6 @@ def signal_processing(
 
     # changing the mcEVentWeight to be all 1, matching what Felix does
     big_df["mcEventWeight"] = 1
-
     return big_df
 
 
@@ -572,7 +573,6 @@ def remake_by_replacing(data: ak.Array, **kwargs: Dict[str, ak.Array]) -> ak.Arr
 
     return new_data[ak.num(new_data.jets.pt, axis=-1) > 0]  # type: ignore
 
-
 def load_divert_file(
     file_path: Path, branches: List[str], rename_branches: Optional[Dict[str, str]]
 ) -> Optional[ak.Array]:
@@ -590,15 +590,14 @@ def load_divert_file(
         file has 0 events.
     """
     logging.debug(f"Loading file {file_path}")
+    
     with uproot.open(file_path) as in_file:  # type: ignore
         # Check that we don't have an empty file.
         tree = in_file["trees_DV_"]
         if len(tree) == 0:
             logging.warning(f"File {file_path} has 0 events. Skipped.")
             return None
-
         data = tree.arrays(branches)  # type: ignore
-
         # Rename any branches needed
         if rename_branches is not None:
             logging.debug(f"Renaming branches: {rename_branches.keys()}")
@@ -659,7 +658,6 @@ def load_divert_file(
                 and (not c.startswith("HLT_jet_"))
             },
         )
-
         return ak.Array(
             {
                 label: content
@@ -717,6 +715,15 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
             # The output file is with pkl on it, and in the output directory.
             assert config.output_path is not None
             output_file = output_dir_path / file_path.with_suffix(".pkl").name
+            
+            # Construct the path to the output Parquet file by combining the 'parquet' directory,
+            # the output directory path, and the filename with the '.parquet' extension
+            output_parquet_directory = output_dir_path / Path('parquet') 
+            
+            # Create the parent directory for the output_parquet file if it doesn't exist already 
+            output_parquet_directory.mkdir(parents=True, exist_ok=True)
+
+            output_parquet = output_parquet_directory / file_path.with_suffix(".parquet").name
 
             if output_file.exists():
                 logging.info(f"File {output_file} already exists. Skipping.")
@@ -730,22 +737,30 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                         f"File {output_file} already being processed. Skipping."
                     )
                     continue
-
+                
                 # Now run the requested processing
                 try:
+                    # Check if the file is a parquet file, load that if so:
+                    if os.path.splitext(file_path.name)[1] == '.parquet':
+                        data = ak.from_parquet(file_path)
+                    
                     # Load up the trees with the proper branches.
-                    branches = (
-                        config.signal_branches
-                        if f_info.data_type == "sig"
-                        else (
-                            config.qcd_branches
-                            if f_info.data_type == "qcd"
-                            else config.bib_branches
+                    # Assumed to be a root file
+                    else:
+                        branches = (
+                            config.signal_branches
+                            if f_info.data_type == "sig"
+                            else (
+                                config.qcd_branches
+                                if f_info.data_type == "qcd"
+                                else config.bib_branches
+                            )
                         )
-                    )
-                    assert branches is not None
-
-                    data = load_divert_file(file_path, branches, config.rename_branches)
+                        assert branches is not None
+                        data = load_divert_file(file_path, branches, config.rename_branches)
+                        # Saving array as a parquet file for future work
+                        if data is not None:
+                            ak.to_parquet(data, output_parquet)
                     if data is None:
                         continue
 
