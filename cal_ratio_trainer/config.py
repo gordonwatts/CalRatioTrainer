@@ -51,7 +51,7 @@ class TrainingConfig(BaseModel):
     mH_parametrization: Optional[bool] = False
     mS_parametrization: Optional[bool] = False
 
-    # Which sets of signal should we include in teh training?
+    # Which sets of signal should we include in the training?
     # TODO: Make this part of the signal file prep - we need something more
     # flexible about what data we include that a bunch of bools like this.
     include_low_mass: Optional[bool] = False
