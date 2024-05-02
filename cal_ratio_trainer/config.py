@@ -54,8 +54,8 @@ class TrainingConfig(BaseModel):
     # Which sets of signal should we include in the training?
     # TODO: Make this part of the signal file prep - we need something more
     # flexible about what data we include that a bunch of bools like this.
-    include_low_mass: Optional[bool] = False
-    include_high_mass: Optional[bool] = False
+    include_low_mass: Optional[bool] = True
+    include_high_mass: Optional[bool] = True
 
     # The path to the main training data file (signal, qcd, and bib)
     # Use "file:///xxx" to specify a local file with absolute path on linux.
@@ -79,7 +79,8 @@ def _load_config_from_file(config_type, p: Path):
 def load_config(config_type: type, p: Optional[Path] = None):
     """Load a Config from a file, taking into account defaults."""
     r = _load_config_from_file(
-        config_type, Path(__file__).parent / f"{config_default_file[config_type]}.yaml"
+        config_type, Path(__file__).parent /
+        f"{config_default_file[config_type]}.yaml"
     )
 
     if p is not None:

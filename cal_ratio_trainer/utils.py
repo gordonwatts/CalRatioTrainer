@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from typing import Dict, Generator, List, Optional, Tuple, Union
 
+
 def as_bare_type(t: type) -> Union[type, None]:
     """Return the bare type for certain types:
 
@@ -31,6 +32,7 @@ def as_bare_type(t: type) -> Union[type, None]:
     else:
         return None
 
+
 def _good_config_args(config_class: type) -> Generator[Tuple[str, type], None, None]:
     """Return the list of training params that are good for being set
     on the command line (e.g. their types are something we can easily deal
@@ -45,6 +47,7 @@ def _good_config_args(config_class: type) -> Generator[Tuple[str, type], None, N
         p_type = as_bare_type(config_class.__annotations__[prop])
         if p_type is not None:
             yield prop, p_type
+
 
 def add_config_args(config_class, args: argparse.ArgumentParser) -> None:
     """Add all the configuration arguments to the argument parser.
@@ -78,6 +81,7 @@ def add_config_args(config_class, args: argparse.ArgumentParser) -> None:
                 help=help_str,
             )
 
+
 def apply_config_args(config_class: type, config, args):
     """Using args, anything that isn't set to None that matches as config
     option in `config_class` (e.g. TrainingConfig), update the config and return a
@@ -94,14 +98,28 @@ def apply_config_args(config_class: type, config, args):
     """
     # Start by making a copy of config for updating.
     r = config_class(**config.dict())
+    print(r)
 
     # Next, loop through all possible arguments from the training config.
     for prop, p_type in _good_config_args(config_class):
+        print(prop)
         # If the argument is set, then update the config.
         if getattr(args, prop) is not None:
             setattr(r, prop, getattr(args, prop))
 
+    # Update include_high_mass and include_low_mass based on flags
+    if args.include_high_mass and args.include_low_mass:
+        r.include_high_mass = True
+        r.include_low_mass = True
+    elif args.include_high_mass:
+        r.include_high_mass = True
+        r.include_low_mass = False
+    elif args.include_low_mass:
+        r.include_high_mass = False
+        r.include_low_mass = True
+    print(r)
     return r
+
 
 def find_training_result(
     model_to_do: str, continue_from: Optional[int] = None, base_dir: Path = Path(".")
@@ -117,7 +135,7 @@ def find_training_result(
         else:
             return model_dir / "00000"
 
-    # The model dir exists. Lets see how well we can do here.
+    # The model dir exists. Lets see hwo well we can do here.
     # If we have been given a continue_from directory, make sure it exists
     # and then use that.
     if continue_from is not None:
@@ -150,6 +168,7 @@ def find_training_result(
         biggest_run_number = 0
 
     return model_dir / f"{biggest_run_number:05d}"
+
 
 class HistoryTracker:
     "Keep together all the arrays we want to track per-epoch"
