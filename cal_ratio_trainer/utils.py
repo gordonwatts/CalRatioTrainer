@@ -98,26 +98,24 @@ def apply_config_args(config_class: type, config, args):
     """
     # Start by making a copy of config for updating.
     r = config_class(**config.dict())
-    print(r)
 
     # Next, loop through all possible arguments from the training config.
     for prop, p_type in _good_config_args(config_class):
-        print(prop)
         # If the argument is set, then update the config.
         if getattr(args, prop) is not None:
             setattr(r, prop, getattr(args, prop))
 
     # Update include_high_mass and include_low_mass based on flags
-    if args.include_high_mass and args.include_low_mass:
-        r.include_high_mass = True
-        r.include_low_mass = True
-    elif args.include_high_mass:
-        r.include_high_mass = True
-        r.include_low_mass = False
-    elif args.include_low_mass:
-        r.include_high_mass = False
-        r.include_low_mass = True
-    print(r)
+    if hasattr(args, 'include_high_mass') and hasattr(args, 'include_low_mass'):
+        if args.include_high_mass and args.include_low_mass:
+            r.include_high_mass = True
+            r.include_low_mass = True
+        elif args.include_high_mass:
+            r.include_high_mass = True
+            r.include_low_mass = False
+        elif args.include_low_mass:
+            r.include_high_mass = False
+            r.include_low_mass = True
     return r
 
 
