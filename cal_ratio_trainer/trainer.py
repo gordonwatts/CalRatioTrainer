@@ -418,7 +418,7 @@ def main():
     )
     parser_model_dump.add_argument(
         "training",
-        help="The training runs to analyze. Form is <training-name>/<number>/<epoch> "
+        help="The training runs to analyze. Form is <training-name>/<number> "
         "or a path to a JSON file.",
     )
     parser_model_dump.set_defaults(func=do_model_dump)

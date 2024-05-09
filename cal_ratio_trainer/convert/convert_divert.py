@@ -1,6 +1,7 @@
 import glob
 import logging
 import os
+import os
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
@@ -17,6 +18,7 @@ from cal_ratio_trainer.config import ConvertDiVertAnalysisConfig
 
 
 # Much of the code was copied directly from Alex Golub's code on gitlab.
+# Many thanks to their work for this!
 # Many thanks to their work for this!
 
 vector.register_awkward()
@@ -245,8 +247,7 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
         matches_one_down = ak.unflatten(
             to_match_objects, np.ones(len(to_match_objects), dtype=int)
         )
-        pairs = ak.cartesian(
-            {"jet": jet_index_list, "to_match": matches_one_down})
+        pairs = ak.cartesian({"jet": jet_index_list, "to_match": matches_one_down})
         mask = pairs.jet == pairs.to_match.jetIndex  # type: ignore
         # TODO: we should be able to determine this by looking at the jetIndex - single
         # number or list.
@@ -275,8 +276,7 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
     # Now we have all the bits. Switch to a per-jet view rather than a per-event view.
     jet_list = ak.flatten(sorted_data.jets)
     llp_list = (
-        None if "llps" not in sorted_data.fields else ak.flatten(
-            sorted_data.llps)
+        None if "llps" not in sorted_data.fields else ak.flatten(sorted_data.llps)
     )
     cluster_list = ak.flatten(matched_clusters)
     track_list = ak.flatten(matched_tracks)
@@ -285,8 +285,7 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
     # We also have to deal with the per-event view. Each row has to be
     # duplicated the right number of times.
 
-    event_x_jet = ak.cartesian(
-        {"event": sorted_data.event, "jet": sorted_data.jets})
+    event_x_jet = ak.cartesian({"event": sorted_data.event, "jet": sorted_data.jets})
     event_list = ak.flatten(event_x_jet.event)  # type: ignore
 
     # We need to drop the jetIndex column next - because it sometimes is a list,
@@ -315,11 +314,9 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
 
     mseg_deta_pos = mseg_list.etaPos - jet_list.eta  # type: ignore
     mseg_list["etaPos"] = mseg_deta_pos  # type: ignore
-    mseg_dphi_pos = rectify(np, mseg_list.phiPos -
-                            jet_list.phi)  # type: ignore
+    mseg_dphi_pos = rectify(np, mseg_list.phiPos - jet_list.phi)  # type: ignore
     mseg_list["phiPos"] = mseg_dphi_pos  # type: ignore
-    mseg_dphi_dir = rectify(np, mseg_list.phiDir -
-                            jet_list.phi)  # type: ignore
+    mseg_dphi_dir = rectify(np, mseg_list.phiDir - jet_list.phi)  # type: ignore
     mseg_list["phiDir"] = mseg_dphi_dir  # type: ignore
 
     # Next, lets pad, with zeros, the cluster, track, and mseg to the length we are
@@ -330,8 +327,7 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
 
     track_list_padded = ak.pad_none(track_list[:, 0:20], 20, axis=1)
     cluster_list_padded = ak.pad_none(cluster_list[:, 0:30], 30, axis=1)
-    mseg_list_padded = ak.pad_none(
-        mseg_list[:, 0:30], 30, axis=1)  # type: ignore
+    mseg_list_padded = ak.pad_none(mseg_list[:, 0:30], 30, axis=1)  # type: ignore
 
     # Next task is to split the padded arrays into their constituent columns.
     def split_array(array: ak.Array, name_prefix: str) -> pd.DataFrame:
@@ -352,22 +348,21 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
         return ak.to_dataframe(split_array).reset_index(drop=True)
 
     def prefix_array(array: ak.Array, name_prefix: str) -> ak.Array:
-        a = ak.Array(
-            {f"{name_prefix}_{col}": array[col] for col in array.fields})
+        a = ak.Array({f"{name_prefix}_{col}": array[col] for col in array.fields})
         return ak.to_dataframe(a).reset_index(drop=True)  # type: ignore
 
     split_track_list = split_array(track_list_padded, "track")  # type: ignore
-    split_cluster_list = split_array(
-        cluster_list_padded, "clus")  # type: ignore
+    split_cluster_list = split_array(cluster_list_padded, "clus")  # type: ignore
     split_mseg_list = split_array(mseg_list_padded, "MSeg")  # type: ignore
 
     df_jet_list = prefix_array(jet_list, "jet")
     df_llps_list = (
         # type: ignore
-        prefix_array(llp_list, "llp") if llp_list is not None else None
+        prefix_array(llp_list, "llp")
+        if llp_list is not None
+        else None
     )
-    df_event_list = ak.to_dataframe(
-        event_list).reset_index(drop=True)  # type: ignore
+    df_event_list = ak.to_dataframe(event_list).reset_index(drop=True)  # type: ignore
 
     # Finally combine the arrays  into a single very large DataFrame, and replace all
     # NaN's with 0's.
@@ -385,6 +380,7 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
     # Do the combination and some minor clean up.
     df = pd.concat(df_combine, axis=1)
     df_zeroed = df.replace(np.nan, 0.0)
+    return df_zeroed
     return df_zeroed
 
 
@@ -465,13 +461,12 @@ def bib_processing(
     # Make sure we are only working with events with a BIB in them and
     # that we have good jets.
     bib_events_mask = (
-        ak.num(data.hlt_jets[data.hlt_jets.isBIB == 1].pt,
-               axis=-1) > 0  # type: ignore
+        ak.num(data.hlt_jets[data.hlt_jets.isBIB == 1].pt, axis=-1) > 0  # type: ignore
     )
-    all_jets_masked = jets_masking(
-        data, min_jet_pt, max_jet_pt)  # type: ignore
+    all_jets_masked = jets_masking(data, min_jet_pt, max_jet_pt)  # type: ignore
     good_event_mask = bib_events_mask & (
-        ak.num(all_jets_masked, axis=1) > 0)  # type: ignore
+        ak.num(all_jets_masked, axis=1) > 0
+    )  # type: ignore
 
     data_with_bib = data[good_event_mask]
     jets_masked = all_jets_masked[good_event_mask]
@@ -570,8 +565,7 @@ def remake_by_replacing(data: ak.Array, **kwargs: Dict[str, ak.Array]) -> ak.Arr
     replacement = {c: data[c] for c in data.fields}
 
     # Now replace the ones we want to replace from the arguments:
-    white_list = ["event", "jets", "clusters",
-                  "tracks", "msegs", "llps", "hlt_jets"]
+    white_list = ["event", "jets", "clusters", "tracks", "msegs", "llps", "hlt_jets"]
     for k, v in kwargs.items():
         if k not in white_list:
             raise ValueError(
@@ -640,8 +634,7 @@ def load_divert_file(
 
             stem_len = len(name_stem)
             return ak.zip(
-                {c[stem_len:]: data[c]
-                    for c in data.fields if c.startswith(name_stem)},
+                {c[stem_len:]: data[c] for c in data.fields if c.startswith(name_stem)},
                 depth_limit=2,
                 with_name=with_name,
             )
@@ -653,16 +646,14 @@ def load_divert_file(
         msegs = zip_common_columns("MSeg_", with_name=None)
         llps = zip_common_columns("llp_") if "llp_pt" in data.fields else None
         hlt_jets = (
-            zip_common_columns(
-                "HLT_jet_") if "HLT_jet_pt" in data.fields else None
+            zip_common_columns("HLT_jet_") if "HLT_jet_pt" in data.fields else None
         )
 
         # Make sure jets are sorted. We will sort everything else later on
         # when we've eliminated potentially a lot of events we don't care
         # about.
         logging.debug("Sorting the jets")
-        sorted_jet_index = ak.argsort(
-            jets.pt, axis=1, ascending=False)  # type: ignore
+        sorted_jet_index = ak.argsort(jets.pt, axis=1, ascending=False)  # type: ignore
         sorted_jets = jets[sorted_jet_index]  # type: ignore
 
         # And build an array of all the columns that aren't part of anything.
@@ -739,13 +730,14 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
 
             # Construct the path to the output Parquet file by combining the 'parquet' directory,
             # the output directory path, and the filename with the '.parquet' extension
-            output_parquet_directory = output_dir_path / Path('parquet')
+            output_parquet_directory = output_dir_path / Path("parquet")
 
             # Create the parent directory for the output_parquet file if it doesn't exist already
             output_parquet_directory.mkdir(parents=True, exist_ok=True)
 
-            output_parquet = output_parquet_directory / \
-                file_path.with_suffix(".parquet").name
+            output_parquet = (
+                output_parquet_directory / file_path.with_suffix(".parquet").name
+            )
 
             if output_file.exists():
                 logging.info(f"File {output_file} already exists. Skipping.")
@@ -763,7 +755,7 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                 # Now run the requested processing
                 try:
                     # Check if the file is a parquet file, load that if so:
-                    if os.path.splitext(file_path.name)[1] == '.parquet':
+                    if os.path.splitext(file_path.name)[1] == ".parquet":
                         data = ak.from_parquet(file_path)
 
                     # Load up the trees with the proper branches.
@@ -780,7 +772,8 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                         )
                         assert branches is not None
                         data = load_divert_file(
-                            file_path, branches, config.rename_branches)
+                            file_path, branches, config.rename_branches
+                        )
                         # Saving array as a parquet file for future work
                         if data is not None:
                             ak.to_parquet(data, output_parquet)
@@ -815,8 +808,7 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                         )
                     else:
                         logging.debug("this is bad")
-                        raise ValueError(
-                            f"Unknown data type {f_info.data_type}")
+                        raise ValueError(f"Unknown data type {f_info.data_type}")
 
                     if result is None:
                         logging.warning(
@@ -839,5 +831,4 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                     continue
 
         if not found_file:
-            raise ValueError(
-                f"Could not find file matching {f_info.input_file}")
+            raise ValueError(f"Could not find file matching {f_info.input_file}")
