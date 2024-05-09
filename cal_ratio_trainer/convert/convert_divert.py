@@ -374,6 +374,7 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
     df = pd.concat(df_combine, axis=1)
     df_zeroed = df.replace(np.nan, 0.0)
     return df_zeroed 
+    return df_zeroed 
 
 
 def signal_processing(
@@ -393,6 +394,7 @@ def signal_processing(
         and a label column.
     """
     # Only look at "good" jets.
+
 
     jets_masked = jets_masking(data, min_jet_pt, max_jet_pt)
 
@@ -591,6 +593,7 @@ def load_divert_file(
     """
     logging.debug(f"Loading file {file_path}")
     
+    
     with uproot.open(file_path) as in_file:  # type: ignore
         # Check that we don't have an empty file.
         tree = in_file["trees_DV_"]
@@ -736,6 +739,7 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                         f"File {output_file} already being processed. Skipping."
                     )
                     continue
+                
                 
                 # Now run the requested processing
                 try:
