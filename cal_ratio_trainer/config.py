@@ -79,8 +79,7 @@ def _load_config_from_file(config_type, p: Path):
 def load_config(config_type: type, p: Optional[Path] = None):
     """Load a Config from a file, taking into account defaults."""
     r = _load_config_from_file(
-        config_type, Path(__file__).parent /
-        f"{config_default_file[config_type]}.yaml"
+        config_type, Path(__file__).parent / f"{config_default_file[config_type]}.yaml"
     )
 
     if p is not None:
