@@ -18,6 +18,7 @@ from cal_ratio_trainer.config import ConvertDiVertAnalysisConfig
 
 # Much of the code was copied directly from Alex Golub's code on gitlab.
 # Many thanks to their work for this!
+# Many thanks to their work for this!
 
 vector.register_awkward()
 
@@ -335,13 +336,15 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
 
         split_array = ak.Array(
             {
-                f"{name_prefix}_{col}_{i_col}": array[col][:, i_col]  # type: ignore
+                # type: ignore
+                f"{name_prefix}_{col}_{i_col}": array[col][:, i_col]
                 for i_col in range(0, col_elements)
                 for col in array.fields
                 if col not in ignore_columns
             }
         )
-        return ak.to_dataframe(split_array).reset_index(drop=True)  # type: ignore
+        # type: ignore
+        return ak.to_dataframe(split_array).reset_index(drop=True)
 
     def prefix_array(array: ak.Array, name_prefix: str) -> ak.Array:
         a = ak.Array({f"{name_prefix}_{col}": array[col] for col in array.fields})
@@ -353,7 +356,10 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
 
     df_jet_list = prefix_array(jet_list, "jet")
     df_llps_list = (
-        prefix_array(llp_list, "llp") if llp_list is not None else None  # type: ignore
+        # type: ignore
+        prefix_array(llp_list, "llp")
+        if llp_list is not None
+        else None
     )
     df_event_list = ak.to_dataframe(event_list).reset_index(drop=True)  # type: ignore
 
@@ -373,8 +379,8 @@ def column_guillotine(data: ak.Array) -> pd.DataFrame:
     # Do the combination and some minor clean up.
     df = pd.concat(df_combine, axis=1)
     df_zeroed = df.replace(np.nan, 0.0)
-    return df_zeroed 
-    return df_zeroed 
+    return df_zeroed
+    return df_zeroed
 
 
 def signal_processing(
@@ -394,7 +400,6 @@ def signal_processing(
         and a label column.
     """
     # Only look at "good" jets.
-
 
     jets_masked = jets_masking(data, min_jet_pt, max_jet_pt)
 
@@ -458,7 +463,9 @@ def bib_processing(
         ak.num(data.hlt_jets[data.hlt_jets.isBIB == 1].pt, axis=-1) > 0  # type: ignore
     )
     all_jets_masked = jets_masking(data, min_jet_pt, max_jet_pt)  # type: ignore
-    good_event_mask = bib_events_mask & (ak.num(all_jets_masked, axis=1) > 0)  # type: ignore
+    good_event_mask = bib_events_mask & (
+        ak.num(all_jets_masked, axis=1) > 0
+    )  # type: ignore
 
     data_with_bib = data[good_event_mask]
     jets_masked = all_jets_masked[good_event_mask]
@@ -467,7 +474,8 @@ def bib_processing(
         return None
 
     # and we want to match the BIB HLT jets with the actual jets.
-    bib_jets = data_with_bib.hlt_jets[data_with_bib.hlt_jets.isBIB == 1]  # type: ignore
+    # type: ignore
+    bib_jets = data_with_bib.hlt_jets[data_with_bib.hlt_jets.isBIB == 1]
     matched_bib_jets = nearest(bib_jets, jets_masked, axis=1)  # type: ignore
 
     rebuilt_data = remake_by_replacing(
@@ -575,6 +583,7 @@ def remake_by_replacing(data: ak.Array, **kwargs: Dict[str, ak.Array]) -> ak.Arr
 
     return new_data[ak.num(new_data.jets.pt, axis=-1) > 0]  # type: ignore
 
+
 def load_divert_file(
     file_path: Path, branches: List[str], rename_branches: Optional[Dict[str, str]]
 ) -> Optional[ak.Array]:
@@ -592,8 +601,7 @@ def load_divert_file(
         file has 0 events.
     """
     logging.debug(f"Loading file {file_path}")
-    
-    
+
     with uproot.open(file_path) as in_file:  # type: ignore
         # Check that we don't have an empty file.
         tree = in_file["trees_DV_"]
@@ -718,14 +726,17 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
             # The output file is with pkl on it, and in the output directory.
             assert config.output_path is not None
             output_file = output_dir_path / file_path.with_suffix(".pkl").name
-            
+
             # Construct the path to the output Parquet file by combining the 'parquet' directory,
             # the output directory path, and the filename with the '.parquet' extension
-            output_parquet = Path('parquet') / output_dir_path / file_path.with_suffix(".parquet").name
-            
-            # Create the parent directory for the output_parquet file if it doesn't exist already 
-            print("Creating the parquet directory")
-            output_parquet.parent.mkdir(parents=True, exist_ok=True)
+            output_parquet_directory = output_dir_path / Path("parquet")
+
+            # Create the parent directory for the output_parquet file if it doesn't exist already
+            output_parquet_directory.mkdir(parents=True, exist_ok=True)
+
+            output_parquet = (
+                output_parquet_directory / file_path.with_suffix(".parquet").name
+            )
 
             if output_file.exists():
                 logging.info(f"File {output_file} already exists. Skipping.")
@@ -739,14 +750,13 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                         f"File {output_file} already being processed. Skipping."
                     )
                     continue
-                
-                
+
                 # Now run the requested processing
                 try:
                     # Check if the file is a parquet file, load that if so:
-                    if os.path.splitext(file_path.name)[1] == '.parquet':
+                    if os.path.splitext(file_path.name)[1] == ".parquet":
                         data = ak.from_parquet(file_path)
-                    
+
                     # Load up the trees with the proper branches.
                     # Assumed to be a root file
                     else:
@@ -760,7 +770,9 @@ def convert_divert(config: ConvertDiVertAnalysisConfig):
                             )
                         )
                         assert branches is not None
-                        data = load_divert_file(file_path, branches, config.rename_branches)
+                        data = load_divert_file(
+                            file_path, branches, config.rename_branches
+                        )
                         # Saving array as a parquet file for future work
                         if data is not None:
                             ak.to_parquet(data, output_parquet)

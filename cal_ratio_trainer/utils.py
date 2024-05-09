@@ -105,6 +105,17 @@ def apply_config_args(config_class: type, config, args):
         if getattr(args, prop) is not None:
             setattr(r, prop, getattr(args, prop))
 
+    # Update include_high_mass and include_low_mass based on flags
+    if hasattr(args, 'include_high_mass') and hasattr(args, 'include_low_mass'):
+        if args.include_high_mass and args.include_low_mass:
+            r.include_high_mass = True
+            r.include_low_mass = True
+        elif args.include_high_mass:
+            r.include_high_mass = True
+            r.include_low_mass = False
+        elif args.include_low_mass:
+            r.include_high_mass = False
+            r.include_low_mass = True
     return r
 
 

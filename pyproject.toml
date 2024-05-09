@@ -10,6 +10,7 @@ dependencies = [
     "PyYAML",
     "fsspec[ssh,http]",
     "atlas-mpl-style",
+    "pyarrow",
 ] # Dependencies are for installing on a pre-made TF container
 
 [project.optional-dependencies]

@@ -57,7 +57,8 @@ def do_plot(args):
     if len(args.input_files) > 0:
         input_files: List[plot_file] = []
         for i, f_name in enumerate(args.input_files):
-            assert isinstance(f_name, str), f"Input file {f_name} is not a string."
+            assert isinstance(
+                f_name, str), f"Input file {f_name} is not a string."
             if "=" in f_name:
                 name, f = f_name.split("=", 2)
             else:
@@ -103,7 +104,8 @@ def do_cpp_convert(args):
     # The training epochs are special. Analyze is specified.
     if len(args.training) > 0:
         name, run, epoch = args.training.split("/")
-        a.run_to_convert = epoch_spec(name=name, run=int(run), epoch=int(epoch))
+        a.run_to_convert = epoch_spec(
+            name=name, run=int(run), epoch=int(epoch))
 
     from cal_ratio_trainer.convert.convert_json import convert_file
 
@@ -154,7 +156,8 @@ def do_xaod_convert(args):
 
     for t in args.add_trainings:
         name, run, epoch = t.split("/")
-        a.add_training.append(epoch_spec(name=name, run=int(run), epoch=int(epoch)))
+        a.add_training.append(epoch_spec(
+            name=name, run=int(run), epoch=int(epoch)))
 
     # And run the conversion.
     from cal_ratio_trainer.convert.convert_xaod import convert_xaod
@@ -205,7 +208,8 @@ def do_build_main_training(args):
 def do_resample(args):
     from cal_ratio_trainer.convert.resample import resample_training_file
 
-    resample_training_file(args.input_file, args.output_file, args.fraction, cache)
+    resample_training_file(
+        args.input_file, args.output_file, args.fraction, cache)
 
 
 def main():
@@ -221,7 +225,8 @@ def main():
     parser.add_argument("-v", "--verbose", action="count", default=0)
 
     # Sub-command train to actually run the training, using a config file to load.
-    parser_train = subparsers.add_parser("train", help="Train the CalRatio RNN model")
+    parser_train = subparsers.add_parser(
+        "train", help="Train the CalRatio RNN model")
     parser_train.add_argument(
         "--config",
         "-c",
