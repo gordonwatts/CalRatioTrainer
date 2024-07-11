@@ -75,17 +75,35 @@ col_mseg_names = sum([_generate_col_mseg_names(i) for i in range(30)], [])
 # list of cluster, track, and mseg names
 col_cluster_track_mseg_names = col_cluster_names + col_track_names + col_mseg_names
 
-
-col_jet_names = ["jet_pt", "jet_eta", "jet_phi"]
+col_jet_names = [
+    "jet_pt",
+    "jet_eta",
+    "jet_phi",
+    "jet_isClean_LooseBadLLP",
+    "jet_nn_calRatio_main_sig_highMass_v3Adv",
+    "jet_nn_calRatio_main_sig_lowMass_v3Adv",
+    "jet_nn_calRatio_main_bib_highMass_v3Adv",
+    "jet_nn_calRatio_main_bib_lowMass_v3Adv",
+    "jet_nn_calRatio_main_qcd_highMass_v3Adv",
+    "jet_nn_calRatio_main_qcd_lowMass_v3Adv",
+]
 
 
 col_llp_mass_names = ["llp_mH", "llp_mS"]
 
-event_level_names = [
-    "eventNumber",
-    "mcEventWeight",
-    "label",
-]
+event_level_names = ["label", "eventNumber", "mcEventWeight", "runNumber"]
+
+col_llp_names = ["llp_eta", "llp_phi", "llp_Lxy", "llp_Lz", "llp_pt"]
+
+print(
+    len(
+        event_level_names
+        + col_llp_mass_names
+        + col_jet_names
+        + col_cluster_track_mseg_names
+        + col_llp_names
+    )
+)
 
 
 class EventType(Enum):
