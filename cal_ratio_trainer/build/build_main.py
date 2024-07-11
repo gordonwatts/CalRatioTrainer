@@ -1,7 +1,6 @@
 import logging
 from pathlib import Path
 from typing import Callable, Optional, Tuple, List
-from enum import Enum
 import numpy as np
 import pandas as pd
 from cal_ratio_trainer.config import BuildMainTrainingConfig
