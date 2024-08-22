@@ -380,6 +380,7 @@ def plot_prediction_histograms_linear(
     ax.set_ylabel("Fraction of Events", loc="top")
 
     ax.set_xlim(0.0, 1.0)
+    ax.set_ylim(0.0, 1.2)
     # ax.set_ylim(0.1, 500000)
     ax.legend(loc="upper right")
     ks_sig = -1
@@ -452,6 +453,7 @@ def plot_prediction_histograms_linear(
     ax.set_xlabel("SM Multijet NN score", loc="right")
     ax.set_ylabel("Fraction of Events", loc="top")
     ax.set_xlim(0.0, 1.0)
+    ax.set_ylim(0.0, 1.2)
     # ax.set_ylim(0.1, 500000)
     ax.legend(loc="upper right")
     ks_qcd = -1
@@ -522,6 +524,7 @@ def plot_prediction_histograms_linear(
     ax.set_xlabel("BIB NN weight", loc="right")
     ax.set_ylabel("Fraction of Events", loc="top")
     ax.set_xlim(0.0, 1.0)
+    ax.set_ylim(0.0, 1.2)
     # ax.set_ylim(0.1, 500000)
     ax.legend(loc="upper right")
     ks_bib = -1
