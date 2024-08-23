@@ -7,7 +7,6 @@ from cal_ratio_trainer.config import BuildMainTrainingConfig
 import dask.dataframe as dd
 import dask
 from cal_ratio_trainer.common.column_names import cols
-import sys
 
 # adding common directory to system path
 # sys.path.insert(0, "~/CalRatioTrainer/cal_ratio_trainer/common")
