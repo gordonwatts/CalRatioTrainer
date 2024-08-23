@@ -92,7 +92,7 @@ col_llp_mass_names = ["llp_mH", "llp_mS"]
 event_level_names = ["label", "eventNumber", "mcEventWeight", "runNumber"]
 
 col_llp_names = ["llp_eta", "llp_phi", "llp_Lxy", "llp_Lz", "llp_pt"]
-cols = (
+all_cols = (
     event_level_names
     + col_llp_mass_names
     + col_jet_names

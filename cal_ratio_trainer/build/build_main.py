@@ -6,10 +6,7 @@ import pandas as pd
 from cal_ratio_trainer.config import BuildMainTrainingConfig
 import dask.dataframe as dd
 import dask
-from cal_ratio_trainer.common.column_names import cols
-
-# adding common directory to system path
-# sys.path.insert(0, "~/CalRatioTrainer/cal_ratio_trainer/common")
+from cal_ratio_trainer.common.column_names import all_cols
 
 
 def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
@@ -218,7 +215,7 @@ def pickle_loader(drop_branches: Optional[List[str]]) -> Callable[[Path], pd.Dat
             inplace=True,
         )
         # reordering the columns based on the signal df column order
-        df = df[cols]
+        df = df[all_cols]
 
         # Get rid of branches that should not, perhaps, have been
         # written out in the first place!
