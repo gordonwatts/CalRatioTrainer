@@ -4,7 +4,6 @@
 from typing import List
 from enum import Enum
 
-
 col_cluster_names_raw = [
     "clus_pt",
     "clus_eta",
@@ -94,20 +93,10 @@ col_llp_mass_names = ["llp_mH", "llp_mS"]
 event_level_names = ["label", "eventNumber", "mcEventWeight", "runNumber"]
 
 col_llp_names = ["llp_eta", "llp_phi", "llp_Lxy", "llp_Lz", "llp_pt"]
-
-print(
-    len(
-        event_level_names
-        + col_llp_mass_names
-        + col_jet_names
-        + col_cluster_track_mseg_names
-        + col_llp_names
-    )
+cols = (
+    event_level_names
+    + col_llp_mass_names
+    + col_jet_names
+    + col_cluster_track_mseg_names
+    + col_llp_names
 )
-
-
-class EventType(Enum):
-    "The magic numbers for data labeling"
-    QCD = 0
-    signal = 1
-    BIB = 2

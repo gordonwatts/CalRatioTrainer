@@ -6,106 +6,11 @@ import pandas as pd
 from cal_ratio_trainer.config import BuildMainTrainingConfig
 import dask.dataframe as dd
 import dask
+from cal_ratio_trainer.common.column_names import cols
+import sys
 
-# Building the list of column names
-# Naively I want to do this just once so I don't need to reference it every time
-# I read in a new file?
-col_cluster_names_raw = [
-    "clus_pt",
-    "clus_eta",
-    "clus_phi",
-    "clus_l1hcal",
-    "clus_l1ecal",
-    "clus_l2hcal",
-    "clus_l2ecal",
-    "clus_l3hcal",
-    "clus_l3ecal",
-    "clus_l4ecal",
-    "clus_l4hcal",
-    "clus_time",
-]
-
-
-def _generate_col_cluster_names(index: int) -> List[str]:
-    "Generate the column names by appending a _{index} to each column name"
-    return [f"{name}_{index}" for name in col_cluster_names_raw]
-
-
-col_track_names_raw = [
-    "track_pt",
-    "track_eta",
-    "track_phi",
-    "track_vertex_nParticles",
-    "track_d0",
-    "track_z0",
-    "track_chiSquared",
-    "track_PixelShared",
-    "track_SCTShared",
-    "track_PixelHoles",
-    "track_SCTHoles",
-    "track_PixelHits",
-    "track_SCTHits",
-]
-
-
-def _generate_col_track_names(index: int) -> List[str]:
-    "Generate the column names by appending a _{index} to each column name"
-    return [f"{name}_{index}" for name in col_track_names_raw]
-
-
-col_mseg_names_raw = [
-    "MSeg_etaPos",
-    "MSeg_phiPos",
-    "MSeg_etaDir",
-    "MSeg_phiDir",
-    "MSeg_chiSquared",
-    "MSeg_t0",
-]
-
-
-def _generate_col_mseg_names(index: int) -> List[str]:
-    "Generate the column names by appending a _{index} to each column name"
-    return [f"{name}_{index}" for name in col_mseg_names_raw]
-
-
-# List of all the cluster names from 0 to 29
-col_cluster_names = sum([_generate_col_cluster_names(i) for i in range(30)], [])
-
-# List of all the track names from 0 to 19
-col_track_names = sum([_generate_col_track_names(i) for i in range(20)], [])
-
-# List of all mseg names from 0 to 29
-col_mseg_names = sum([_generate_col_mseg_names(i) for i in range(30)], [])
-
-# list of cluster, track, and mseg names
-col_cluster_track_mseg_names = col_cluster_names + col_track_names + col_mseg_names
-
-col_jet_names = [
-    "jet_pt",
-    "jet_eta",
-    "jet_phi",
-    "jet_isClean_LooseBadLLP",
-    "jet_nn_calRatio_main_sig_highMass_v3Adv",
-    "jet_nn_calRatio_main_sig_lowMass_v3Adv",
-    "jet_nn_calRatio_main_bib_highMass_v3Adv",
-    "jet_nn_calRatio_main_bib_lowMass_v3Adv",
-    "jet_nn_calRatio_main_qcd_highMass_v3Adv",
-    "jet_nn_calRatio_main_qcd_lowMass_v3Adv",
-]
-
-
-col_llp_mass_names = ["llp_mH", "llp_mS"]
-
-event_level_names = ["label", "eventNumber", "mcEventWeight", "runNumber"]
-
-col_llp_names = ["llp_eta", "llp_phi", "llp_Lxy", "llp_Lz", "llp_pt"]
-cols = (
-    event_level_names
-    + col_llp_mass_names
-    + col_jet_names
-    + col_cluster_track_mseg_names
-    + col_llp_names
-)
+# adding common directory to system path
+# sys.path.insert(0, "~/CalRatioTrainer/cal_ratio_trainer/common")
 
 
 def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
