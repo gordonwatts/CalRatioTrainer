@@ -2,6 +2,7 @@
 # NOTE: The ordering is important, as are the numbers (that are hardwired)!
 # Then network is built expecting this - so not change them!!!
 from typing import List
+from enum import Enum
 
 col_cluster_names_raw = [
     "clus_pt",
@@ -99,3 +100,10 @@ all_cols = (
     + col_cluster_track_mseg_names
     + col_llp_names
 )
+
+
+class EventType(Enum):
+    "The magic numbers for data labeling"
+    QCD = 0
+    signal = 1
+    BIB = 2
