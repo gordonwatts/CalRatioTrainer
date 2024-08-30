@@ -6,6 +6,7 @@ import pandas as pd
 from cal_ratio_trainer.config import BuildMainTrainingConfig
 import dask.dataframe as dd
 import dask
+
 from cal_ratio_trainer.common.column_names import all_cols
 
 
@@ -214,8 +215,15 @@ def pickle_loader(drop_branches: Optional[List[str]]) -> Callable[[Path], pd.Dat
             },
             inplace=True,
         )
-        # reordering the columns based on the signal df column order
-        df = df[all_cols]
+        
+        df.rename(
+            columns={
+            col: col.replace("nn_", "") for col in df.columns if col.startswith("nn_")
+            },
+        inplace=True,
+        )
+
+        df = df[all_cols]   
 
         # Get rid of branches that should not, perhaps, have been
         # written out in the first place!
@@ -243,6 +251,7 @@ def build_main_training(config: BuildMainTrainingConfig):
     df: Optional[pd.DataFrame] = None
     assert config.input_files is not None, "No input files specified"
 
+    # column list being built off of the column list of the first dataset we scan
     for f_info in config.input_files:
         # Use the f_info.input_file as a "glob" expression and loop over all found
         # files. Since parent directories might contain the glob character, we need to
@@ -294,6 +303,7 @@ def build_main_training(config: BuildMainTrainingConfig):
                 )
 
         file_df = processed_ddf.compute()  # type: ignore
+
         df = file_df if df is None else pd.concat([df, file_df])
         logging.debug(f"  Total events in cumulative dataframe is: {len(df)}")
 
