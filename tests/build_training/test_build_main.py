@@ -11,7 +11,7 @@ def test_build_main_one_file_old(tmp_path, caplog):
     c = BuildMainTrainingConfig(
         input_files=[
             training_input_file(
-                input_file=Path("tests/data/sig_311421_600_50_new.pkl"), num_events=None
+                input_file=Path("tests/data/sig_311424_600_275.pkl"), num_events=None
             )
         ],
         output_file=out_file,
