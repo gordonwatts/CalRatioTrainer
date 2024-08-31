@@ -249,7 +249,6 @@ def build_main_training(config: BuildMainTrainingConfig):
     df: Optional[pd.DataFrame] = None
     assert config.input_files is not None, "No input files specified"
 
-    # column list being built off of the column list of the first dataset we scan
     for f_info in config.input_files:
         # Use the f_info.input_file as a "glob" expression and loop over all found
         # files. Since parent directories might contain the glob character, we need to
