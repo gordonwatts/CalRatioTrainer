@@ -79,12 +79,6 @@ col_jet_names = [
     "jet_eta",
     "jet_phi",
     "jet_isClean_LooseBadLLP",
-    "jet_nn_calRatio_main_sig_highMass_v3Adv",
-    "jet_nn_calRatio_main_sig_lowMass_v3Adv",
-    "jet_nn_calRatio_main_bib_highMass_v3Adv",
-    "jet_nn_calRatio_main_bib_lowMass_v3Adv",
-    "jet_nn_calRatio_main_qcd_highMass_v3Adv",
-    "jet_nn_calRatio_main_qcd_lowMass_v3Adv",
 ]
 
 

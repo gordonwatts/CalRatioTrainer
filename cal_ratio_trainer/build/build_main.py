@@ -183,6 +183,10 @@ def pickle_loader(drop_branches: Optional[List[str]]) -> Callable[[Path], pd.Dat
         """
         df = pd.read_pickle(f)  # type: pd.DataFrame
 
+        # checking if the dataframe is empty
+        if len(df) == 0:
+            return df
+
         # Rename any columns
         # TODO: Remove this code once understand how this happened upstream.
         # See issue https://github.com/gordonwatts/CalRatioTrainer/issues/116
