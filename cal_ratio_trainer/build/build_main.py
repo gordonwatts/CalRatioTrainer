@@ -216,15 +216,6 @@ def pickle_loader(drop_branches: Optional[List[str]]) -> Callable[[Path], pd.Dat
             inplace=True,
         )
 
-        df.rename(
-            columns={
-                col: col.replace("nn_", "")
-                for col in df.columns
-                if col.startswith("nn_")
-            },
-            inplace=True,
-        )
-
         df = df[all_cols]
 
         # Get rid of branches that should not, perhaps, have been

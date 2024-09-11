@@ -78,7 +78,6 @@ col_jet_names = [
     "jet_pt",
     "jet_eta",
     "jet_phi",
-    "jet_isClean_LooseBadLLP",
 ]
 
 
