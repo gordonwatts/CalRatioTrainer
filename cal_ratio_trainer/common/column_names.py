@@ -4,7 +4,6 @@
 from typing import List
 from enum import Enum
 
-
 col_cluster_names_raw = [
     "clus_pt",
     "clus_eta",
@@ -75,17 +74,25 @@ col_mseg_names = sum([_generate_col_mseg_names(i) for i in range(30)], [])
 # list of cluster, track, and mseg names
 col_cluster_track_mseg_names = col_cluster_names + col_track_names + col_mseg_names
 
-
-col_jet_names = ["jet_pt", "jet_eta", "jet_phi"]
+col_jet_names = [
+    "jet_pt",
+    "jet_eta",
+    "jet_phi",
+]
 
 
 col_llp_mass_names = ["llp_mH", "llp_mS"]
 
-event_level_names = [
-    "eventNumber",
-    "mcEventWeight",
-    "label",
-]
+event_level_names = ["label", "eventNumber", "mcEventWeight", "runNumber"]
+
+col_llp_names = ["llp_eta", "llp_phi", "llp_Lxy", "llp_Lz", "llp_pt"]
+all_cols = (
+    event_level_names
+    + col_llp_mass_names
+    + col_jet_names
+    + col_cluster_track_mseg_names
+    + col_llp_names
+)
 
 
 class EventType(Enum):

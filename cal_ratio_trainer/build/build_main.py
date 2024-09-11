@@ -7,6 +7,8 @@ from cal_ratio_trainer.config import BuildMainTrainingConfig
 import dask.dataframe as dd
 import dask
 
+from cal_ratio_trainer.common.column_names import all_cols
+
 
 def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
     # Felix has code that makes it so all of them have the same amount of jets
@@ -120,15 +122,12 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
     df.loc[:, filter_track_pt] = df[filter_track_pt].divide(
         (max_pT - min_pT), axis="index"
     )
-    # print(df[filter_track_pt])
 
     # df[filter_track_vertex_z] = df[filter_track_vertex_z].divide( (100), axis='index')
-    # print("1")
 
     # SCALE Track z0
     filter_track_z0 = [col for col in df if col.startswith("track_z0")]  # type: ignore
     df.loc[:, filter_track_z0] = df[filter_track_z0].divide(250, axis="index")
-    # print("2")
 
     # Add all etas weighted by pT, then make column that is 1 if positive, -1 if
     # negative
@@ -145,7 +144,6 @@ def pre_process(df: pd.DataFrame, min_pT: float, max_pT: float):
     df.loc[:, filter_track_eta] = df[filter_track_eta].multiply(
         track_sign, axis="index"
     )
-    # print("4")
 
     return df
 
@@ -185,6 +183,10 @@ def pickle_loader(drop_branches: Optional[List[str]]) -> Callable[[Path], pd.Dat
         """
         df = pd.read_pickle(f)  # type: pd.DataFrame
 
+        # checking if the dataframe is empty
+        if len(df) == 0:
+            return df
+
         # Rename any columns
         # TODO: Remove this code once understand how this happened upstream.
         # See issue https://github.com/gordonwatts/CalRatioTrainer/issues/116
@@ -213,6 +215,8 @@ def pickle_loader(drop_branches: Optional[List[str]]) -> Callable[[Path], pd.Dat
             },
             inplace=True,
         )
+
+        df = df[all_cols]
 
         # Get rid of branches that should not, perhaps, have been
         # written out in the first place!
@@ -291,6 +295,7 @@ def build_main_training(config: BuildMainTrainingConfig):
                 )
 
         file_df = processed_ddf.compute()  # type: ignore
+
         df = file_df if df is None else pd.concat([df, file_df])
         logging.debug(f"  Total events in cumulative dataframe is: {len(df)}")
 

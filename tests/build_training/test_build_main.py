@@ -109,7 +109,7 @@ def test_build_clus_pt_0(tmp_path, caplog):
     assert out_file.exists()
     df = pd.read_pickle(out_file)
     # TODO: if we reverse sorting, then this perhaps should be 0 not 6.
-    assert len(df[df.clus_pt_6 > 0.1]) > 1
+    assert len(df[df.clus_pt_0 > 0.1]) > 1
 
 
 def test_build_sig_has_llp_columns(tmp_path, caplog):
