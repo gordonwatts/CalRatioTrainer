@@ -18,7 +18,6 @@ from cal_ratio_trainer.config import ConvertDiVertAnalysisConfig
 
 # Much of the code was copied directly from Alex Golub's code on gitlab.
 # Many thanks to their work for this!
-# Many thanks to their work for this!
 
 vector.register_awkward()
 
@@ -436,7 +435,7 @@ def signal_processing(
     big_df.insert(0, "llp_mH", float(llp_mH))
     big_df.insert(0, "llp_mS", float(llp_mS))
 
-    # creating the label column, filled with 0s because we're working with signal
+    # creating the label column, filled with 1s because we're working with signal
     big_df.insert(0, "label", EventType.signal.value)
 
     # changing the mcEVentWeight to be all 1, matching what Felix does
