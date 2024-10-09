@@ -204,58 +204,26 @@ def low_or_high_pt_selection_train(
             | ((Y == 1) & (Z["llp_mH"] == 125))
             | ((Y == 1) & (Z["llp_mH"] == 200))
         ]
+        sig_length = len(signal_X)
+        qcd_X = (X.loc[Y == 0]).sample(n=sig_length, random_state=42, replace=False)
+        qcd_Y = Y.loc[Y == 0].sample(n=sig_length, random_state=42, replace=False)
+        qcd_Z = Z.loc[Y == 0].sample(n=sig_length, random_state=42, replace=False)
+        qcd_weights = weights.loc[Y == 0].sample(
+            n=sig_length, random_state=42, replace=False
+        )
+        qcd_mc_weights = mc_weights.loc[Y == 0].sample(
+            n=sig_length, random_state=42, replace=False
+        )
 
-        qcd_X = X.loc[
-            ((Y == 0) & (Z["llp_mH"] == 60))
-            | ((Y == 0) & (Z["llp_mH"] == 125))
-            | ((Y == 0) & (Z["llp_mH"] == 200))
-        ]
-        qcd_Y = Y.loc[
-            ((Y == 0) & (Z["llp_mH"] == 60))
-            | ((Y == 0) & (Z["llp_mH"] == 125))
-            | ((Y == 0) & (Z["llp_mH"] == 200))
-        ]
-        qcd_Z = Z.loc[
-            ((Y == 0) & (Z["llp_mH"] == 60))
-            | ((Y == 0) & (Z["llp_mH"] == 125))
-            | ((Y == 0) & (Z["llp_mH"] == 200))
-        ]
-        qcd_weights = weights.loc[
-            ((Y == 0) & (Z["llp_mH"] == 60))
-            | ((Y == 0) & (Z["llp_mH"] == 125))
-            | ((Y == 0) & (Z["llp_mH"] == 200))
-        ]
-        qcd_mc_weights = mc_weights.loc[
-            ((Y == 0) & (Z["llp_mH"] == 60))
-            | ((Y == 0) & (Z["llp_mH"] == 125))
-            | ((Y == 0) & (Z["llp_mH"] == 200))
-        ]
-
-        bib_X = X.loc[
-            ((Y == 2) & (Z["llp_mH"] == 60))
-            | ((Y == 2) & (Z["llp_mH"] == 125))
-            | ((Y == 2) & (Z["llp_mH"] == 200))
-        ]
-        bib_Y = Y.loc[
-            ((Y == 2) & (Z["llp_mH"] == 60))
-            | ((Y == 2) & (Z["llp_mH"] == 125))
-            | ((Y == 2) & (Z["llp_mH"] == 200))
-        ]
-        bib_Z = Z.loc[
-            ((Y == 2) & (Z["llp_mH"] == 60))
-            | ((Y == 2) & (Z["llp_mH"] == 125))
-            | ((Y == 2) & (Z["llp_mH"] == 200))
-        ]
-        bib_weights = weights.loc[
-            ((Y == 2) & (Z["llp_mH"] == 60))
-            | ((Y == 2) & (Z["llp_mH"] == 125))
-            | ((Y == 2) & (Z["llp_mH"] == 200))
-        ]
-        bib_mc_weights = mc_weights.loc[
-            ((Y == 2) & (Z["llp_mH"] == 60))
-            | ((Y == 2) & (Z["llp_mH"] == 125))
-            | ((Y == 2) & (Z["llp_mH"] == 200))
-        ]
+        bib_X = (X.loc[Y == 2]).sample(n=sig_length, random_state=42, replace=False)
+        bib_Y = Y.loc[Y == 2].sample(n=sig_length, random_state=42, replace=False)
+        bib_Z = Z.loc[Y == 2].sample(n=sig_length, random_state=42, replace=False)
+        bib_weights = weights.loc[Y == 2].sample(
+            n=sig_length, random_state=42, replace=False
+        )
+        bib_mc_weights = mc_weights.loc[Y == 2].sample(
+            n=sig_length, random_state=42, replace=False
+        )
 
     elif highPt and not lowPt:
         signal_X = X.loc[
@@ -283,76 +251,30 @@ def low_or_high_pt_selection_train(
             | ((Y == 1) & (Z["llp_mH"] == 600))
             | ((Y == 1) & (Z["llp_mH"] == 1000))
         ]
+        sig_length = len(signal_X)
+        qcd_X = (X.loc[Y == 0]).sample(n=sig_length, random_state=42, replace=False)
+        qcd_Y = Y.loc[Y == 0].sample(n=sig_length, random_state=42, replace=False)
+        qcd_Z = Z.loc[Y == 0].sample(n=sig_length, random_state=42, replace=False)
+        qcd_weights = weights.loc[Y == 0].sample(
+            n=sig_length, random_state=42, replace=False
+        )
+        qcd_mc_weights = mc_weights.loc[Y == 0].sample(
+            n=sig_length, random_state=42, replace=False
+        )
 
-        qcd_X = X.loc[
-            ((Y == 0) & (Z["llp_mH"] == 400))
-            | ((Y == 0) & (Z["llp_mH"] == 600))
-            | ((Y == 0) & (Z["llp_mH"] == 1000))
-        ]
-        qcd_Y = Y.loc[
-            ((Y == 0) & (Z["llp_mH"] == 400))
-            | ((Y == 0) & (Z["llp_mH"] == 600))
-            | ((Y == 0) & (Z["llp_mH"] == 1000))
-        ]
-        qcd_Z = Z.loc[
-            ((Y == 0) & (Z["llp_mH"] == 400))
-            | ((Y == 0) & (Z["llp_mH"] == 600))
-            | ((Y == 0) & (Z["llp_mH"] == 1000))
-        ]
-        qcd_weights = weights.loc[
-            ((Y == 0) & (Z["llp_mH"] == 400))
-            | ((Y == 0) & (Z["llp_mH"] == 600))
-            | ((Y == 0) & (Z["llp_mH"] == 1000))
-        ]
-        qcd_mc_weights = mc_weights.loc[
-            ((Y == 0) & (Z["llp_mH"] == 400))
-            | ((Y == 0) & (Z["llp_mH"] == 600))
-            | ((Y == 0) & (Z["llp_mH"] == 1000))
-        ]
-
-        bib_X = X.loc[
-            ((Y == 2) & (Z["llp_mH"] == 400))
-            | ((Y == 2) & (Z["llp_mH"] == 600))
-            | ((Y == 2) & (Z["llp_mH"] == 1000))
-        ]
-        bib_Y = Y.loc[
-            ((Y == 2) & (Z["llp_mH"] == 400))
-            | ((Y == 2) & (Z["llp_mH"] == 600))
-            | ((Y == 2) & (Z["llp_mH"] == 1000))
-        ]
-        bib_Z = Z.loc[
-            ((Y == 2) & (Z["llp_mH"] == 400))
-            | ((Y == 2) & (Z["llp_mH"] == 600))
-            | ((Y == 2) & (Z["llp_mH"] == 1000))
-        ]
-        bib_weights = weights.loc[
-            ((Y == 2) & (Z["llp_mH"] == 400))
-            | ((Y == 2) & (Z["llp_mH"] == 600))
-            | ((Y == 2) & (Z["llp_mH"] == 1000))
-        ]
-        bib_mc_weights = mc_weights.loc[
-            ((Y == 2) & (Z["llp_mH"] == 400))
-            | ((Y == 2) & (Z["llp_mH"] == 600))
-            | ((Y == 2) & (Z["llp_mH"] == 1000))
-        ]
+        bib_X = (X.loc[Y == 2]).sample(n=sig_length, random_state=42, replace=False)
+        bib_Y = Y.loc[Y == 2].sample(n=sig_length, random_state=42, replace=False)
+        bib_Z = Z.loc[Y == 2].sample(n=sig_length, random_state=42, replace=False)
+        bib_weights = weights.loc[Y == 2].sample(
+            n=sig_length, random_state=42, replace=False
+        )
+        bib_mc_weights = mc_weights.loc[Y == 2].sample(
+            n=sig_length, random_state=42, replace=False
+        )
     else:
-        # Here we just train everything we have
+        # TO DO: fix this so that we're matching the lengths of signal/bib/qcd
+        # even if we're not doing low/high pT training
         return X, Y, Z, weights, mc_weights
-
-    signal_X, qcd_X = match_pandas_length(signal_X, qcd_X)
-    signal_X, bib_X = match_pandas_length(signal_X, bib_X)
-    signal_Y, qcd_Y = match_pandas_length(signal_Y, qcd_Y)
-    signal_Y, bib_Y = match_pandas_length(signal_Y, bib_Y)
-    signal_Z, qcd_Z = match_pandas_length(signal_Z, qcd_Z)
-    signal_Z, bib_Z = match_pandas_length(signal_Z, bib_Z)
-    signal_weights, qcd_weights = match_pandas_length(signal_weights, qcd_weights)
-    signal_weights, bib_weights = match_pandas_length(signal_weights, bib_weights)
-    signal_mc_weights, qcd_mc_weights = match_pandas_length(
-        signal_mc_weights, qcd_mc_weights
-    )
-    signal_mc_weights, bib_mc_weights = match_pandas_length(
-        signal_mc_weights, bib_mc_weights
-    )
 
     X = pd.concat([qcd_X, signal_X, bib_X])  # type: ignore
     Y = pd.concat([qcd_Y, signal_Y, bib_Y])  # type: ignore
