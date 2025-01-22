@@ -494,30 +494,6 @@ def main():
     add_config_args(ScorePickleConfig, parser_score)
     parser_score.set_defaults(func=do_score_pkl)
 
-    # The `resample` command which takes an input and output training file
-    # and a sampling fraction (0.0-1.0) and resamples the input file to the
-    # output file.
-    parser_rgitesample = subparsers.add_parser(
-        "resample",
-        help="Resample a training (pkl) file by some fraction",
-    )
-    parser_resample.add_argument(
-        "input_file",
-        help="The input file to resample (a URL we can use to get at the file)",
-        type=str,
-    )
-    parser_resample.add_argument(
-        "output_file",
-        help="The output file to write",
-        type=Path,
-    )
-    parser_resample.add_argument(
-        "fraction",
-        help="The fraction of events to keep (value between 0.0 and 1.0)",
-        type=float,
-    )
-    parser_resample.set_defaults(func=do_resample)
-
     # Parse the command line arguments
     args = parser.parse_args()
 

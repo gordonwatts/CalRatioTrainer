@@ -182,6 +182,7 @@ class DiVertFileType(str, Enum):
     qcd = "qcd"
     bib = "bib"
 
+
 class ScoreDiVertAnalysisConfig(BaseModel):
     "Configuration to score a particular model on a divert analysis file"
 
@@ -214,6 +215,7 @@ class DiVertAnalysisInputFile(BaseModel):
         " signal file.",
         default=None,
     )
+
 
 class ConvertDiVertAnalysisConfig(BaseModel):
     "Configuration for converting a divertanalysis output file"
@@ -365,6 +367,7 @@ class BuildMainTrainingConfig(BaseModel):
         default=None,
     )
 
+
 class ScorePickleConfig(BaseModel):
     "Configuration to score a particular model on a pickle file"
     input_files: Optional[List[Path]] = Field(
@@ -379,6 +382,7 @@ class ScorePickleConfig(BaseModel):
     training: Optional[epoch_spec] = Field(
         description="The training to use to score the pickle file."
     )
+
 
 config_default_file = {
     TrainingConfig: "default_training_config",
