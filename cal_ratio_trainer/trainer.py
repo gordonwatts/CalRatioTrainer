@@ -13,6 +13,7 @@ from cal_ratio_trainer.config import (
     DiVertFileType,
     ReportingConfig,
     TrainingConfig,
+    ScorePickleConfig,
     epoch_spec,
     load_config,
     plot_file,
@@ -57,8 +58,7 @@ def do_plot(args):
     if len(args.input_files) > 0:
         input_files: List[plot_file] = []
         for i, f_name in enumerate(args.input_files):
-            assert isinstance(
-                f_name, str), f"Input file {f_name} is not a string."
+            assert isinstance(f_name, str), f"Input file {f_name} is not a string."
             if "=" in f_name:
                 name, f = f_name.split("=", 2)
             else:
@@ -88,6 +88,20 @@ def do_analyze(args):
     analyze_training_runs(cache, a)
 
 
+def parse_epoch_spec(spec: str) -> epoch_spec:
+    """Parse the training + epoch spec. The accepted format
+    is "name/run/epoch".
+
+    Args:
+        spec (str): The string specification to be parsed
+
+    Returns:
+        epoch_spec: The parsed specification
+    """
+    name, run, epoch = spec.split("/")
+    return epoch_spec(name=name, run=int(run), epoch=int(epoch))
+
+
 def do_cpp_convert(args):
     """
     Converts a training file to a frugally-deep JSON file.
@@ -104,8 +118,7 @@ def do_cpp_convert(args):
     # The training epochs are special. Analyze is specified.
     if len(args.training) > 0:
         name, run, epoch = args.training.split("/")
-        a.run_to_convert = epoch_spec(
-            name=name, run=int(run), epoch=int(epoch))
+        a.run_to_convert = epoch_spec(name=name, run=int(run), epoch=int(epoch))
 
     from cal_ratio_trainer.convert.convert_json import convert_file
 
@@ -156,8 +169,7 @@ def do_xaod_convert(args):
 
     for t in args.add_trainings:
         name, run, epoch = t.split("/")
-        a.add_training.append(epoch_spec(
-            name=name, run=int(run), epoch=int(epoch)))
+        a.add_training.append(epoch_spec(name=name, run=int(run), epoch=int(epoch)))
 
     # And run the conversion.
     from cal_ratio_trainer.convert.convert_xaod import convert_xaod
@@ -178,6 +190,22 @@ def do_model_dump(args):
     from cal_ratio_trainer.reporting.dump import dump_model
 
     dump_model(args.training)
+
+
+def do_score_pkl(args):
+    a_config = load_config(ScorePickleConfig, args.config)
+    a = apply_config_args(ScorePickleConfig, a_config, args)
+
+    if args.input_file is not None:
+        if a.input_files is None:
+            a.input_files = []
+        a.input_files.append(Path(args.input_file))
+
+    a.training = parse_epoch_spec(args.training)
+
+    from cal_ratio_trainer.score.score_pickle import score_pkl_files
+
+    score_pkl_files(a)
 
 
 def do_build_main_training(args):
@@ -208,8 +236,7 @@ def do_build_main_training(args):
 def do_resample(args):
     from cal_ratio_trainer.convert.resample import resample_training_file
 
-    resample_training_file(
-        args.input_file, args.output_file, args.fraction, cache)
+    resample_training_file(args.input_file, args.output_file, args.fraction, cache)
 
 
 def main():
@@ -225,8 +252,7 @@ def main():
     parser.add_argument("-v", "--verbose", action="count", default=0)
 
     # Sub-command train to actually run the training, using a config file to load.
-    parser_train = subparsers.add_parser(
-        "train", help="Train the CalRatio RNN model")
+    parser_train = subparsers.add_parser("train", help="Train the CalRatio RNN model")
     parser_train.add_argument(
         "--config",
         "-c",
@@ -445,16 +471,39 @@ def main():
     add_config_args(BuildMainTrainingConfig, parser_build)
     parser_build.set_defaults(func=do_build_main_training)
 
+    # Scoring a pickle file
+    parser_score = subparsers.add_parser(
+        "score",
+        help="Score an input file on a specific model",
+    )
+
+    parser_score.add_argument(
+        "--config", "-c", type=Path, help="Path to config file used for scoring"
+    )
+
+    parser_score.add_argument(
+        "input_file", default=[], help="Test file used in scoring"
+    )
+
+    parser_score.add_argument(
+        "training",
+        default=[],
+        help="Model to evaluate. Format is <training-name>/<number>/<epoch>.",
+    )
+
+    add_config_args(ScorePickleConfig, parser_score)
+    parser_score.set_defaults(func=do_score_pkl)
+
     # The `resample` command which takes an input and output training file
     # and a sampling fraction (0.0-1.0) and resamples the input file to the
     # output file.
-    parser_resample = subparsers.add_parser(
+    parser_rgitesample = subparsers.add_parser(
         "resample",
         help="Resample a training (pkl) file by some fraction",
     )
     parser_resample.add_argument(
         "input_file",
-        help="The input file to resample (a URI we can use to get at the file)",
+        help="The input file to resample (a URL we can use to get at the file)",
         type=str,
     )
     parser_resample.add_argument(
