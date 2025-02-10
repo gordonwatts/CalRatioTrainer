@@ -98,7 +98,12 @@ def parse_epoch_spec(spec: str) -> epoch_spec:
     Returns:
         epoch_spec: The parsed specification
     """
-    name, run, epoch = spec.split("/")
+    try:
+        name, run, epoch = spec.split("/")
+    except ValueError:
+        raise ValueError(
+            f"Invalid format for 'spec': {spec!r}. Expected format is 'name/run/epoch'."
+        )
     return epoch_spec(name=name, run=int(run), epoch=int(epoch))
 
 
@@ -168,8 +173,7 @@ def do_xaod_convert(args):
         )
 
     for t in args.add_trainings:
-        name, run, epoch = t.split("/")
-        a.add_training.append(epoch_spec(name=name, run=int(run), epoch=int(epoch)))
+        a.add_training.append(parse_epoch_spec(t))
 
     # And run the conversion.
     from cal_ratio_trainer.convert.convert_xaod import convert_xaod

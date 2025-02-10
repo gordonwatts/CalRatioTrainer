@@ -8,9 +8,10 @@ import matplotlib.pyplot as plt
 from cal_ratio_trainer.common.trained_model import TrainedModel, load_model_from_spec
 from cal_ratio_trainer.config import ScorePickleConfig
 from cal_ratio_trainer.reporting.evaluation_utils import load_test_data_from_df
+from cal_ratio_trainer.reporting.md_report import MDReport
 
 
-def _score_pickle_file(model: TrainedModel, file_path: Path):
+def _score_pickle_file(model: TrainedModel, file_path: Path, output_path: Path):
     """Run the ML scoring on the data in file_path.
 
     Args:
@@ -41,43 +42,9 @@ def _score_pickle_file(model: TrainedModel, file_path: Path):
     }
 
     ak_data = ak.from_iter(data_dict)
-    ak.to_parquet(ak_data, file_path.parent / f"{file_path.stem}-score.parquet")
+    ak.to_parquet(ak_data, f"{output_path.parts[0]}/score.parquet")
 
-    print(predict[:, 0])
-    print(predict[:, 1])
-    print(predict[:, 2])
-    print(f"label 0: { np.sum(predict[:, 0] > 0.1 ) }")
-    print(f"label 1: { np.sum(predict[:, 1] > 0.1 ) }")
-    print(f"label 2: { np.sum(predict[:, 2] > 0.1 ) }")
-    print(f"length: {len(predict[:, 0])}")
-
-    tot_correct = 0
-    for x in predict:
-        if (x[1] > x[0]) & (x[1] > x[2]):
-            tot_correct += 1
-    score = tot_correct / len(predict)
-    print("NN Performance Score - Frac Max Sig ", score)
-
-    tot_correct = 0
-    for x in predict:
-        if x[1] > 0.5:
-            tot_correct += 1
-    score = tot_correct / len(predict)
-    print("NN Performance Score - Frac Sig % > 50 ", score)
-
-    tot_correct = 0
-    for x in predict:
-        if x[1] > 0.8:
-            tot_correct += 1
-    score = tot_correct / len(predict)
-    print("NN Performance Score - Frac Sig % > 80 ", score)
-
-    plot_score(
-        data_dict.get("jet_nn_qcd"),
-        data_dict.get("jet_nn_bib"),
-        data_dict.get("jet_nn_sig"),
-        file_path,
-    )
+    return data_dict
 
 
 def score_pkl_files(config: ScorePickleConfig):
@@ -90,6 +57,10 @@ def score_pkl_files(config: ScorePickleConfig):
     # Load the model for the training we have been given.
     assert config.training is not None
 
+    # Create directory where we're putting the markdown file and saving the scores
+    assert config.output_path is not None
+    config.output_path.parent.mkdir(parents=True, exist_ok=True)
+
     # Load the training
     model = load_model_from_spec(config.training)
 
@@ -99,10 +70,11 @@ def score_pkl_files(config: ScorePickleConfig):
         if not f.exists():
             raise FileNotFoundError(f"Input file {f} does not exist")
 
-        _score_pickle_file(model, f)
+        data_dict = _score_pickle_file(model, f, config.output_path)
+        make_md_score_report(config, data_dict)
 
 
-def plot_score(qcd_pred, bib_pred, sig_pred, file_path):
+def plot_score(qcd_pred, bib_pred, sig_pred):
     """
     Outputs a plot of the 3 different NN scores for the file
 
@@ -140,15 +112,79 @@ def plot_score(qcd_pred, bib_pred, sig_pred, file_path):
 
     ax.set_xlabel("NN score", loc="right")
     ax.set_ylabel("Fraction of Events", loc="top")
-    # ax.set_title("title")
     # plt.yscale("log")
     ax.set_xlim(0.00002, 1.0)
     ax.set_ylim(top=1.2)
     # ax.set_ylim(top=50)
     ax.legend(loc="upper right")
-    #
-    plt.savefig(file_path.parent / f"{file_path.stem}-nn_score_plot.png")
-    plt.clf()
-    plt.close(fig)
 
-    return
+    return fig
+
+
+def make_md_score_report(config: ScorePickleConfig, data_dict: dict):
+    """
+    Makes a markdown report of the result of the score function
+    Includes information about which model was used, which test dataset was used,
+    A plot showing the NN score distribution
+    and some information about the % of signal NN scores above certain cuts
+    """
+    assert config.output_path is not None
+    with MDReport(config.output_path, "Score Report") as report:
+        report.header("## Model and Test Dataset Info")
+        report.write(
+            "Path to training dataset and model information used in making this scoring report"
+        )
+        report.add_table(
+            [
+                {
+                    "path to test dataset": str(config.input_files[0]),
+                    "model": config.training,
+                }
+            ]
+        )
+
+        report.header("## Score Results")
+
+        report.write("Information resulting from the scoring function")
+
+        num_max_sig = 0
+        num_greater_fifty = 0
+        num_greater_eighty = 0
+
+        tot_length = len(data_dict.get("jet_nn_qcd"))
+
+        for x in range(tot_length):
+            if (data_dict.get("jet_nn_sig")[x] > data_dict.get("jet_nn_bib")[x]) & (
+                data_dict.get("jet_nn_sig")[x] > data_dict.get("jet_nn_qcd")[x]
+            ):
+                num_max_sig += 1
+            if data_dict.get("jet_nn_sig")[x] > 0.5:
+                num_greater_fifty += 1
+            if data_dict.get("jet_nn_sig")[x] > 0.8:
+                num_greater_eighty += 1
+
+        report.write("")
+        report.write(
+            "NN Performance Score - Frac Max Sig: "
+            + str(round(num_max_sig / tot_length, 4))
+        )
+        report.write("")
+        report.write(
+            "NN Performance Score - Frac Sig % > 50: "
+            + str(round(num_greater_fifty / tot_length, 4))
+        )
+        report.write("")
+        report.write(
+            "NN Performance Score - Frac Sig % > 80: "
+            + str(round(num_greater_eighty / tot_length, 4)),
+        )
+
+        report.header("### Score Plot")
+        p = plot_score(
+            data_dict.get("jet_nn_qcd"),
+            data_dict.get("jet_nn_bib"),
+            data_dict.get("jet_nn_sig"),
+        )
+        report.add_figure(p, 600)
+        plt.savefig(config.output_path.parent / "score_plot.png")
+        plt.close(p)
