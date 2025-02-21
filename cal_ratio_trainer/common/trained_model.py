@@ -10,6 +10,7 @@ from keras.models import load_model as load_keras_model
 from keras.models import model_from_json as load_keras_model_from_json
 
 from cal_ratio_trainer.utils import find_training_result
+from cal_ratio_trainer.config import epoch_spec
 
 
 @dataclass
@@ -95,3 +96,15 @@ def load_model(info: str, base_path: Path = Path(".")) -> Model:
     name, run = info.split("/")
     model_dir = find_training_result(name, int(run), base_path)
     return _load_model_only(model_dir)
+
+
+def load_model_from_spec(spec: epoch_spec) -> TrainedModel:
+    """Given a model spec, load the file and return it.
+
+    Args:
+        spec (epoch_spec): The spec which tells us where to load the model from.
+    """
+    model_path = find_training_result(spec.name, spec.run)
+    model = load_trained_model_from_training(model_path, spec.epoch)
+
+    return model

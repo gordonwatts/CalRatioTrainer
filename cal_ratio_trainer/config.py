@@ -183,6 +183,10 @@ class DiVertFileType(str, Enum):
     bib = "bib"
 
 
+class ScoreDiVertAnalysisConfig(BaseModel):
+    "Configuration to score a particular model on a divert analysis file"
+
+
 class DiVertAnalysisInputFile(BaseModel):
     "Information about a divertanalysis input file"
 
@@ -364,6 +368,22 @@ class BuildMainTrainingConfig(BaseModel):
     )
 
 
+class ScorePickleConfig(BaseModel):
+    "Configuration to score a particular model on a pickle file"
+    input_files: Optional[List[Path]] = Field(
+        description="The list of input pickle to score."
+    )
+
+    output_path: Optional[Path] = Field(
+        description="The path to the directory where the output score pickle files will be "
+        "written. By default current working directory"
+    )
+
+    training: Optional[epoch_spec] = Field(
+        description="The training to use to score the pickle file."
+    )
+
+
 config_default_file = {
     TrainingConfig: "default_training_config",
     ReportingConfig: "default_reporting_config",
@@ -372,4 +392,5 @@ config_default_file = {
     ConvertDiVertAnalysisConfig: "default_divert_config",
     BuildMainTrainingConfig: "default_build_main_training_config",
     ConvertxAODConfig: "default_xaod_config",
+    ScorePickleConfig: "default_score_pickle_config",
 }
